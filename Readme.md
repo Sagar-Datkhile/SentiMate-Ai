@@ -10,39 +10,6 @@ The system provides a wellness chatbot through which students can express their 
 
 ---
 
-## 📌 Table of Contents
-
-- [Overview](#-overview)
-- [Problem Statement](#-problem-statement)
-- [Objectives](#-objectives)
-- [Key Features](#-key-features)
-- [System Workflow](#-system-workflow)
-- [System Architecture](#-system-architecture)
-- [How SentiMate Works](#-how-sentimate-works)
-- [Technology Stack](#-technology-stack)
-- [Machine Learning](#-machine-learning)
-- [NLP and Emotion Analysis](#-nlp-and-emotion-analysis)
-- [Risk Prediction](#-risk-prediction)
-- [Explainable AI](#-explainable-ai)
-- [Counsellor Dashboard](#-counsellor-dashboard)
-- [Human-in-the-Loop](#-human-in-the-loop)
-- [Privacy and Security](#-privacy-and-security)
-- [Project Structure](#-project-structure)
-- [Installation](#-installation)
-- [Configuration](#-configuration)
-- [Running the Project](#-running-the-project)
-- [Model Training](#-model-training)
-- [Example Workflow](#-example-workflow)
-- [Risk Levels](#-risk-levels)
-- [Limitations](#-limitations)
-- [Future Scope](#-future-scope)
-- [Research Contribution](#-research-contribution)
-- [Disclaimer](#-disclaimer)
-- [Contributors](#-contributors)
-- [License](#-license)
-
----
-
 # 🧠 Overview
 
 University students may experience academic pressure, social challenges, personal difficulties, uncertainty about their future, and other factors that can affect their mental well-being.
