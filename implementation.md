@@ -38,8 +38,8 @@ The codebase follows a strictly modular monorepo layout:
   - `src/components/ui`: Accessible primitives (`Button`, `Input`, `Textarea`, `Card`, `Badge`, `Dialog`)
   - `src/components/layout`: Responsive shells (`LandingNavbar`, `LandingFooter`, `StudentShell`, `CounsellorShell`, `AdminShell`, `ThemeToggle`)
   - `src/server/services`: Business logic and orchestration (`AuthService`, `CounsellorProvisioningService`)
-  - `src/server/repositories`: Database data-access layer using Supabase client (`AuthRepository`)
-  - `src/server/integrations`: Gemini streaming adapter, FastAPI ML client adapter (`MlServiceAdapter`)
+  - `src/server/repositories`: Database data-access layer using Supabase client (`AuthRepository`, `ChatRepository`)
+  - `src/server/integrations`: NVIDIA Nemotron streaming adapter (`NvidiaChatAdapter`), FastAPI ML client adapter (`MlServiceAdapter`)
   - `src/lib`: Shared utilities, env validation (`env.ts`), supabase client factories (`client.ts`, `server.ts`, `admin.ts`)
   - `src/types`: Domain TypeScript types and database schema interfaces
 - `services/ml`: Python FastAPI microservice
@@ -89,7 +89,7 @@ The codebase follows a strictly modular monorepo layout:
 | Next.js 15 Web Application | ✅ Verified | `npm run build:web` compiled 20 routes with 0 errors (exit code 0) |
 | FastAPI ML Microservice | ✅ Verified | `pytest services/ml/tests` ran 5 test cases with 100% pass rate (exit code 0) |
 | Responsive Landing Page | ✅ Verified | Full 7-section layout with interactive product preview, WCAG 2.2 AA tokens |
-| Student Chat Workspace | ✅ Verified | Desktop sidebar, mobile drawer, multiline composer, stop/retry controls, Gemini streaming |
+| Student Chat Workspace | ✅ Verified | Desktop sidebar, mobile drawer, multiline composer, stop/retry controls, NVIDIA Nemotron streaming |
 | Student Profile (8 Semesters) | ✅ Verified | Semesters 1-8 SGPA inputs with null support, PRN validation, username format checks |
 | Voluntary Check-ins & History | ✅ Verified | Skippable questions, trend tracking, and granular counsellor sharing consent |
 | Counsellor Review & Cases | ✅ Verified | Review queue with explainable indicators, confidential notes, transactional slots |

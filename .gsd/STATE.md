@@ -22,3 +22,8 @@
    - Snapshot: `schema.db`
 5. **Git Hygiene & Security (`.gitignore`)**:
    - Monorepo ignore rules configured for dependencies (`node_modules/`, `.pnp`), build artifacts (`.next/`, `dist/`), Python venvs (`.venv/`, `__pycache__/`, `.pytest_cache/`), ML weights (`*.pt`, `*.bin`, `*.safetensors`, `*.xgb`), secrets (`.env*.local`, `*.pem`, `*.key`), and OS metadata.
+6. **NVIDIA Nemotron Provider Migration**:
+   - Replaced Google Gemini with OpenAI-compatible NVIDIA Nemotron (`nvidia/nemotron-3-super-120b-a12b`).
+   - Reasoning suppressed via `enable_thinking: false` and filtered at stream level (`delta.reasoning_content` discarded).
+   - `/api/chat` security suite: 7/7 tests passed (empty message 400, length ceiling 4000 400, unconfigured key 503, unauthenticated 401, non-student role 403, inactive account 403, cross-user session 403).
+   - `npm run build:web`: 20 routes generated, 0 errors, Exit code 0.

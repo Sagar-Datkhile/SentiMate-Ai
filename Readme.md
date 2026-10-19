@@ -20,7 +20,7 @@
 - **Web Frontend & Backend** (`apps/web`): Next.js App Router (React 19, TypeScript, Tailwind CSS).
 - **Database & Auth** (`supabase`): Supabase PostgreSQL with 26 normalized entities, strict Row-Level Security (RLS), and database transactional concurrency control.
 - **ML & Inference Microservice** (`services/ml`): Python FastAPI service running Hugging Face DistilBERT feature extraction, XGBoost risk classification, and TreeSHAP feature explanations.
-- **AI Chatbot**: Server-side Google Gemini integration via streaming SSE.
+- **AI Chatbot**: Server-side NVIDIA Nemotron (`nvidia/nemotron-3-super-120b-a12b`) integration via OpenAI-compatible streaming API with reasoning exclusion and student role protection.
 
 ---
 
@@ -63,8 +63,10 @@ Key variables:
 - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase Public Anon Key
 - `SUPABASE_SERVICE_ROLE_KEY`: Supabase Secret Service Role Key (Server-only)
-- `GEMINI_API_KEY`: Google Gemini API Key for student chatbot responses
-- `GEMINI_MODEL`: Default `gemini-1.5-flash`
+- `CHAT_PROVIDER`: Conversational provider (default `nvidia`)
+- `NVIDIA_API_KEY`: NVIDIA API Catalog key (from build.nvidia.com)
+- `NVIDIA_BASE_URL`: NVIDIA NIM endpoint (default `https://integrate.api.nvidia.com/v1`)
+- `NVIDIA_MODEL`: Model identifier (`nvidia/nemotron-3-super-120b-a12b`)
 - `ML_SERVICE_URL`: URL of the FastAPI microservice (`http://127.0.0.1:8000`)
 - `ML_SERVICE_API_KEY`: Shared bearer token between Next.js and FastAPI
 
@@ -129,3 +131,10 @@ npm run build
 cd services/ml
 pytest
 ```
+
+---
+
+## 🌐 Conversational Provider & Language Limitations
+- **Current Model**: `nvidia/nemotron-3-super-120b-a12b` via NVIDIA NIM OpenAI-compatible chat completions.
+- **Thinking / Reasoning Mode**: Configured with `enable_thinking: false`. Internal reasoning traces (`delta.reasoning_content`) are stripped and never exposed or persisted as assistant messages.
+- **Evaluated Languages**: Primary evaluations and safety guardrails are calibrated in English. Regional language support (e.g. Marathi or Hindi) is not promised or clinically evaluated in this version; students are advised to communicate in English for calibrated reflections.

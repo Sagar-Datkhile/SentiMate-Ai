@@ -98,12 +98,14 @@ export default function StudentChatPage() {
         body: JSON.stringify({
           sessionId: activeSessionId,
           message: text,
+          clientMessageId: userMessageId,
         }),
         signal: abortController.signal,
       });
 
       if (!response.ok || !response.body) {
-        throw new Error(`Chat API error (${response.status})`);
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || `Chat API error (${response.status})`);
       }
 
       const reader = response.body.getReader();
@@ -147,6 +149,7 @@ export default function StudentChatPage() {
               ? {
                   ...m,
                   content:
+                    err.message ||
                     'Assistant service is currently unavailable or API key not configured. Your message was preserved so you can retry below.',
                   status: 'failed',
                 }
@@ -381,12 +384,12 @@ export default function StudentChatPage() {
           <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038] space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6]">
-                AI Chat Processing (Google Gemini)
+                AI Chat Processing (NVIDIA Nemotron)
               </span>
               <Badge variant="teal" size="sm">Active</Badge>
             </div>
             <p className="text-xs text-[#71757E]">
-              Generates empathetic, context-aware chatbot responses. Messages are streamed securely and never used to train public foundation models.
+              Generates empathetic, context-aware chatbot reflections using NVIDIA Nemotron-3 Super. Messages are streamed securely with reasoning tokens disabled, and are never used to train public foundation models.
             </p>
           </div>
 

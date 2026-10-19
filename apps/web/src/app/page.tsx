@@ -139,7 +139,7 @@ export default function LandingPage() {
                   1. Natural Conversational Space
                 </h3>
                 <p className="text-sm text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed">
-                  Talk through academic workload, loneliness, or sleep concerns using natural conversational prompts powered by Google Gemini. Your chats are completely private to your session.
+                  Talk through academic workload, loneliness, or sleep concerns using natural conversational reflections powered by NVIDIA Nemotron. Your chats are completely private to your session.
                 </p>
               </Card>
 

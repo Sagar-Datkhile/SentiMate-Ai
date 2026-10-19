@@ -15,7 +15,7 @@ updated: 2026-10-19T17:28:00Z
 - [x] Complete PostgreSQL migration in `supabase/migrations/` with RLS and triggers
 - [x] Next.js 15+ App Router application with modular features
 - [x] Responsive landing page with light/dark theme support & interactive preview
-- [x] Student chat-first workspace with history, streaming Gemini SSE, stop/retry controls
+- [x] Student chat-first workspace with history, streaming NVIDIA Nemotron, stop/retry controls
 - [x] Student profile with 8 normalized semesters (nulls supported for uncompleted semesters)
 - [x] Voluntary check-ins, consent controls, and emergency resources directory
 - [x] Counsellor dashboard with assigned students, cases, confidential notes, and transactional appointments
@@ -39,9 +39,9 @@ updated: 2026-10-19T17:28:00Z
 **Status:** ✅ Complete
 **Objective:** Tailwind design tokens, responsive landing page, student chat shell (`/student/chat`), and profile with 8 semesters.
 
-### Phase 4: Conversation Engine, Gemini Streaming & Check-ins
+### Phase 4: Conversation Engine, NVIDIA Nemotron Streaming & Check-ins
 **Status:** ✅ Complete
-**Objective:** Chat persistence, Gemini streaming SSE, consent management, wellbeing check-ins, and emergency resources.
+**Objective:** Chat persistence, NVIDIA Nemotron streaming with reasoning suppression, consent management, wellbeing check-ins, and emergency resources.
 
 ### Phase 5: Counsellor Workspace & Transactional Appointments
 **Status:** ✅ Complete

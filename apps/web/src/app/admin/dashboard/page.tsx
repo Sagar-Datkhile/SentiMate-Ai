@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
                   <span className="font-semibold text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6]">
-                    Google Gemini SSE Chat
+                    NVIDIA Nemotron SSE Chat
                   </span>
                 </div>
                 <Badge variant="teal" size="sm">
@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
                 </Badge>
               </div>
               <p className="text-xs text-[#71757E]">
-                Server-side streaming API active. Graceful demonstration fallback enabled when external API key is absent.
+                OpenAI-compatible server-side streaming API active. Non-hallucinatory unavailable status reported when API key is unconfigured.
               </p>
             </Card>
 

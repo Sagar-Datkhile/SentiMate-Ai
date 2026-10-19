@@ -24,3 +24,12 @@
 - **Status**: Accepted
 - **Context**: Prevent double booking of counsellors.
 - **Decision**: Utilize PostgreSQL `EXCLUDE USING gist` constraints on the `appointments` table over the `tstzrange(start_time, end_time)` span for active statuses.
+
+## ADR-006: Conversational Provider Migration to NVIDIA Nemotron
+- **Status**: Accepted
+- **Context**: Transition conversational support from Google Gemini to NVIDIA Nemotron (`nvidia/nemotron-3-super-120b-a12b`) using OpenAI-compatible endpoints (`https://integrate.api.nvidia.com/v1`).
+- **Decision**:
+  1. Use official `openai` SDK with server-side adapter (`NvidiaChatAdapter`).
+  2. Suppress reasoning traces (`enable_thinking: false` in `chat_template_kwargs`) and filter out `delta.reasoning_content` to prevent leaking internal model thought chains into student conversations.
+  3. Keep the distinct ML analysis pipeline (DistilBERT + XGBoost + TreeSHAP) entirely separate from the conversational LLM.
+  4. Enforce student authentication, active status, and session ownership on `/api/chat` with truthful 503 error handling on missing credentials.
