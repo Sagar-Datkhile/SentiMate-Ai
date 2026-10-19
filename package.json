@@ -7,9 +7,13 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "npm run dev:web",
     "dev:web": "npm run dev --workspace=apps/web",
+    "build": "npm run build:contracts && npm run build:web",
     "build:web": "npm run build --workspace=apps/web",
     "lint:web": "npm run lint --workspace=apps/web",
-    "build:contracts": "npm run build --workspace=packages/contracts"
+    "build:contracts": "npm run build --workspace=packages/contracts",
+    "test:bloom": "npm run test:bloom --workspace=apps/web",
+    "test:chat": "npm run test:chat --workspace=apps/web"
   }
 }

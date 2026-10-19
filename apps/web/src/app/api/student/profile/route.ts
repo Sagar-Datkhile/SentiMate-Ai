@@ -212,7 +212,8 @@ export async function PUT(req: NextRequest) {
         if (
           studentUpdateError.message?.includes('fetch failed') ||
           studentUpdateError.message?.includes('ECONNREFUSED') ||
-          studentUpdateError.code === 'PGRST205'
+          studentUpdateError.code === 'PGRST205' ||
+          studentUpdateError.code === '22P02'
         ) {
           console.warn('[Profile Update] Offline Supabase fallback applied for local dev');
         } else {

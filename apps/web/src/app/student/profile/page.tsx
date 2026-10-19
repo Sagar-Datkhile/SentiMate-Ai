@@ -95,6 +95,51 @@ export default function StudentProfilePage() {
     };
   }, []);
 
+  // Load real profile data from Supabase backend on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await fetch('/api/student/profile');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.fullName) setFullName(data.fullName);
+          if (data.username) {
+            setCurrentUsername(data.username);
+            setUsername(data.username);
+          } else {
+            setCurrentUsername('');
+            setUsername('');
+          }
+          if (data.prn) setPrn(data.prn);
+          if (data.institution) setInstitution(data.institution);
+          if (data.department) setDepartment(data.department);
+          if (data.admissionYear) setAdmissionYear(String(data.admissionYear));
+          if (data.currentSemester) setCurrentSemester(String(data.currentSemester));
+          if (data.about !== undefined) setAbout(data.about);
+          if (Array.isArray(data.semesters)) {
+            setSemesters((prev) =>
+              prev.map((s) => {
+                const found = data.semesters.find(
+                  (ds: any) => ds.semester === s.semester || ds.semester_number === s.semester
+                );
+                return found
+                  ? {
+                      semester: s.semester,
+                      sgpa:
+                        found.sgpa !== null && found.sgpa !== undefined ? String(found.sgpa) : '',
+                    }
+                  : s;
+              })
+            );
+          }
+        }
+      } catch (err) {
+        console.warn('[Profile] Failed to load profile from backend:', err);
+      }
+    };
+    loadProfile();
+  }, []);
+
   const handleSemesterChange = (semesterNum: number, value: string) => {
     setSemesters((prev) =>
       prev.map((s) => (s.semester === semesterNum ? { ...s, sgpa: value } : s))

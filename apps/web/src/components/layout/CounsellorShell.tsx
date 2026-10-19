@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { Badge } from '../ui/Badge';
+import { createClient } from '@/lib/supabase/client';
 
 interface CounsellorShellProps {
   children: React.ReactNode;
@@ -29,7 +30,20 @@ export function CounsellorShell({
   counsellorName = 'Dr. Sarah Adams',
 }: CounsellorShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('[CounsellorShell] Sign out error:', err);
+    } finally {
+      router.push('/auth/login');
+      router.refresh();
+    }
+  };
 
   const navLinks = [
     { href: '/counsellor/dashboard', label: 'Dashboard & Review Queue', icon: LayoutDashboard },
@@ -101,14 +115,14 @@ export function CounsellorShell({
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Link href="/auth/login" title="Sign out">
-            <button
-              className="p-1.5 rounded-lg text-slate-400 hover:bg-[#1F2228] transition-colors"
-              aria-label="Sign out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </Link>
+          <button
+            onClick={handleSignOut}
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-[#1F2228] transition-colors cursor-pointer"
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>

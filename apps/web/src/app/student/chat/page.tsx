@@ -18,6 +18,7 @@ import { StudentShell, ChatSessionItem } from '@/components/layout/StudentShell'
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
+import { createClient } from '@/lib/supabase/client';
 
 interface Message {
   id: string;
@@ -39,7 +40,7 @@ export default function StudentChatPage() {
       id: 'm-1',
       senderRole: 'assistant',
       content:
-        "Hello Alex. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?",
+        'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?',
       timestamp: '10:00 AM',
       status: 'completed',
     },
@@ -54,6 +55,36 @@ export default function StudentChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const name =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email?.split('@')[0] ||
+            '';
+          if (name) {
+            setMessages([
+              {
+                id: 'm-1',
+                senderRole: 'assistant',
+                content: `Hello ${name}. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: 'completed',
+              },
+            ]);
+          }
+        }
+      } catch {
+        // Keep default greeting
+      }
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -91,7 +91,6 @@ CREATE TABLE IF NOT EXISTS student_profiles (
     about TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
-    CONSTRAINT uq_student_username_lower UNIQUE (LOWER(username)),
     CONSTRAINT uq_student_prn UNIQUE (prn)
 );
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -23,6 +23,7 @@ import {
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
+import { createClient } from '@/lib/supabase/client';
 
 export interface ChatSessionItem {
   id: string;
@@ -57,6 +58,38 @@ export function StudentShell({
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [supportModalOpen, setSupportModalOpen] = useState(false);
+  const [displayName, setDisplayName] = useState(studentName);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const name =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email?.split('@')[0];
+          if (name) setDisplayName(name);
+        }
+      } catch {
+        // Fall back to prop
+      }
+    };
+    fetchUser();
+  }, [studentName]);
+
+  const handleSignOut = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('[StudentShell] Sign out error:', err);
+    } finally {
+      router.push('/auth/login');
+      router.refresh();
+    }
+  };
 
   const navLinks = [
     { href: '/student/chat', label: 'Conversations', icon: MessageSquare },
@@ -232,20 +265,20 @@ export function StudentShell({
       <div className="p-3 border-t border-[#E2E2DC] dark:border-[#2C3038] flex items-center justify-between">
         <div className="flex items-center gap-2 overflow-hidden">
           <div className="w-7 h-7 rounded-full bg-[#0D766E] text-white flex items-center justify-center text-xs font-bold shrink-0">
-            {studentName.charAt(0).toUpperCase()}
+            {displayName.charAt(0).toUpperCase()}
           </div>
-          <span className="text-xs font-medium truncate">{studentName}</span>
+          <span className="text-xs font-medium truncate">{displayName}</span>
         </div>
         <div className="flex items-center gap-1">
           <ThemeToggle />
-          <Link href="/auth/login" title="Sign out">
-            <button
-              className="p-1.5 rounded-lg text-[#71757E] hover:bg-[#EAEAE5] dark:hover:bg-[#1F2228] transition-colors"
-              aria-label="Sign out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </Link>
+          <button
+            onClick={handleSignOut}
+            className="p-1.5 rounded-lg text-[#71757E] hover:bg-[#EAEAE5] dark:hover:bg-[#1F2228] transition-colors cursor-pointer"
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
