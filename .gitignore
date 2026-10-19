@@ -1,34 +1,142 @@
-# Dependencies
+# ==============================================================================
+# SentiMate — Monorepo .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Dependency Directories
+# ------------------------------------------------------------------------------
 node_modules/
+*/node_modules/
 .pnp
 .pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.pnpm-store/
 
+# ------------------------------------------------------------------------------
+# 2. Build & Compilation Artifacts
+# ------------------------------------------------------------------------------
 # Next.js build output
 .next/
+*/.next/
 out/
+*/out/
+build/
+*/build/
 
-# TypeScript declarations build
+# TypeScript declarations & compiled outputs
 dist/
+*/dist/
+*.tsbuildinfo
+next-env.d.ts.bak
 
-# Python Virtual Environments
+# Turborepo
+.turbo/
+
+# ------------------------------------------------------------------------------
+# 3. Python Virtual Environments & Caches
+# ------------------------------------------------------------------------------
 .venv/
+*/.venv/
 venv/
+*/venv/
 ENV/
 env/
 __pycache__/
+*/__pycache__/
 *.py[cod]
 *$py.class
+.Python
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Testing & Linting Caches
 .pytest_cache/
+*/.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
 
-# Local Environment Variables
-.env*.local
+# ------------------------------------------------------------------------------
+# 4. Large Machine Learning Artifacts & Weights (Never commit raw weights)
+# ------------------------------------------------------------------------------
+*.pt
+*.pth
+*.bin
+*.onnx
+*.safetensors
+*.h5
+*.pkl
+*.joblib
+*.xgb
+model_cache/
+models_cache/
+checkpoints/
+
+# ------------------------------------------------------------------------------
+# 5. Environment Variables & Secret Keys
+# ------------------------------------------------------------------------------
 .env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
 
-# OS Metadata
-.DS_Store
-Thumbs.db
-
-# Log files
+# ------------------------------------------------------------------------------
+# 6. Log Files
+# ------------------------------------------------------------------------------
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------------------------------------------
+# 7. IDE, Editor & Tooling Files
+# ------------------------------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ------------------------------------------------------------------------------
+# 8. Operating System Metadata
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini

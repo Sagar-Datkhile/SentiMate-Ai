@@ -20,3 +20,5 @@
    - Authoritative migration: `supabase/migrations/20261019000000_init_sentimate_schema.sql`
    - Authorization test suite: `supabase/tests/authorization_and_integrity_test.sql`
    - Snapshot: `schema.db`
+5. **Git Hygiene & Security (`.gitignore`)**:
+   - Monorepo ignore rules configured for dependencies (`node_modules/`, `.pnp`), build artifacts (`.next/`, `dist/`), Python venvs (`.venv/`, `__pycache__/`, `.pytest_cache/`), ML weights (`*.pt`, `*.bin`, `*.safetensors`, `*.xgb`), secrets (`.env*.local`, `*.pem`, `*.key`), and OS metadata.
