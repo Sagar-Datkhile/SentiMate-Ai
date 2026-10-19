@@ -117,7 +117,6 @@ export class NvidiaChatAdapter {
             chat_template_kwargs: {
               enable_thinking: false,
             },
-            enable_thinking: false,
           } as any),
         },
         { signal: currentSignal }

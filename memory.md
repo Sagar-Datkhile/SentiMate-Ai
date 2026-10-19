@@ -17,13 +17,22 @@
 - **Phase 7: FastAPI ML Microservice & SHAP Explainability** — ✅ Complete (FastAPI service on port 8000, bearer token auth, DistilBERT + XGBoost pipeline, TreeSHAP explainer, honest fallback states).
 - **Phase 8: Verification, Polish & Packaging** — ✅ Complete:
   - TypeScript build (`packages/contracts`): Exit code 0
-  - Next.js production build (`apps/web`): 20 routes generated, Exit code 0
+  - Next.js production build (`apps/web`): 22 routes generated, Exit code 0
   - Pytest suite (`services/ml`): 5 test cases passed, Exit code 0
 - **Provider Migration: Gemini to NVIDIA Nemotron** — ✅ Complete:
   - Installed `openai` SDK, uninstalled `@google/generative-ai`.
   - Built `NvidiaChatAdapter` (`src/server/integrations/nvidiaChatAdapter.ts`) with `enable_thinking: false`, reasoning token filtering (`delta.reasoning_content` discarded), and 30s upstream timeout.
   - Hardened `/api/chat` with student authentication check, active status check, and conversation session ownership validation.
   - Verified 7 test scenarios (missing key 503, empty message 400, max length 4000 400, unauthenticated 401, non-student role 403, inactive account 403, cross-user session 403).
+- **Bloom Filter & PostgreSQL Username Availability** — ✅ Complete:
+  - Single canonical normalization function `normalizeUsername()` and format validator in `@sentimate/contracts`.
+  - Database migration `20261019000001_username_availability_bloom.sql` adding nullable username, format check constraint, and `idx_student_profiles_username_lower` unique expression index.
+  - Server-side `UsernameBloomFilter` with 10k capacity, 1% target FPR, $k=7$ hash functions, FNV-1a + Murmur3 double hashing, and serialization metadata.
+  - `UsernameBloomService` with tiered pipeline (client validation -> 60s query cache -> Bloom test -> single indexed DB lookup).
+  - Authenticated and rate-limited `GET /api/student/username-availability` endpoint with private cache headers.
+  - Atomic `PUT /api/student/profile` endpoint handling PostgreSQL unique constraint violations (`23505`) as friendly HTTP 409 Conflict responses.
+  - Frontend optimization in `My Profile` with 600ms debounce, session TTL cache, AbortController cancellation, unchanged username bypass, neutral visual state badges, and non-blocking save button.
+  - Verification test suite `npm run test:bloom` passing all unit, math, API, and conflict scenarios.
 
 ---
 
@@ -33,3 +42,6 @@
 - **Database Concurrency Exclusion**: PostgreSQL `EXCLUDE USING gist` constraint prevents overlapping active counsellor bookings.
 - **Student Profile Flexibility**: Supports 8 normalized semester results, permitting future/uncompleted semesters to remain null.
 - **Conversational Reasoning Privacy**: Thinking tokens and reasoning traces from Nemotron-3 Super are disabled (`enable_thinking: false`) and filtered out to never display or persist internal reasoning traces as assistant messages.
+- **Authoritative Database Uniqueness**: The PostgreSQL unique index on `LOWER(username)` is the sole authoritative uniqueness guarantee. The Bloom filter is an acceleration layer, never an authoritative barrier or security boundary.
+- **No Pre-Save Check Anti-Pattern**: Profile updates commit in one atomic write; concurrent claim collisions are detected authoritatively via the unique index error code `23505` and surfaced as a clear HTTP 409 Conflict.
+

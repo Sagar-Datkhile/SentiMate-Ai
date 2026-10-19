@@ -1,21 +1,52 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StudentShell } from '@/components/layout/StudentShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Badge } from '@/components/ui/Badge';
-import { User, CheckCircle2, AlertCircle, Save, GraduationCap, Shield } from 'lucide-react';
+import {
+  User,
+  CheckCircle2,
+  AlertCircle,
+  Save,
+  GraduationCap,
+  Shield,
+  Loader2,
+  Info,
+} from 'lucide-react';
+import {
+  normalizeUsername,
+  validateUsernameFormat,
+  UsernameAvailabilityResponse,
+} from '@sentimate/contracts';
 
 interface SemesterSGPA {
   semester: number;
-  sgpa: string; // string for input state (converted to float or null)
+  sgpa: string;
+}
+
+type AvailabilityStatus =
+  | 'idle'
+  | 'current_user'
+  | 'checking'
+  | 'appears_available'
+  | 'already_taken'
+  | 'invalid_format'
+  | 'reserved'
+  | 'unable_to_check';
+
+interface AvailabilityState {
+  status: AvailabilityStatus;
+  message?: string;
+  appearsAvailable: boolean | null;
 }
 
 export default function StudentProfilePage() {
   const [fullName, setFullName] = useState('Alex Student');
+  const [currentUsername, setCurrentUsername] = useState('alex_student');
   const [username, setUsername] = useState('alex_student');
   const [prn, setPrn] = useState('PRN-2024-ENG-0892');
   const [institution, setInstitution] = useState('Apex Institute of Technology');
@@ -42,33 +73,184 @@ export default function StudentProfilePage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Availability query state
+  const [availabilityState, setAvailabilityState] = useState<AvailabilityState>({
+    status: 'current_user',
+    message: 'Currently your username',
+    appearsAvailable: true,
+  });
+
+  // Short session-local cache for debounced username checks
+  const cacheRef = useRef<
+    Map<string, { status: AvailabilityStatus; message?: string; appearsAvailable: boolean; expiresAt: number }>
+  >(new Map());
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cleanup pending timer and abort on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+  }, []);
+
   const handleSemesterChange = (semesterNum: number, value: string) => {
     setSemesters((prev) =>
       prev.map((s) => (s.semester === semesterNum ? { ...s, sgpa: value } : s))
     );
   };
 
+  /**
+   * Username input change handler with:
+   * - Local canonical normalization (lowercase, trimmed)
+   * - Pre-network format and reserved name checks
+   * - No check when equal to current username
+   * - ~600ms debounce
+   * - Session-local TTL cache
+   * - In-flight deduplication / cancellation
+   */
+  const handleUsernameChange = (raw: string) => {
+    setUsername(raw);
+    const normalized = normalizeUsername(raw);
+
+    // Cancel pending debounce and in-flight fetch
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // 1. If equal to student's current username, avoid network call
+    if (normalized === normalizeUsername(currentUsername)) {
+      setAvailabilityState({
+        status: 'current_user',
+        message: 'Currently your username',
+        appearsAvailable: true,
+      });
+      return;
+    }
+
+    // 2. Pre-network client validation (length, characters, system reserved names)
+    const validation = validateUsernameFormat(normalized);
+    if (!validation.isValid) {
+      setAvailabilityState({
+        status: validation.isReserved ? 'reserved' : 'invalid_format',
+        message: validation.error,
+        appearsAvailable: false,
+      });
+      return; // Do NOT fire network request on invalid input
+    }
+
+    // 3. Check session-local cache (TTL 30s)
+    const cached = cacheRef.current.get(normalized);
+    if (cached && Date.now() < cached.expiresAt) {
+      setAvailabilityState({
+        status: cached.status,
+        message: cached.message,
+        appearsAvailable: cached.appearsAvailable,
+      });
+      return;
+    }
+
+    // 4. Set checking state and debounce network check by 600ms
+    setAvailabilityState({
+      status: 'checking',
+      message: 'Checking availability...',
+      appearsAvailable: null,
+    });
+
+    debounceTimerRef.current = setTimeout(async () => {
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      try {
+        const res = await fetch(
+          `/api/student/username-availability?username=${encodeURIComponent(normalized)}`,
+          { signal: controller.signal }
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP error ${res.status}`);
+        }
+
+        const data: UsernameAvailabilityResponse = await res.json();
+
+        let newStatus: AvailabilityStatus;
+        let msg = data.message;
+        let avail = data.appears_available;
+
+        if (data.is_current) {
+          newStatus = 'current_user';
+          msg = 'Currently your username';
+        } else if (data.status === 'already_taken' || !data.available) {
+          newStatus = 'already_taken';
+          msg = data.message || 'Username is already taken by another student.';
+        } else if (data.status === 'reserved') {
+          newStatus = 'reserved';
+        } else {
+          newStatus = 'appears_available';
+          msg = 'Username appears available';
+        }
+
+        // Cache result in session cache for 30s
+        cacheRef.current.set(normalized, {
+          status: newStatus,
+          message: msg,
+          appearsAvailable: avail,
+          expiresAt: Date.now() + 30000,
+        });
+
+        setAvailabilityState({
+          status: newStatus,
+          message: msg,
+          appearsAvailable: avail,
+        });
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          // Graceful fallback: unable_to_check permits saving
+          setAvailabilityState({
+            status: 'unable_to_check',
+            message: 'Unable to verify availability right now. You can still save to verify.',
+            appearsAvailable: true,
+          });
+        }
+      } finally {
+        abortControllerRef.current = null;
+      }
+    }, 600);
+  };
+
+  /**
+   * Submit single profile-update request with atomic database write
+   */
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    // Validate username: alphanumeric, underscores, hyphens, min 3
-    if (!/^[a-zA-Z0-9_-]{3,30}$/.test(username)) {
-      setErrorMessage('Username must be 3-30 characters and contain only letters, numbers, underscores, or hyphens.');
-      setSaving(false);
-      return;
+    const normalized = normalizeUsername(username);
+
+    // Client validation
+    if (normalized) {
+      const validation = validateUsernameFormat(normalized);
+      if (!validation.isValid) {
+        setErrorMessage(validation.error || 'Please enter a valid username.');
+        setSaving(false);
+        return;
+      }
     }
 
-    // Validate PRN
     if (!prn.trim()) {
       setErrorMessage('PRN (Permanent Registration Number) cannot be empty.');
       setSaving(false);
       return;
     }
 
-    // Validate SGPAs
     for (const sem of semesters) {
       if (sem.sgpa.trim() !== '') {
         const val = parseFloat(sem.sgpa);
@@ -81,11 +263,50 @@ export default function StudentProfilePage() {
     }
 
     try {
-      // Simulate/trigger save operation
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      const response = await fetch('/api/student/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName,
+          username: normalized,
+          prn: prn.trim(),
+          institution,
+          department,
+          admissionYear,
+          currentSemester,
+          about,
+          semesters,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (response.status === 409) {
+        // Atomic conflict: another student claimed the username concurrently
+        setErrorMessage(
+          data?.error || `The username '${normalized}' was just claimed by another student. Please choose a different username.`
+        );
+        setAvailabilityState({
+          status: 'already_taken',
+          message: 'Username was just claimed by another student.',
+          appearsAvailable: false,
+        });
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to save profile. Please try again.');
+      }
+
+      setCurrentUsername(normalized);
+      setAvailabilityState({
+        status: 'current_user',
+        message: 'Currently your username',
+        appearsAvailable: true,
+      });
       setSuccessMessage('Profile and semester records updated successfully.');
-    } catch {
-      setErrorMessage('Failed to save profile. Please try again.');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to save profile. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -143,13 +364,55 @@ export default function StudentProfilePage() {
                 onChange={(e) => setFullName(e.target.value)}
                 required
               />
-              <Input
-                label="Username (unique identifier)"
-                value={username}
-                onChange={(e) => setUsername(e.target.value.toLowerCase())}
-                helperText="Allowed: letters, numbers, underscores, hyphens"
-                required
-              />
+
+              {/* Username Input with Live Availability Feedback */}
+              <div className="space-y-1.5">
+                <Input
+                  label="Username (unique identifier)"
+                  value={username}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  placeholder="e.g. alex_student"
+                  required
+                />
+                <div className="flex items-center gap-1.5 text-xs px-1 min-h-[20px]">
+                  {availabilityState.status === 'checking' && (
+                    <span className="flex items-center gap-1 text-[#71757E]">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0D766E] dark:text-[#14B8A6]" />
+                      Checking availability...
+                    </span>
+                  )}
+                  {availabilityState.status === 'appears_available' && (
+                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {availabilityState.message || 'Username appears available'}
+                    </span>
+                  )}
+                  {availabilityState.status === 'current_user' && (
+                    <span className="flex items-center gap-1 text-[#0D766E] dark:text-[#14B8A6] font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {availabilityState.message || 'Currently your username'}
+                    </span>
+                  )}
+                  {availabilityState.status === 'already_taken' && (
+                    <span className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {availabilityState.message || 'Username is already taken'}
+                    </span>
+                  )}
+                  {(availabilityState.status === 'invalid_format' || availabilityState.status === 'reserved') && (
+                    <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      {availabilityState.message}
+                    </span>
+                  )}
+                  {availabilityState.status === 'unable_to_check' && (
+                    <span className="flex items-center gap-1 text-[#71757E]">
+                      <Info className="w-3.5 h-3.5 text-amber-500" />
+                      {availabilityState.message}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
             <Textarea
@@ -178,16 +441,15 @@ export default function StudentProfilePage() {
                 required
               />
               <Input
-                label="Department / Course"
+                label="Department / Major"
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
                 required
               />
               <Input
-                label="Permanent Registration Number (PRN)"
+                label="PRN (Permanent Registration Number)"
                 value={prn}
                 onChange={(e) => setPrn(e.target.value)}
-                helperText="Preserves exact letters and leading zeros"
                 required
               />
               <div className="grid grid-cols-2 gap-3">
@@ -196,76 +458,92 @@ export default function StudentProfilePage() {
                   type="number"
                   value={admissionYear}
                   onChange={(e) => setAdmissionYear(e.target.value)}
-                  min={2000}
-                  max={2100}
                   required
                 />
                 <Input
                   label="Current Semester"
                   type="number"
+                  min="1"
+                  max="8"
                   value={currentSemester}
                   onChange={(e) => setCurrentSemester(e.target.value)}
-                  min={1}
-                  max={8}
                   required
                 />
               </div>
             </div>
           </Card>
 
-          {/* Section 3: Semester SGPAs (1 through 8) */}
+          {/* Section 3: 8 Semesters Academic Records */}
           <Card className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-3">
+            <div className="flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#2C3038] pb-3">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
                 <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
-                  Academic Performance Records (Semesters 1 – 8)
+                  Academic Progress (Semesters 1 to 8)
                 </h2>
               </div>
               <span className="text-xs text-[#71757E]">
-                0.00 – 10.00 grading scale • Leave future semesters blank (null)
+                Scale: 0.00 - 10.00 • Future terms left blank
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {semesters.map((s) => (
-                <div key={s.semester} className="p-3 rounded-lg bg-[#F4F4F1] dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038]">
-                  <label className="block text-xs font-semibold text-[#4A4D54] dark:text-[#9CA3AF] mb-1">
-                    Semester {s.semester} SGPA
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="10"
-                    placeholder="Null / Uncompleted"
-                    value={s.sgpa}
-                    onChange={(e) => handleSemesterChange(s.semester, e.target.value)}
-                    className="w-full px-2.5 py-1.5 text-xs rounded bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E] dark:focus:border-[#14B8A6]"
+            <p className="text-xs text-[#71757E] leading-relaxed">
+              Academic history helps counsellors contextualize exam stress when you consent to referral sharing. Uncompleted future semesters remain empty.
+            </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-2">
+              {semesters.map((sem) => (
+                <div
+                  key={sem.semester}
+                  className="p-3 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#FAFAF8] dark:bg-[#15171C] space-y-1.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-[#18191B] dark:text-[#F3F4F6]">
+                      Semester {sem.semester}
+                    </span>
+                    {parseInt(currentSemester, 10) === sem.semester && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#E6FFFA] text-[#0D766E] dark:bg-[rgba(20,184,166,0.15)] dark:text-[#2DD4BF] font-semibold">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  <Input
+                    placeholder="SGPA (e.g. 8.5)"
+                    value={sem.sgpa}
+                    onChange={(e) => handleSemesterChange(sem.semester, e.target.value)}
+                    className="h-8 text-xs font-mono"
                   />
-                  <span className="text-[10px] text-[#71757E] mt-1 block">
-                    {s.sgpa.trim() ? `${parseFloat(s.sgpa).toFixed(2)} / 10.00` : 'Not completed'}
-                  </span>
                 </div>
               ))}
             </div>
-
-            <div className="p-3 bg-white dark:bg-[#17191E] rounded-lg border border-[#E2E2DC] dark:border-[#2C3038] text-xs text-[#71757E] leading-relaxed">
-              🔒 <strong>Model Input Protection:</strong> Educational details are not used as automatic model inputs. Any correlation analysis requires your explicit consent under our data governance rules.
-            </div>
           </Card>
 
-          {/* Submit action */}
+          {/* Submit Action */}
           <div className="flex justify-end pt-2">
             <Button
               type="submit"
               variant="primary"
               size="lg"
-              isLoading={saving}
-              className="gap-2 shadow-sm font-semibold"
+              disabled={
+                saving ||
+                availabilityState.status === 'checking' ||
+                availabilityState.status === 'already_taken' ||
+                availabilityState.status === 'invalid_format' ||
+                availabilityState.status === 'reserved'
+              }
+              className="gap-2 shadow-sm"
             >
-              <Save className="w-4 h-4" />
-              <span>Save Profile Changes</span>
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving Profile...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Profile
+                </>
+              )}
             </Button>
           </div>
         </form>

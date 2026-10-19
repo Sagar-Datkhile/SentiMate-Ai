@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test:chat": "node test-chat-api.mjs",
-    "test:adapter": "npx tsx test-adapter.ts"
+    "test:adapter": "npx tsx test-adapter.ts",
+    "test:bloom": "npx tsx test-username-bloom.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.1",

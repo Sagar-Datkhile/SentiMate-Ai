@@ -1,7 +1,7 @@
 ---
 milestone: v1.0.0
 version: 1.0.0
-updated: 2026-10-19T17:28:00Z
+updated: 2026-10-19T17:40:00Z
 ---
 
 # SentiMate — Roadmap
@@ -17,6 +17,7 @@ updated: 2026-10-19T17:28:00Z
 - [x] Responsive landing page with light/dark theme support & interactive preview
 - [x] Student chat-first workspace with history, streaming NVIDIA Nemotron, stop/retry controls
 - [x] Student profile with 8 normalized semesters (nulls supported for uncompleted semesters)
+- [x] Efficient username availability checks via Bloom filter, short-lived cache & PostgreSQL uniqueness
 - [x] Voluntary check-ins, consent controls, and emergency resources directory
 - [x] Counsellor dashboard with assigned students, cases, confidential notes, and transactional appointments
 - [x] Admin console for counsellor provisioning, user management, and content-free audit logs
@@ -57,4 +58,4 @@ updated: 2026-10-19T17:28:00Z
 
 ### Phase 8: Verification, Polish & Packaging
 **Status:** ✅ Complete
-**Objective:** Cross-role verification, accessibility and responsive testing, cleanup, and deployment guides.
+**Objective:** Cross-role verification, accessibility and responsive testing, Bloom filter username availability verification (`npm run test:bloom`), cleanup, and deployment guides.

@@ -81,7 +81,7 @@ CREATE TABLE profiles (
 
 CREATE TABLE student_profiles (
     id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
-    username TEXT NOT NULL,
+    username TEXT,
     prn TEXT NOT NULL,
     department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
     admission_year INTEGER NOT NULL,
@@ -89,6 +89,7 @@ CREATE TABLE student_profiles (
     about TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT chk_student_username_format CHECK (username IS NULL OR (length(trim(username)) >= 3 AND length(trim(username)) <= 30 AND username ~ '^[a-z0-9_-]+$')),
     CONSTRAINT uq_student_username_lower UNIQUE (LOWER(username)),
     CONSTRAINT uq_student_prn UNIQUE (prn)
 );
@@ -519,7 +520,7 @@ BEGIN
         current_semester
     ) VALUES (
         NEW.id,
-        LOWER(split_part(NEW.email, '@', 1)),
+        NULL,
         'PRN-' || substr(md5(random()::text), 1, 8),
         EXTRACT(YEAR FROM now())::INTEGER,
         1

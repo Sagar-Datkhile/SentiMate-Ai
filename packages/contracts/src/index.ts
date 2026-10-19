@@ -42,13 +42,116 @@ export const SemesterResultSchema = z.object({
 });
 export type SemesterResult = z.infer<typeof SemesterResultSchema>;
 
+// ============================================================================
+// USERNAME NORMALIZATION & POLICY
+// ============================================================================
+/**
+ * Canonical Username Normalization
+ * Enforced uniformly across UI, API, Bloom filter, and database.
+ */
+export function normalizeUsername(input: string): string {
+  if (!input) return '';
+  return input.trim().toLowerCase();
+}
+
+/**
+ * System-reserved usernames prohibited from student registration.
+ */
+export const RESERVED_USERNAMES = new Set([
+  'admin',
+  'administrator',
+  'support',
+  'sentimate',
+  'counsellor',
+  'counselor',
+  'system',
+  'api',
+  'help',
+  'moderator',
+  'root',
+  'staff',
+  'emergency',
+  'wellness',
+  'security',
+  'info',
+  'null',
+  'undefined',
+  'bot',
+  'ai',
+]);
+
+export interface UsernameValidationResult {
+  isValid: boolean;
+  normalized: string;
+  error?: string;
+  isReserved?: boolean;
+}
+
+/**
+ * Validates username against SentiMate canonical policy:
+ * - 3 to 30 characters
+ * - lowercase ASCII letters (a-z), digits (0-9), underscores (_), hyphens (-)
+ * - not a reserved system name
+ */
+export function validateUsernameFormat(raw: string): UsernameValidationResult {
+  const normalized = normalizeUsername(raw);
+  if (!normalized) {
+    return { isValid: false, normalized: '', error: 'Username cannot be empty or whitespace.' };
+  }
+  if (normalized.length < 3) {
+    return { isValid: false, normalized, error: 'Username must be at least 3 characters long.' };
+  }
+  if (normalized.length > 30) {
+    return { isValid: false, normalized, error: 'Username cannot exceed 30 characters.' };
+  }
+  if (!/^[a-z0-9_-]+$/.test(normalized)) {
+    return {
+      isValid: false,
+      normalized,
+      error: 'Username can only contain lowercase letters, numbers, underscores (_), and hyphens (-).',
+    };
+  }
+  if (RESERVED_USERNAMES.has(normalized)) {
+    return {
+      isValid: false,
+      normalized,
+      isReserved: true,
+      error: `'${normalized}' is a reserved system name and cannot be registered.`,
+    };
+  }
+  return { isValid: true, normalized };
+}
+
+export const UsernameAvailabilityStatusSchema = z.enum([
+  'available',
+  'already_taken',
+  'invalid_format',
+  'reserved',
+  'current_user',
+  'unable_to_check',
+]);
+export type UsernameAvailabilityStatus = z.infer<typeof UsernameAvailabilityStatusSchema>;
+
+export const UsernameAvailabilityResponseSchema = z.object({
+  username: z.string(),
+  available: z.boolean(),
+  appears_available: z.boolean(),
+  is_current: z.boolean().default(false),
+  status: UsernameAvailabilityStatusSchema,
+  message: z.string().optional(),
+  checked_via: z.enum(['cache', 'bloom_negative', 'db_lookup', 'client_validation', 'fallback']),
+});
+export type UsernameAvailabilityResponse = z.infer<typeof UsernameAvailabilityResponseSchema>;
+
 export const StudentProfileUpdateSchema = z.object({
   fullName: z.string().min(2).optional(),
   username: z
     .string()
-    .min(3)
-    .max(30)
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain alphanumeric characters, underscores, and hyphens')
+    .transform(normalizeUsername)
+    .refine((val) => !val || validateUsernameFormat(val).isValid, {
+      message: 'Invalid username format or reserved system name',
+    })
+    .nullable()
     .optional(),
   prn: z.string().min(1, 'PRN is required').optional(),
   admissionYear: z.number().int().min(2000).max(2100).optional(),

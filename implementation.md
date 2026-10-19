@@ -79,18 +79,85 @@ The codebase follows a strictly modular monorepo layout:
 
 ---
 
-## 4. Verification Evidence & Implementation Status
+## 4. Username Availability Architecture & Bloom Filter Pipeline
+
+To deliver low-latency username availability checks during profile editing while eliminating unnecessary database reads, SentiMate employs a multi-tiered architecture combining a server-side Bloom filter, a short-lived query cache, and PostgreSQL authoritative uniqueness constraints.
+
+### 4.1 Canonical Normalization & Validation Contract
+To guarantee consistency across the client UI, API route handlers, Bloom filter bit array, and database indexes, a single canonical normalization contract is established in `@sentimate/contracts`:
+- **Normalization Function**: `normalizeUsername(input: string): string`
+  - Strips leading and trailing whitespace (`.trim()`).
+  - Converts characters to lowercase (`.toLowerCase()`).
+  - Strips leading `@` symbols if provided by students accustomed to social handles.
+- **Allowed Character Policy**: Lowercase ASCII alphanumeric characters, hyphens, and underscores: `^[a-z0-9_-]+$`.
+- **Length Boundaries**: Minimum 3 characters, maximum 30 characters.
+- **Reserved Handles**: Hard-coded system handles (`admin`, `administrator`, `support`, `sentimate`, `counsellor`, `counselor`, `staff`, `root`, `system`, `help`, `emergency`, `crisis`, `wellbeing`, `bot`, `mod`, `moderator`) are permanently rejected by client validation and server policy before hitting the database.
+
+### 4.2 Probabilistic Bloom Filter Data Structure
+- **Algorithm**: In-memory bit array with double hashing using FNV-1a (32-bit offset basis `0x811c9dc5`) and Murmur3-inspired mixer (`hash_i(x) = (h1 + i * h2) mod m`).
+- **Target Parameters**:
+  - Initial capacity ($n$): 10,000 usernames with growth headroom.
+  - Target False Positive Rate ($p$): 1% ($0.01$).
+  - Bit array size ($m$): $m = \lceil -n \ln p / (\ln 2)^2 \rceil = 95,851\text{ bits}$ (~12 KB).
+  - Optimal hash functions ($k$): $k = \lceil (m/n) \ln 2 \rceil = 7$.
+- **Invariants**:
+  - **Zero False Negatives**: If an element is absent from the Bloom filter, it is guaranteed not to exist in the database.
+  - **Bounded False Positives**: Up to ~1% of absent usernames may be flagged as present, falling back to a single indexed DB lookup.
+  - **Server-Side Security Boundary**: The Bloom filter is kept strictly server-side. It is an acceleration mechanism, not an authoritative barrier or substitute for database constraints.
+
+### 4.3 Multi-Tier Availability Evaluation Pipeline
+When an availability check is requested:
+1. **Tier 1 (Client Validation)**: Length bounds (3–30 chars), regex format (`^[a-z0-9_-]+$`), and reserved name matching run locally. Fails immediately with zero network latency.
+2. **Tier 2 (Short-Lived Query Cache)**: Bounded in-memory LRU cache (1,000 items, 60s TTL) on the server. If a username was recently confirmed unavailable, returns `already_taken` (`checked_via: 'cache'`) without touching the Bloom filter or database. User-specific ownership is never cached in the shared cache.
+3. **Tier 3 (Bloom Filter Test)**: If the Bloom filter reports definitely absent, the server immediately returns `appears_available: true` (`checked_via: 'bloom_negative'`) with **zero database reads**.
+4. **Tier 4 (Authoritative Database Lookup)**: Only reached if the filter reports positive (real collision or ~1% false positive). Executes a single indexed query:
+   ```sql
+   SELECT id, username FROM student_profiles WHERE username = $1 LIMIT 1;
+   ```
+   - If `id === requestingStudentId`, returns `status: 'current_user'` without treating it as a collision.
+   - If owned by another student, returns `status: 'already_taken'` and populates the shared unavailable cache.
+   - If no row matches (Bloom false positive), returns `status: 'available'`.
+
+### 4.4 Refresh Lifecycle & Invalidation Policy
+- **Background Synchronization**: At server initialization, `UsernameBloomService` builds the filter with reserved handles and triggers an asynchronous, non-blocking DB hydration query (`SELECT username FROM student_profiles WHERE username IS NOT NULL`).
+- **Post-Commit Updates**: Immediately upon successful profile save, `recordUsernameAssignment(normalized, studentId)` inserts the handle into the Bloom filter and invalidates relevant cache entries.
+- **Conventional Filter Deletion Invariant**: Because conventional Bloom filters cannot safely delete bits without risking false negatives, old usernames remain present until the next scheduled rebuild. This only introduces a harmless transient false positive that the single indexed DB lookup resolves.
+- **Graceful Failure Tolerance**: If the Bloom filter is missing, stale, or encounters an internal fault, the system falls back seamlessly to the database or permits the authoritative save to proceed.
+
+### 4.5 Save Behavior & Authoritative Concurrency Control
+- **No Pre-Save Check**: The UI does not execute an artificial availability check immediately prior to saving.
+- **Atomic Database Write**: The profile update is submitted directly in one atomic query. Uniqueness is authoritatively enforced by the unique expression index:
+  ```sql
+  CREATE UNIQUE INDEX idx_student_profiles_username_lower ON student_profiles (LOWER(username)) WHERE username IS NOT NULL;
+  ```
+- **Conflict Handling**: If two students race to claim the same username, PostgreSQL raises error code `23505` (unique violation), which the API catches and translates into a friendly HTTP `409 Conflict` response with an explanatory message.
+- **Rollback Safety**: If the update fails, existing student profile fields and usernames remain unmodified.
+
+### 4.6 Frontend Optimization & Debounce Pattern
+- **Debounced Input**: Keystroke input in the username field is debounced by ~600ms before triggering an availability request.
+- **Short-Lived Session Cache**: Client keeps an in-memory cache of checked names for 30s to avoid duplicate checks during backspacing or retyping.
+- **In-Flight Cancellation**: `AbortController` aborts obsolete in-flight requests when the user continues typing.
+- **Initial Render & Unchanged Bypass**: No availability request is emitted on initial page load or when the input matches the student's current handle.
+- **Neutral Status Badges**: Visual indicators display `checking`, `appears available`, `currently available`, `already taken`, and `unable to check`.
+- **Non-Blocking Submission**: Even if the availability endpoint is unreachable or degraded (`unable_to_check`), the Save button remains active, deferring authoritative validation to the database commit.
+
+---
+
+## 5. Verification Evidence & Implementation Status
 
 | Component | Status | Verification Evidence |
 |---|---|---|
 | PostgreSQL Migration & RLS | ✅ Verified | `supabase/migrations/20261019000000_init_sentimate_schema.sql` (26 entities, full RLS, triggers) |
 | Database Authorization Tests | ✅ Verified | `supabase/tests/authorization_and_integrity_test.sql` (tests role guard, 8 semesters, chat isolation, double-booking exclusion) |
+| Username Bloom DB Migration | ✅ Verified | `supabase/migrations/20261019000001_username_availability_bloom.sql` (`LOWER(username)` unique index, format check, null initial handle) |
 | Shared TypeScript Contracts | ✅ Verified | `packages/contracts/src/index.ts` compiled via `tsc` (exit code 0) |
-| Next.js 15 Web Application | ✅ Verified | `npm run build:web` compiled 20 routes with 0 errors (exit code 0) |
+| Next.js 15 Web Application | ✅ Verified | `npm run build:web` compiled 22 routes with 0 errors (exit code 0) |
 | FastAPI ML Microservice | ✅ Verified | `pytest services/ml/tests` ran 5 test cases with 100% pass rate (exit code 0) |
 | Responsive Landing Page | ✅ Verified | Full 7-section layout with interactive product preview, WCAG 2.2 AA tokens |
 | Student Chat Workspace | ✅ Verified | Desktop sidebar, mobile drawer, multiline composer, stop/retry controls, NVIDIA Nemotron streaming |
-| Student Profile (8 Semesters) | ✅ Verified | Semesters 1-8 SGPA inputs with null support, PRN validation, username format checks |
+| Student Profile & Username Check | ✅ Verified | Debounced 600ms client check, Bloom-accelerated endpoint, 8 semester inputs with null support, PRN validation |
+| Bloom Filter Verification Suite | ✅ Verified | `npm run test:bloom` executed 4 test suites (zero false negatives, 0.00% measured FPR, Bloom negative zero-DB hits, 409 conflict handling) |
 | Voluntary Check-ins & History | ✅ Verified | Skippable questions, trend tracking, and granular counsellor sharing consent |
 | Counsellor Review & Cases | ✅ Verified | Review queue with explainable indicators, confidential notes, transactional slots |
 | Admin Console & Audit Ops | ✅ Verified | Counsellor provisioning dialog, content-free audit logs, data rights request execution |
+
