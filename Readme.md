@@ -1,134 +1,131 @@
-# SentiMate
+# SentiMate — Full-Stack Student Wellbeing & Counsellor-Support SaaS
 
-### AI-Assisted Student Mental-Health Early-Warning and Counselling-Support Platform
+[![License: MIT](https://img.shields.io/badge/License-MIT-teal.svg)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-15+-black)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688)](https://fastapi.tiangolo.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%20%2B%20Auth-3ECF8E)](https://supabase.com/)
 
-SentiMate is an AI-assisted student mental-health support platform designed to help identify potential mental-health risks among university students through conversational interaction, Natural Language Processing (NLP), Machine Learning (ML), and Explainable AI (XAI).
-
-The system provides a wellness chatbot through which students can express their concerns naturally. SentiMate analyses conversational and relevant contextual information to identify potential risk indicators and presents understandable insights to authorized counsellors.
-
-> **Important:** SentiMate is a decision-support and early-warning system. It is not a clinical diagnostic system and does not replace professional counselling, medical assessment, or emergency mental-health services.
-
----
-
-# 🧠 Overview
-
-University students may experience academic pressure, social challenges, personal difficulties, uncertainty about their future, and other factors that can affect their mental well-being.
-
-Traditional counselling systems generally depend on students voluntarily approaching counsellors or institutions. This can make early identification of concerns difficult.
-
-SentiMate aims to provide an additional technology-assisted layer between students and counselling services.
-
-The platform combines:
-
-- Conversational AI
-- Natural Language Processing
-- Sentiment Analysis
-- Emotion Analysis
-- Text Feature Extraction
-- Machine Learning
-- XGBoost-based Risk Prediction
-- Explainable AI using SHAP
-- Counsellor Dashboard
-- Human-in-the-loop review
-- Privacy-aware data processing
-- Anonymised institutional analytics
-
-The primary objective is to generate **potential risk indications and understandable supporting information** that can assist authorized counsellors in deciding whether further attention may be appropriate.
+> **A little space to talk. A clearer path to support.**  
+> SentiMate is an enterprise-grade decision-support and wellbeing SaaS platform connecting university students with conversational empathy, voluntary check-ins, explainable AI early indicators (DistilBERT + XGBoost + SHAP), consent-governed referrals, and professional counsellor follow-up.
 
 ---
 
-# 🎯 Problem Statement
-
-Mental-health concerns among university students can be influenced by academic pressure, social challenges, personal difficulties, and limited access to timely support.
-
-Existing research has explored machine-learning prediction, multimodal analysis, conversational agents, sentiment analysis, and mental-health detection independently.
-
-However, these approaches are often implemented as separate components rather than as a unified student-support workflow.
-
-There is therefore a need for an integrated platform that can:
-
-1. Allow students to communicate naturally.
-2. Analyse conversational language and emotional signals.
-3. Identify potential mental-health risk indicators.
-4. Explain the factors contributing to a prediction.
-5. Provide useful information to authorized counsellors.
-6. Maintain privacy and confidentiality.
-7. Keep professional review within the decision-making process.
-
-SentiMate is proposed to address this integration gap.
+## ⚠️ Clinical Disclaimer
+**SentiMate is a decision-support, early-warning, and triage tool.** It is **not** a clinical diagnostic medical device and does not replace professional therapy, medical care, or crisis services. Urgent contacts and verified emergency hotlines are prominently available at all times regardless of system or model state.
 
 ---
 
-# 🎯 Objectives
+## 🏛️ System Architecture
 
-The main objectives of SentiMate are:
-
-### 1. Conversational Support
-
-Develop an AI-assisted wellness chatbot that allows students to express their concerns through natural conversation.
-
-### 2. NLP-Based Analysis
-
-Analyse conversational text to extract relevant linguistic, sentiment, semantic, and emotional information.
-
-### 3. Mental-Health Risk Prediction
-
-Develop a machine-learning mechanism to identify and classify potential student mental-health risk levels.
-
-### 4. Explainable Predictions
-
-Use Explainable AI techniques such as SHAP to provide understandable information about the factors contributing to individual predictions.
-
-### 5. Counsellor Support
-
-Provide counsellor-oriented insights through a human-in-the-loop framework while maintaining privacy and confidentiality.
+- **Web Frontend & Backend** (`apps/web`): Next.js App Router (React 19, TypeScript, Tailwind CSS).
+- **Database & Auth** (`supabase`): Supabase PostgreSQL with 26 normalized entities, strict Row-Level Security (RLS), and database transactional concurrency control.
+- **ML & Inference Microservice** (`services/ml`): Python FastAPI service running Hugging Face DistilBERT feature extraction, XGBoost risk classification, and TreeSHAP feature explanations.
+- **AI Chatbot**: Server-side Google Gemini integration via streaming SSE.
 
 ---
 
-# ✨ Key Features
+## 🚀 Quick Start & Development Setup
 
-## 🤖 AI-Assisted Wellness Chatbot
+### 1. Prerequisites
+- **Node.js**: v20+ (v22.18+ recommended)
+- **Python**: 3.11+ (Python 3.13 supported)
+- **Supabase CLI**: installed via npx (`npx supabase`) or standalone binary
+- **Git**
 
-Students can communicate with SentiMate using natural language instead of filling out lengthy forms.
+### 2. Monorepo Setup & Installation
+```bash
+# Clone the repository
+git clone https://github.com/Sagar-Datkhile/SentiMate-Ai.git
+cd SentiMate-Ai
 
-The chatbot can collect conversational information that may contain useful indicators related to:
+# Install Next.js web application dependencies
+cd apps/web
+npm install
+cd ../..
 
-- Academic stress
-- Emotional difficulties
-- Social concerns
-- Motivation
-- Sleep-related concerns
-- Workload
-- Personal difficulties
-- General well-being
+# Setup Python ML Microservice
+cd services/ml
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+# source .venv/bin/activate
+pip install -r requirements.txt
+cd ../..
+```
+
+### 3. Environment Variables
+Copy `.env.example` to `.env.local` in `apps/web` and configure your credentials:
+```bash
+cp apps/web/.env.example apps/web/.env.local
+```
+Key variables:
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase Public Anon Key
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabase Secret Service Role Key (Server-only)
+- `GEMINI_API_KEY`: Google Gemini API Key for student chatbot responses
+- `GEMINI_MODEL`: Default `gemini-1.5-flash`
+- `ML_SERVICE_URL`: URL of the FastAPI microservice (`http://127.0.0.1:8000`)
+- `ML_SERVICE_API_KEY`: Shared bearer token between Next.js and FastAPI
+
+### 4. Database Migrations
+Migrations in `supabase/migrations/` are authoritative:
+```bash
+# Run local migrations with Supabase CLI
+npx supabase db reset
+# Or push to remote linked project
+npx supabase db push
+```
+
+### 5. Running the Application
+```bash
+# Terminal 1: Run Next.js Web App
+cd apps/web
+npm run dev
+# -> Opens http://localhost:3000
+
+# Terminal 2: Run Python ML Service
+cd services/ml
+.venv\Scripts\activate
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+# -> API Docs at http://localhost:8000/docs
+```
 
 ---
 
-## 📝 NLP-Based Conversation Analysis
+## 👥 Roles & Workflows
 
-SentiMate processes conversational text using NLP techniques.
-
-Potentially extracted information includes:
-
-- Sentiment
-- Emotion
-- Linguistic patterns
-- Sentence embeddings
-- Semantic information
-- Textual features
-- Contextual indicators
+1. **Student**:
+   - Registers via public signup (strictly enforced role: `student`).
+   - Lands directly on `/student/chat`.
+   - Accesses conversation history, voluntary check-ins, profile editing (including 8 semester SGPAs), and self-referral to campus counsellors.
+2. **Counsellor**:
+   - Cannot register publicly. Provisioned securely by an Admin.
+   - Lands on `/counsellor/dashboard`.
+   - Manages assigned cases, reviews consented check-in signals and SHAP explainability indicators, sets availability, and conducts appointments.
+3. **Admin**:
+   - Initial admin bootstrapped via secure migration or CLI script.
+   - Lands on `/admin/dashboard`.
+   - Provisions counsellors, assigns counsellors to students, configures institutional service hours, and reviews audit logs. Cannot inspect private student conversations or case notes.
 
 ---
 
-## 📊 Machine-Learning Risk Prediction
+## 🔒 Security & Privacy Invariants
+- **Database Row-Level Security (RLS)** is enabled on all 26 exposed tables.
+- **Client-Role Elevation Prevention**: The `handle_new_user()` trigger guarantees student role on public signup.
+- **Content-Free Audit Logging**: Audit trails log actor, action, and timestamps without logging sensitive conversational text or case note content.
+- **Concurrency Protection**: Postgres `EXCLUDE` constraint on `appointments` prevents double booking of slots.
 
-Extracted features can be provided to a machine-learning model to estimate a potential risk category.
+---
 
-The proposed architecture can use **XGBoost** for structured feature-based risk prediction.
+## 🧪 Testing & Verification
+```bash
+# Run web application tests & type checks
+cd apps/web
+npm run lint
+npm run build
 
-Example risk categories:
-
-```text
-Low
-Medium
-High
+# Run ML microservice tests
+cd services/ml
+pytest
+```

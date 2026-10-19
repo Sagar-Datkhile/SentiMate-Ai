@@ -1,0 +1,539 @@
+-- ============================================================================
+-- SentiMate — PostgreSQL Database Schema Snapshot (Supabase)
+-- NOTE: Despite the .db file extension, this is a PostgreSQL DDL schema snapshot,
+-- NOT a SQLite database. Versioned SQL files in supabase/migrations/ are authoritative.
+-- Generated: 2026-10-19
+-- ============================================================================
+
+-- ----------------------------------------------------------------------------
+-- EXTENSIONS & ENUMS
+-- ----------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "btree_gist";
+
+-- Roles
+CREATE TYPE user_role AS ENUM ('student', 'counsellor', 'admin');
+
+-- Case Status
+CREATE TYPE case_status AS ENUM ('submitted', 'acknowledged', 'contacted', 'in_progress', 'follow_up', 'resolved', 'closed');
+
+-- Referral Priority & Status
+CREATE TYPE referral_priority AS ENUM ('routine', 'medium', 'urgent');
+CREATE TYPE referral_status AS ENUM ('pending', 'accepted', 'declined', 'completed');
+
+-- Appointment Status
+CREATE TYPE appointment_status AS ENUM ('requested', 'confirmed', 'cancelled', 'rescheduled', 'completed', 'no_show');
+
+-- Risk Levels
+CREATE TYPE risk_level AS ENUM ('low', 'moderate', 'elevated', 'high');
+
+-- Analysis Job Status
+CREATE TYPE job_status AS ENUM ('pending', 'processing', 'completed', 'failed');
+
+-- Consent Types
+CREATE TYPE consent_type AS ENUM ('ai_chat_processing', 'nlp_sentiment_analysis', 'counsellor_data_sharing', 'academic_record_correlation');
+CREATE TYPE consent_status AS ENUM ('granted', 'revoked');
+
+-- Data Rights Request Types
+CREATE TYPE data_rights_type AS ENUM ('export_all_data', 'delete_account', 'anonymize_records');
+CREATE TYPE request_status AS ENUM ('pending', 'processing', 'completed', 'rejected');
+
+-- ----------------------------------------------------------------------------
+-- 1. INSTITUTIONS & DEPARTMENTS
+-- ----------------------------------------------------------------------------
+CREATE TABLE institutions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL UNIQUE,
+    code TEXT NOT NULL UNIQUE,
+    grading_scale_max NUMERIC(4, 2) NOT NULL DEFAULT 10.00,
+    service_hours_start TIME NOT NULL DEFAULT '08:00:00',
+    service_hours_end TIME NOT NULL DEFAULT '18:00:00',
+    contact_email TEXT NOT NULL,
+    emergency_contact TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE departments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    institution_id UUID NOT NULL REFERENCES institutions(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    code TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    UNIQUE(institution_id, code)
+);
+
+-- ----------------------------------------------------------------------------
+-- 2. CORE USER PROFILES & SUB-PROFILES
+-- ----------------------------------------------------------------------------
+CREATE TABLE profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    role user_role NOT NULL DEFAULT 'student',
+    email TEXT NOT NULL UNIQUE,
+    full_name TEXT NOT NULL,
+    avatar_url TEXT,
+    institution_id UUID REFERENCES institutions(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE student_profiles (
+    id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
+    username TEXT NOT NULL,
+    prn TEXT NOT NULL,
+    department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
+    admission_year INTEGER NOT NULL,
+    current_semester INTEGER NOT NULL CHECK (current_semester BETWEEN 1 AND 8),
+    about TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT uq_student_username_lower UNIQUE (LOWER(username)),
+    CONSTRAINT uq_student_prn UNIQUE (prn)
+);
+
+CREATE TABLE student_semester_results (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 8),
+    sgpa NUMERIC(4, 2) CHECK (sgpa IS NULL OR (sgpa >= 0.00 AND sgpa <= 10.00)),
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    UNIQUE(student_id, semester_number)
+);
+
+CREATE TABLE counsellor_profiles (
+    id UUID PRIMARY KEY REFERENCES profiles(id) ON DELETE CASCADE,
+    department_id UUID REFERENCES departments(id) ON DELETE SET NULL,
+    title TEXT NOT NULL DEFAULT 'Campus Counsellor',
+    specialization TEXT,
+    office_location TEXT NOT NULL,
+    phone TEXT,
+    bio TEXT,
+    max_active_cases INTEGER NOT NULL DEFAULT 30,
+    is_accepting_cases BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE student_counsellor_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    counsellor_id UUID NOT NULL REFERENCES counsellor_profiles(id) ON DELETE CASCADE,
+    assigned_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    UNIQUE(student_id, counsellor_id)
+);
+
+-- ----------------------------------------------------------------------------
+-- 3. CONSENT & GOVERNANCE
+-- ----------------------------------------------------------------------------
+CREATE TABLE consent_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    consent_type consent_type NOT NULL,
+    status consent_status NOT NULL,
+    terms_version TEXT NOT NULL DEFAULT '1.0',
+    ip_hash TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- ----------------------------------------------------------------------------
+-- 4. CONVERSATIONAL WORKSPACE & CHAT
+-- ----------------------------------------------------------------------------
+CREATE TABLE chat_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    title TEXT NOT NULL DEFAULT 'New Conversation',
+    is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE chat_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+    sender_role TEXT NOT NULL CHECK (sender_role IN ('user', 'assistant', 'system')),
+    content TEXT NOT NULL,
+    model_version TEXT,
+    token_count INTEGER,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- ----------------------------------------------------------------------------
+-- 5. WELLBEING CHECK-INS
+-- ----------------------------------------------------------------------------
+CREATE TABLE wellbeing_checkins (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    mood_score INTEGER CHECK (mood_score BETWEEN 1 AND 5),
+    sleep_hours NUMERIC(3, 1) CHECK (sleep_hours IS NULL OR (sleep_hours >= 0 AND sleep_hours <= 24)),
+    stress_level INTEGER CHECK (stress_level BETWEEN 1 AND 5),
+    energy_level INTEGER CHECK (energy_level BETWEEN 1 AND 5),
+    social_connectedness INTEGER CHECK (social_connectedness BETWEEN 1 AND 5),
+    academic_pressure INTEGER CHECK (academic_pressure BETWEEN 1 AND 5),
+    notes TEXT,
+    shared_with_counsellor BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- ----------------------------------------------------------------------------
+-- 6. ASYNC ML ANALYSIS, SIGNALS & SHAP EXPLANATIONS
+-- ----------------------------------------------------------------------------
+CREATE TABLE analysis_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    source_type TEXT NOT NULL CHECK (source_type IN ('chat_message', 'wellbeing_checkin', 'aggregate')),
+    source_id UUID NOT NULL,
+    status job_status NOT NULL DEFAULT 'pending',
+    error_message TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE text_signals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    job_id UUID REFERENCES analysis_jobs(id) ON DELETE SET NULL,
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    source_message_id UUID REFERENCES chat_messages(id) ON DELETE CASCADE,
+    sentiment_label TEXT NOT NULL,
+    sentiment_score NUMERIC(5, 4) NOT NULL,
+    emotion_scores JSONB NOT NULL DEFAULT '{}'::jsonb,
+    linguistic_cues JSONB NOT NULL DEFAULT '[]'::jsonb,
+    model_checkpoint TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE support_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    job_id UUID REFERENCES analysis_jobs(id) ON DELETE SET NULL,
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    risk_level risk_level NOT NULL,
+    confidence_score NUMERIC(5, 4) NOT NULL,
+    model_version TEXT NOT NULL,
+    is_rules_based_fallback BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE assessment_explanations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL REFERENCES support_assessments(id) ON DELETE CASCADE,
+    feature_name TEXT NOT NULL,
+    shap_value NUMERIC(7, 4) NOT NULL,
+    feature_value TEXT NOT NULL,
+    importance_rank INTEGER NOT NULL,
+    human_explanation TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- ----------------------------------------------------------------------------
+-- 7. REFERRALS, CASES & CONFIDENTIAL CLINICAL NOTES
+-- ----------------------------------------------------------------------------
+CREATE TABLE support_referrals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    preferred_counsellor_id UUID REFERENCES counsellor_profiles(id) ON DELETE SET NULL,
+    reason TEXT NOT NULL,
+    share_recent_checkins BOOLEAN NOT NULL DEFAULT TRUE,
+    share_academic_history BOOLEAN NOT NULL DEFAULT FALSE,
+    priority referral_priority NOT NULL DEFAULT 'routine',
+    status referral_status NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE cases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    counsellor_id UUID NOT NULL REFERENCES counsellor_profiles(id) ON DELETE RESTRICT,
+    referral_id UUID REFERENCES support_referrals(id) ON DELETE SET NULL,
+    status case_status NOT NULL DEFAULT 'submitted',
+    counsellor_assessment TEXT,
+    priority referral_priority NOT NULL DEFAULT 'routine',
+    next_follow_up_date DATE,
+    reopen_reason TEXT,
+    closed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE case_notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    case_id UUID NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    author_id UUID NOT NULL REFERENCES counsellor_profiles(id) ON DELETE RESTRICT,
+    title TEXT NOT NULL,
+    note_content TEXT NOT NULL,
+    is_confidential BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE case_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    case_id UUID NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    actor_id UUID NOT NULL REFERENCES profiles(id) ON DELETE RESTRICT,
+    from_status case_status,
+    to_status case_status NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- ----------------------------------------------------------------------------
+-- 8. COUNSELLOR AVAILABILITY & TRANSACTIONAL APPOINTMENTS
+-- ----------------------------------------------------------------------------
+CREATE TABLE availability_slots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    counsellor_id UUID NOT NULL REFERENCES counsellor_profiles(id) ON DELETE CASCADE,
+    slot_start TIMESTAMPTZ NOT NULL,
+    slot_end TIMESTAMPTZ NOT NULL,
+    is_booked BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT chk_slot_time CHECK (slot_end > slot_start),
+    -- Prevent overlapping availability slots per counsellor
+    CONSTRAINT uq_counsellor_slot_exclude EXCLUDE USING gist (
+        counsellor_id WITH =,
+        tstzrange(slot_start, slot_end, '[)') WITH &&
+    )
+);
+
+CREATE TABLE appointments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES student_profiles(id) ON DELETE CASCADE,
+    counsellor_id UUID NOT NULL REFERENCES counsellor_profiles(id) ON DELETE RESTRICT,
+    slot_id UUID UNIQUE REFERENCES availability_slots(id) ON DELETE SET NULL,
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    status appointment_status NOT NULL DEFAULT 'requested',
+    meeting_link TEXT,
+    location_details TEXT,
+    student_notes TEXT,
+    counsellor_notes TEXT,
+    cancellation_reason TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT chk_appointment_time CHECK (end_time > start_time),
+    -- Concurrency protection: prevent overlapping active bookings for the same counsellor
+    CONSTRAINT uq_counsellor_active_booking EXCLUDE USING gist (
+        counsellor_id WITH =,
+        tstzrange(start_time, end_time, '[)') WITH &&
+    ) WHERE (status IN ('requested', 'confirmed'))
+);
+
+-- ----------------------------------------------------------------------------
+-- 9. RESOURCES, NOTIFICATIONS, AUDIT & DATA RIGHTS
+-- ----------------------------------------------------------------------------
+CREATE TABLE support_resources (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    institution_id UUID REFERENCES institutions(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL, -- 'crisis', 'counselling_center', 'helpline', 'peer_support'
+    description TEXT NOT NULL,
+    phone TEXT,
+    url TEXT,
+    available_hours TEXT NOT NULL DEFAULT '24/7',
+    is_emergency BOOLEAN NOT NULL DEFAULT FALSE,
+    display_order INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    action_url TEXT,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    actor_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    action TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    entity_id UUID,
+    ip_hash TEXT,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE system_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    description TEXT,
+    updated_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+CREATE TABLE data_rights_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    request_type data_rights_type NOT NULL,
+    status request_status NOT NULL DEFAULT 'pending',
+    resolution_notes TEXT,
+    processed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+-- ----------------------------------------------------------------------------
+-- ROW-LEVEL SECURITY (RLS) POLICIES
+-- ----------------------------------------------------------------------------
+
+-- Enable RLS across all tables
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE institutions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_semester_results ENABLE ROW LEVEL SECURITY;
+ALTER TABLE counsellor_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE student_counsellor_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE consent_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wellbeing_checkins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE analysis_jobs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE text_signals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE support_assessments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assessment_explanations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE support_referrals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE case_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE case_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE availability_slots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE support_resources ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE data_rights_requests ENABLE ROW LEVEL SECURITY;
+
+-- Helper function: get current auth user role
+CREATE OR REPLACE FUNCTION auth_user_role()
+RETURNS user_role AS $$
+    SELECT role FROM profiles WHERE id = auth.uid();
+$$ LANGUAGE sql STABLE SECURITY DEFINER;
+
+-- 1. Profiles Policies
+CREATE POLICY "Users can view their own profile"
+    ON profiles FOR SELECT USING (id = auth.uid());
+
+CREATE POLICY "Counsellors can view profiles of assigned students"
+    ON profiles FOR SELECT USING (
+        auth_user_role() = 'counsellor' AND id IN (
+            SELECT student_id FROM student_counsellor_assignments WHERE counsellor_id = auth.uid() AND is_active = TRUE
+        )
+    );
+
+CREATE POLICY "Admins can view and manage profiles in their institution"
+    ON profiles FOR ALL USING (auth_user_role() = 'admin');
+
+-- 2. Chat Sessions & Messages (Strictly Private to Students)
+CREATE POLICY "Students manage their own chat sessions"
+    ON chat_sessions FOR ALL USING (student_id = auth.uid());
+
+CREATE POLICY "Students manage their own chat messages"
+    ON chat_messages FOR ALL USING (
+        session_id IN (SELECT id FROM chat_sessions WHERE student_id = auth.uid())
+    );
+
+-- 3. Case Notes (Strictly Confidential to Assigned Counsellors)
+CREATE POLICY "Assigned counsellors view and create case notes"
+    ON case_notes FOR ALL USING (
+        auth_user_role() = 'counsellor' AND case_id IN (
+            SELECT id FROM cases WHERE counsellor_id = auth.uid()
+        )
+    );
+
+-- 4. Wellbeing Check-ins
+CREATE POLICY "Students view and insert own check-ins"
+    ON wellbeing_checkins FOR ALL USING (student_id = auth.uid());
+
+CREATE POLICY "Assigned counsellors view consented check-ins"
+    ON wellbeing_checkins FOR SELECT USING (
+        auth_user_role() = 'counsellor' 
+        AND shared_with_counsellor = TRUE
+        AND student_id IN (
+            SELECT student_id FROM student_counsellor_assignments WHERE counsellor_id = auth.uid() AND is_active = TRUE
+        )
+    );
+
+-- 5. Appointments & Availability
+CREATE POLICY "Students and Counsellors view respective appointments"
+    ON appointments FOR SELECT USING (
+        student_id = auth.uid() OR counsellor_id = auth.uid() OR auth_user_role() = 'admin'
+    );
+
+CREATE POLICY "Students can request appointments"
+    ON appointments FOR INSERT WITH CHECK (student_id = auth.uid());
+
+CREATE POLICY "Participants can update appointments"
+    ON appointments FOR UPDATE USING (
+        student_id = auth.uid() OR counsellor_id = auth.uid()
+    );
+
+CREATE POLICY "Anyone authenticated can view active availability slots"
+    ON availability_slots FOR SELECT TO authenticated USING (TRUE);
+
+CREATE POLICY "Counsellors manage their own availability slots"
+    ON availability_slots FOR ALL USING (counsellor_id = auth.uid());
+
+-- 6. Support Resources
+CREATE POLICY "All authenticated users view active support resources"
+    ON support_resources FOR SELECT TO authenticated USING (is_active = TRUE);
+
+CREATE POLICY "Admins manage support resources"
+    ON support_resources FOR ALL USING (auth_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- TRIGGER: PUBLIC REGISTRATION SECURITY GUARANTEE
+-- Forces any newly registered Supabase auth user to role 'student'
+-- ----------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+    INSERT INTO public.profiles (
+        id,
+        email,
+        full_name,
+        role,
+        is_active
+    ) VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
+        'student', -- FORCED DEFAULT: Never trust user_meta_data for role elevation
+        TRUE
+    );
+
+    -- Automatically initialize student profile
+    INSERT INTO public.student_profiles (
+        id,
+        username,
+        prn,
+        admission_year,
+        current_semester
+    ) VALUES (
+        NEW.id,
+        LOWER(split_part(NEW.email, '@', 1)),
+        'PRN-' || substr(md5(random()::text), 1, 8),
+        EXTRACT(YEAR FROM now())::INTEGER,
+        1
+    );
+
+    -- Initialize 8 semester slots with NULL SGPAs
+    INSERT INTO public.student_semester_results (student_id, semester_number, sgpa)
+    SELECT NEW.id, s, NULL
+    FROM generate_series(1, 8) AS s;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

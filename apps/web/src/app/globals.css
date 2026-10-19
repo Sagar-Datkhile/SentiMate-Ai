@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --canvas-bg: #FBFBFA;
+  --surface-1: #FFFFFF;
+  --surface-2: #F4F4F1;
+  --surface-3: #EAEAE5;
+  --border-subtle: #E2E2DC;
+  --border-strong: #C8C8C0;
+  --text-primary: #18191B;
+  --text-secondary: #4A4D54;
+  --text-tertiary: #71757E;
+  --brand-teal: #0D766E;
+  --brand-teal-hover: #0F766E;
+  --brand-teal-light: #F0FDFA;
+  --brand-teal-border: #CCFBF1;
+  --focus-ring: rgba(13, 118, 110, 0.4);
+}
+
+.dark {
+  --canvas-bg: #0F1115;
+  --surface-1: #17191E;
+  --surface-2: #1F2228;
+  --surface-3: #282C34;
+  --border-subtle: #2C3038;
+  --border-strong: #3E434E;
+  --text-primary: #F3F4F6;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
+  --brand-teal: #14B8A6;
+  --brand-teal-hover: #2DD4BF;
+  --brand-teal-light: rgba(20, 184, 166, 0.12);
+  --brand-teal-border: rgba(20, 184, 166, 0.25);
+  --focus-ring: rgba(20, 184, 166, 0.4);
+}
+
+body {
+  background-color: var(--canvas-bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism with opaque fallback */
+.glass-nav {
+  background-color: var(--canvas-bg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+@supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
+  .glass-nav {
+    background-color: rgba(251, 251, 250, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .dark .glass-nav {
+    background-color: rgba(15, 17, 21, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Focus styles */
+:focus-visible {
+  outline: 2px solid var(--brand-teal);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

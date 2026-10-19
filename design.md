@@ -1,0 +1,108 @@
+# SentiMate — Design System & Visual Specification
+
+## 1. Design Principles & Personality
+- **Core Personality**: Calm, credible, warm, and professional. Crafted with the finish of a premier modern healthcare and student wellbeing SaaS platform.
+- **Tone & Empathy**: Respectful, non-judgmental, transparent. Never patronizing, never using forced positivity or guilt-based engagement.
+- **Copy Boundaries**: Use supportive language without claiming clinical diagnostic capability, guarantees of improvement, or replacement of professional medical/counselling support.
+- **Visual Restraint**: 
+  - Strictly avoid generic purple-blue AI gradients.
+  - Strictly avoid pages made entirely of identical rounded cards.
+  - Strictly avoid excessive glowing borders, floating neon blobs, sparkles, or decorative generic AI icons.
+  - Strictly avoid fake testimonials, fabricated user counts, fake ratings, or unverified claims.
+  - Strictly avoid unnecessary parallax, distracting loops, or visual clutter.
+
+---
+
+## 2. Tooling & Figma Status
+- **Figma MCP Status**: Inspected environment on 2026-10-19. Neither Figma MCP server nor external Figma OAuth tokens are configured in the current toolchain (available MCPs: `StitchMCP`, `supabase-mcp-server`).
+- **Design System Authority**: Standalone production token system specified below in CSS custom properties and Tailwind tokens.
+- **Screen Specifications Documented**:
+  - Landing page (Hero, Interactive preview, How it works, Privacy & Control, Human support, FAQ, Footer)
+  - Student Workspace (`/student/chat`, sidebar, conversation view, accessible multiline composer, check-ins, profile)
+  - Counsellor Workspace (`/counsellor/dashboard`, review queue, case management, availability & appointments)
+  - Admin Console (`/admin/dashboard`, counsellor provisioning, user management, audit logs, system health)
+
+---
+
+## 3. Design Tokens & Color Palette
+
+### 3.1 Light Theme (Warm Canvas & Restrained Teal)
+- **Background Root**: `#FBFBFA` (Warm off-white / alabaster canvas)
+- **Surface Level 1**: `#FFFFFF` (Pure white card / panel surface)
+- **Surface Level 2**: `#F4F4F1` (Subtle muted container / input background)
+- **Surface Level 3**: `#EAEAE5` (Hover / active element surface)
+- **Border Subtle**: `#E2E2DC` (Soft neutral border)
+- **Border Strong**: `#C8C8C0` (High-contrast focus / active border)
+- **Text Primary**: `#18191B` (Charcoal near-black, high contrast)
+- **Text Secondary**: `#4A4D54` (Muted readable neutral, meets WCAG 4.5:1)
+- **Text Tertiary**: `#71757E` (Subtle captions, timestamps)
+- **Teal Primary (Brand)**: `#0D766E` (Tailwind teal-700 — grounded, clinical yet warm)
+- **Teal Hover**: `#0F766E`
+- **Teal Light (Accent Surface)**: `#F0FDFA` (Tailwind teal-50)
+- **Teal Subtle Border**: `#CCFBF1` (Tailwind teal-100)
+- **Warning / Amber**: `#B45309` (Amber-700) on `#FFFBEB`
+- **Critical / Danger**: `#B91C1C` (Red-700) on `#FEF2F2`
+- **Success**: `#047857` (Emerald-700) on `#ECFDF5`
+
+### 3.2 Dark Theme (Deep Slate Charcoal & Muted Teal)
+- **Background Root**: `#0F1115` (Deep charcoal canvas, comfortable on eyes)
+- **Surface Level 1**: `#17191E` (Panel surface)
+- **Surface Level 2**: `#1F2228` (Elevated card / composer background)
+- **Surface Level 3**: `#282C34` (Hover / active input surface)
+- **Border Subtle**: `#2C3038` (Comfortable dark neutral border)
+- **Border Strong**: `#3E434E` (Selected / focus border)
+- **Text Primary**: `#F3F4F6` (Crisp readable light slate)
+- **Text Secondary**: `#9CA3AF` (Muted secondary slate)
+- **Text Tertiary**: `#6B7280` (Muted timestamps / hints)
+- **Teal Primary (Brand)**: `#14B8A6` (Teal-500 — accessible contrast against dark surface)
+- **Teal Hover**: `#2DD4BF`
+- **Teal Dark Surface**: `rgba(20, 184, 166, 0.12)`
+- **Teal Subtle Border**: `rgba(20, 184, 166, 0.25)`
+- **Warning / Amber**: `#FBBF24` (Amber-400) on `rgba(245, 158, 11, 0.12)`
+- **Critical / Danger**: `#F87171` (Red-400) on `rgba(239, 68, 68, 0.12)`
+- **Success**: `#34D399` (Emerald-400) on `rgba(16, 185, 129, 0.12)`
+
+### 3.3 Glassmorphism Rules
+- Use strictly for floating navigation headers and modal overlays.
+- Light Theme: `background: rgba(251, 251, 250, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(226, 226, 220, 0.8);`
+- Dark Theme: `background: rgba(15, 17, 21, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(44, 48, 56, 0.8);`
+- Opaque fallbacks provided automatically via `@supports not (backdrop-filter: blur(1px))`.
+
+---
+
+## 4. Typography Hierarchy
+- **Font Family**: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif.
+- **Scale**:
+  - `Hero Display`: 40px – 56px (line-height: 1.15, font-weight: 700, letter-spacing: -0.025em)
+  - `Heading 1`: 28px – 34px (line-height: 1.25, font-weight: 600, letter-spacing: -0.02em)
+  - `Heading 2`: 22px – 26px (line-height: 1.3, font-weight: 600, letter-spacing: -0.015em)
+  - `Heading 3`: 17px – 19px (line-height: 1.4, font-weight: 600)
+  - `Body Large`: 16px (line-height: 1.6, font-weight: 400)
+  - `Body Base`: 14px – 15px (line-height: 1.55, font-weight: 400)
+  - `Caption / Meta`: 12px – 13px (line-height: 1.45, font-weight: 500)
+- **Line Length**: Max 65 to 75 characters for conversational messages and articles to ensure effortless reading comfort.
+
+---
+
+## 5. Responsive Breakpoints & Viewport Behavior
+- **Mobile (< 640px / ~360px tested)**:
+  - Sidebar folds into an accessible slide-over drawer with backdrop overlay.
+  - Chat composer hugs the bottom safe area with sticky positioning.
+  - Touch targets minimum 44px × 44px for primary controls.
+  - Tables adapt into card-based summary views with direct action triggers.
+- **Tablet (640px – 1024px / ~768px tested)**:
+  - Responsive 2-column grids for dashboard cards and review queues.
+  - Collapsible sidebar with icon/title mode.
+- **Laptop & Desktop (1024px – 1440px+)**:
+  - Two/three-pane layouts (Navigation | List/History | Active View/Detail).
+  - Fixed-width maximum containers for chat reading line lengths (max-w-3xl).
+
+---
+
+## 6. Accessibility & Motion Guidelines
+- **WCAG Compliance**: Strict WCAG 2.2 Level AA compliance across both color themes.
+- **Focus Indicators**: 2px solid teal offset outline (`ring-2 ring-teal-500 ring-offset-2 ring-offset-background`) on keyboard navigation (`:focus-visible`).
+- **Status Communication**: Never communicate state solely by color; always accompany with clear text, badge labels, or accessible icons with `aria-label`.
+- **Motion**:
+  - Fast, purposeful micro-transitions (150ms to 200ms cubic-bezier(0.16, 1, 0.3, 1)).
+  - Respect `prefers-reduced-motion: reduce` by zeroing transition durations and transforms.
