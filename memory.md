@@ -41,6 +41,17 @@
   - Removed all artificial `setTimeout` loading delays from production views.
   - Preserved populated data during background refreshes and form saves with non-blocking pending indicators.
   - Verified across all Student, Counsellor, and Admin modules. Verified production build (`npm run build`, 23 routes, exit code 0) and test suites (`npm run test:bloom`).
+- **Glassmorphic Toast Notification System** — ✅ Complete:
+  - Created pure React 19 zero-dependency pub/sub notification manager (`apps/web/src/components/ui/Toast.tsx`).
+  - Configured semantic tokens for light/dark glass surfaces, subtle borders, soft shadows, and variant accents in `globals.css`.
+  - Fixed top-right viewport container (`sm:top-5 sm:right-5`, max-width ~400px; mobile 12px margin, safe-area inset protection, overlay layer `z-[100]`).
+  - Strict display limit of at most 3 visible toasts with bounded queue (max 10) and FIFO non-persistent eviction.
+  - In-place transition support via stable `id` (e.g. loading to success/error without duplicate stacking).
+  - Auto-dismiss timing (~4s success, ~5s info, ~6s warning, persistent actionable errors) with pause on hover/focus.
+  - Screen reader live-region accessibility (`aria-live="polite"` / `"assertive"`), decorative icon hiding (`aria-hidden="true"`), visible focus indicators.
+  - Automatic notification flushing (`toast.clear()`) on user sign-out in `StudentShell`, `CounsellorShell`, and `AdminShell`.
+  - Audited and integrated across Student (`/student/profile`, `/student/appointments`, `/student/checkins`, `/student/referrals`), Counsellor (`/counsellor/cases`, `/counsellor/availability`, `/counsellor/dashboard`), and Admin (`/admin/counsellors`, `/admin/audit`), removing duplicate inline alerts.
+  - Created verification test suite `test-toast.ts` (all 6 assertions passed) and interactive playground (`/dev/toast-preview`).
 
 ---
 

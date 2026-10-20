@@ -25,6 +25,7 @@ import {
   Activity,
   ArrowUpRight,
 } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
 
 interface ReviewQueueItem {
   id: string;
@@ -56,7 +57,6 @@ export default function CounsellorDashboardPage() {
 
   const [selectedCase, setSelectedCase] = useState<ReviewQueueItem | null>(null);
   const [assessmentNote, setAssessmentNote] = useState('');
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     // Load real counsellor caseload and referral queue without simulated delay
@@ -114,7 +114,9 @@ export default function CounsellorDashboardPage() {
     setQueue((prev) =>
       prev.map((c) => (c.id === item.id ? { ...c, status: 'acknowledged' } : c))
     );
-    setActionSuccess(`Referral for ${item.studentName} marked as Acknowledged.`);
+    toast.success('Referral acknowledged.', {
+      description: 'The support referral has been prioritized in your caseload.',
+    });
   };
 
   const handleSaveAssessment = () => {
@@ -122,11 +124,11 @@ export default function CounsellorDashboardPage() {
     setQueue((prev) =>
       prev.map((c) => (c.id === selectedCase.id ? { ...c, status: 'in_progress' } : c))
     );
-    setActionSuccess(
-      `Confidential counsellor assessment saved for ${selectedCase.studentName}. Case status updated to In Progress.`
-    );
     setSelectedCase(null);
     setAssessmentNote('');
+    toast.success('Case assessment saved.', {
+      description: 'Case status has been updated to In Progress.',
+    });
   };
 
   return (
@@ -151,12 +153,7 @@ export default function CounsellorDashboardPage() {
           )}
         </div>
 
-        {actionSuccess && (
-          <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.25)] text-[#047857] dark:text-[#34D399] flex items-center gap-3 text-xs sm:text-sm">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <span>{actionSuccess}</span>
-          </div>
-        )}
+
 
         {/* 4 Stat Cards */}
         <LoadingRegion

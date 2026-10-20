@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { TableRowsSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ShieldCheck, FileCheck2, CheckCircle2 } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
 
 interface AuditEvent {
   id: string;
@@ -30,7 +31,6 @@ export default function AdminAuditPage() {
   const [auditLogs, setAuditLogs] = useState<AuditEvent[]>([]);
   const [dataRequests, setDataRequests] = useState<DataRightsRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   useEffect(() => {
     // Load real audit logs and privacy requests without artificial delay
@@ -66,7 +66,9 @@ export default function AdminAuditPage() {
     } catch {
       // Ignore
     }
-    setActionNotice('Data rights request processed according to institutional retention rules.');
+    toast.success('Data rights request processed.', {
+      description: 'Institutional compliance records have been updated.',
+    });
   };
 
   return (
@@ -87,12 +89,7 @@ export default function AdminAuditPage() {
           </Badge>
         </div>
 
-        {actionNotice && (
-          <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.25)] text-[#047857] dark:text-[#34D399] flex items-center gap-3 text-xs sm:text-sm">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <span>{actionNotice}</span>
-          </div>
-        )}
+
 
         {/* Section 1: Data Rights Requests */}
         <div className="space-y-4">

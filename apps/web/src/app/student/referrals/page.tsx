@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
 import { HeartHandshake, CheckCircle2, Shield, AlertCircle, Clock } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
 
 export default function StudentReferralsPage() {
   const [reason, setReason] = useState('');
@@ -38,6 +39,9 @@ export default function StudentReferralsPage() {
     } finally {
       setLoading(false);
       setSubmitted(true);
+      toast.success('Support referral submitted.', {
+        description: 'Campus psychological services has received your request.',
+      });
     }
   };
 

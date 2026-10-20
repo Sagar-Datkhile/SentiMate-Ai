@@ -19,6 +19,7 @@ import {
   AlertCircle,
   FileText,
 } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
 
 interface CaseNote {
   id: string;
@@ -46,7 +47,6 @@ export default function CounsellorCasesPage() {
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [newStatus, setNewStatus] = useState<string>('in_progress');
-  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   useEffect(() => {
     // Load counsellor case records from storage/session without delay
@@ -94,10 +94,12 @@ export default function CounsellorCasesPage() {
       // Ignore
     }
 
-    setSuccessBanner(`Confidential case note added for ${activeCase.studentName}.`);
     setNoteTitle('');
     setNoteContent('');
     setActiveCase(null);
+    toast.success('Case note saved.', {
+      description: 'The confidential progress note has been recorded.',
+    });
   };
 
   return (
@@ -122,12 +124,7 @@ export default function CounsellorCasesPage() {
           )}
         </div>
 
-        {successBanner && (
-          <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.25)] text-[#047857] dark:text-[#34D399] flex items-center gap-3 text-xs sm:text-sm">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <span>{successBanner}</span>
-          </div>
-        )}
+
 
         <LoadingRegion
           isLoading={isLoading}

@@ -226,3 +226,75 @@ To eliminate visual layout shifts, prevent confusing placeholders, and provide c
 - **Isolated Demo Content**:
   - Explicitly labeled demo mock data is strictly confined to `InteractiveProductPreview.tsx` on the public landing page with prominent disclaimer badges.
 
+---
+
+## 7. Glassmorphic Toast Notification System
+
+### 7.1 Architecture & Pub/Sub Store
+- **Pure React 19 Implementation**: Zero external dependencies, eliminating React 19 peer-dependency conflicts with third-party libraries (e.g. `sonner` / `react-hot-toast`).
+- **Pub/Sub Singleton**: `toastManager` (`apps/web/src/components/ui/Toast.tsx`) manages visible items, bounded queuing (max 10), and subscriber synchronization.
+- **Typed Notification API**:
+  - `toast.success(title: string, options?: ToastOptions)`
+  - `toast.error(title: string, options?: ToastOptions)`
+  - `toast.warning(title: string, options?: ToastOptions)`
+  - `toast.info(title: string, options?: ToastOptions)`
+  - `toast.loading(title: string, options?: ToastOptions)`
+  - `toast.promise<T>(promise, { loading, success, error }, options?: ToastOptions)`
+  - `toast.dismiss(id?: string)`
+  - `toast.clear()`: Instant flush of all visible and queued toasts without waiting for exit animations.
+
+### 7.2 Invariants & Operational Rules
+- **Top-Right Viewport Positioning**:
+  - Fixed independent of page scrolling at `top-4 right-3 left-3 sm:left-auto sm:right-5 sm:top-5 z-[100] sm:w-[380px] max-w-[400px]`.
+  - Respects `safe-area-inset-top` via CSS environment variables.
+  - Overlay container is `pointer-events-none`; toast cards are `pointer-events-auto`.
+- **Display Limit & Bounded Queue**:
+  - Displays at most 3 visible toasts concurrently.
+  - New incoming toasts evict the oldest non-persistent card or enter a bounded pending queue (max 10).
+- **In-Place Transitions & Deduplication**:
+  - Passing a stable `id` updates an active toast in place (e.g., loading spinner transitions smoothly to checkmark or error alert) without stacking duplicate cards.
+- **Timing & Pause Behavior**:
+  - Success auto-dismiss: ~4000ms.
+  - Info auto-dismiss: ~5000ms.
+  - Warning auto-dismiss: ~6000ms.
+  - Errors requiring action remain persistent (`persistent: true`, `duration: Infinity`) until dismissed or resolved.
+  - Timers automatically pause when hovering with mouse cursor or when keyboard focus moves into the toast card.
+- **Accessibility**:
+  - `role="region" aria-label="Notifications"`.
+  - Dedicated screen-reader live region (`aria-live="polite"` for success/info/warning, `aria-live="assertive"` for critical errors).
+  - Decorative icons are `aria-hidden="true"`.
+  - Accessible dismiss button with `aria-label="Dismiss notification"` and visible teal focus ring.
+  - Never automatically steals keyboard focus.
+- **Privacy & Security**:
+  - Never exposes sensitive wellbeing data, case notes, student PRNs, or raw provider exceptions in toast text.
+  - All transient toasts are cleared (`toast.clear()`) on user logout or account switching in `StudentShell`, `CounsellorShell`, and `AdminShell`.
+
+### 7.3 Integration Points
+- **Student Profile (`/student/profile`)**:
+  - `toast.success('Profile changes saved.')` / `toast.success('Username changed.')` on confirmed backend write.
+  - `toast.error('Username is already taken.')` on 409 conflict.
+  - `toast.error('Profile update failed.')` on mutation rejection.
+- **Student Appointments (`/student/appointments`)**:
+  - `toast.success('Appointment request submitted.')` on reservation.
+  - `toast.info('Appointment cancelled.')` on session cancellation.
+  - `toast.error('Appointment slot is no longer available.')` on concurrent booking collision.
+- **Student Check-ins (`/student/checkins`)**:
+  - `toast.success('Wellbeing check-in saved.')` on recording reflection.
+- **Student Referrals (`/student/referrals`)**:
+  - `toast.success('Support referral submitted.')` on triage submission.
+- **Counsellor Cases (`/counsellor/cases`)**:
+  - `toast.success('Case note saved.')` on confidential clinical note recording.
+- **Counsellor Availability (`/counsellor/availability`)**:
+  - `toast.success('Availability slot created.')` on publishing booking window.
+  - `toast.info('Availability slot removed.')` on deleting slot.
+- **Counsellor Dashboard (`/counsellor/dashboard`)**:
+  - `toast.success('Referral acknowledged.')` on reviewing referral.
+  - `toast.success('Case assessment saved.')` on triage status update.
+- **Admin Counsellor Provisioning (`/admin/counsellors`)**:
+  - `toast.success('Counsellor account invitation sent.')` on clinician dispatch.
+- **Admin Audit & Privacy (`/admin/audit`)**:
+  - `toast.success('Data rights request processed.')` on GDPR/FERPA fulfillment.
+- **Session Shells (`StudentShell`, `CounsellorShell`, `AdminShell`)**:
+  - Invokes `toast.clear()` in `handleSignOut()` to flush notifications prior to redirect.
+
+

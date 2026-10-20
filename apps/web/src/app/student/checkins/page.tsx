@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { CheckinCardSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Compass, CheckCircle2, TrendingUp, Moon, Zap, Smile, Users, BookOpen, Shield } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
 
 interface CheckinHistoryItem {
   id: string;
@@ -75,6 +76,9 @@ export default function StudentCheckinsPage() {
     }
     setSaving(false);
     setSubmitted(true);
+    toast.success('Wellbeing check-in saved.', {
+      description: 'Your self-reflection has been recorded in your private history.',
+    });
   };
 
   return (

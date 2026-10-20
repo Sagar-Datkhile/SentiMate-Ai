@@ -21,6 +21,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { Badge } from '../ui/Badge';
 import { Skeleton } from '../ui/Skeleton';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from '@/components/ui/Toast';
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -56,6 +57,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
   const handleSignOut = async () => {
     try {
+      toast.clear();
       const supabase = createClient();
       await supabase.auth.signOut();
     } catch (err) {

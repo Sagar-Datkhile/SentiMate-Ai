@@ -9,6 +9,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { AppointmentCardSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Calendar, Clock, MapPin, CheckCircle2, AlertCircle, XCircle, UserCheck } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
 
 interface AvailableSlot {
   id: string;
@@ -38,7 +39,6 @@ export default function StudentAppointmentsPage() {
   const [bookingSlot, setBookingSlot] = useState<AvailableSlot | null>(null);
   const [notes, setNotes] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   useEffect(() => {
     // Load student appointments and published open slots
@@ -72,6 +72,17 @@ export default function StudentAppointmentsPage() {
     if (!bookingSlot) return;
     setBookingLoading(true);
 
+    // Guard if slot was already taken
+    const latestSlot = availableSlots.find((s) => s.id === bookingSlot.id);
+    if (latestSlot && latestSlot.isBooked) {
+      toast.error('Appointment slot is no longer available.', {
+        description: 'This time slot was claimed by another student. Please select a different time.',
+      });
+      setBookingLoading(false);
+      setBookingSlot(null);
+      return;
+    }
+
     const newApt: AppointmentItem = {
       id: `apt-${Date.now()}`,
       counsellorName: bookingSlot.counsellorName,
@@ -96,15 +107,16 @@ export default function StudentAppointmentsPage() {
       // Ignore storage errors
     }
 
-    setSuccessBanner(
-      `Appointment reserved with ${bookingSlot.counsellorName} for ${bookingSlot.date} at ${bookingSlot.time}.`
-    );
+    toast.success('Appointment request submitted.', {
+      description: `Reserved with ${bookingSlot.counsellorName} for ${bookingSlot.date} at ${bookingSlot.time}.`,
+    });
     setBookingSlot(null);
     setNotes('');
     setBookingLoading(false);
   };
 
   const handleCancel = (id: string) => {
+    const apt = appointments.find((a) => a.id === id);
     const updated = appointments.map((a) =>
       a.id === id ? { ...a, status: 'cancelled' as const } : a
     );
@@ -114,6 +126,9 @@ export default function StudentAppointmentsPage() {
     } catch {
       // Ignore
     }
+    toast.info('Appointment cancelled.', {
+      description: apt ? `Session on ${apt.date} at ${apt.time} has been cancelled.` : undefined,
+    });
   };
 
   return (
@@ -134,12 +149,7 @@ export default function StudentAppointmentsPage() {
           </Badge>
         </div>
 
-        {successBanner && (
-          <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.25)] text-[#047857] dark:text-[#34D399] flex items-center gap-3 text-sm">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <span>{successBanner}</span>
-          </div>
-        )}
+
 
         {/* Section 1: Upcoming & Past Appointments */}
         <div className="space-y-4">

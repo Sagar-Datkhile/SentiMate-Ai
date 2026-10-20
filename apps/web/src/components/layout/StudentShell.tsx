@@ -23,6 +23,7 @@ import {
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
+import { toast } from '@/components/ui/Toast';
 import { ChatHistorySkeleton, Skeleton } from '../ui/Skeleton';
 import { createClient } from '@/lib/supabase/client';
 
@@ -87,6 +88,7 @@ export function StudentShell({
 
   const handleSignOut = async () => {
     try {
+      toast.clear();
       const supabase = createClient();
       await supabase.auth.signOut();
     } catch (err) {

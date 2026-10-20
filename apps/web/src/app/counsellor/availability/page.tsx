@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { AppointmentCardSkeleton, LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Clock, Plus, Calendar, CheckCircle2, Trash2 } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
 
 interface SlotItem {
   id: string;
@@ -26,7 +27,6 @@ export default function CounsellorAvailabilityPage() {
   const [newDate, setNewDate] = useState('2026-10-28');
   const [newStart, setNewStart] = useState('09:30');
   const [newEnd, setNewEnd] = useState('10:15');
-  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   useEffect(() => {
     // Load published slots from storage / backend without artificial delay
@@ -63,7 +63,9 @@ export default function CounsellorAvailabilityPage() {
     } catch {
       // Ignore
     }
-    setSuccessBanner(`Availability slot created for ${newDate} (${newStart} – ${newEnd}).`);
+    toast.success('Availability slot created.', {
+      description: `Published for ${newDate} (${newStart} – ${newEnd}).`,
+    });
   };
 
   const handleDeleteSlot = (id: string) => {
@@ -74,6 +76,7 @@ export default function CounsellorAvailabilityPage() {
     } catch {
       // Ignore
     }
+    toast.info('Availability slot removed.');
   };
 
   return (
@@ -94,12 +97,7 @@ export default function CounsellorAvailabilityPage() {
           </Badge>
         </div>
 
-        {successBanner && (
-          <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.25)] text-[#047857] dark:text-[#34D399] flex items-center gap-3 text-xs sm:text-sm">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <span>{successBanner}</span>
-          </div>
-        )}
+
 
         {/* Create Slot Form */}
         <Card className="space-y-4">

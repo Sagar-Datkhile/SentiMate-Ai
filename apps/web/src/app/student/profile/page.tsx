@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { ProfileSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
+import { toast } from '@/components/ui/Toast';
 import {
   normalizeUsername,
   validateUsernameFormat,
@@ -72,7 +73,6 @@ export default function StudentProfilePage() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Availability query state
@@ -299,7 +299,6 @@ export default function StudentProfilePage() {
     e.preventDefault();
     setSaving(true);
     setErrorMessage(null);
-    setSuccessMessage(null);
 
     const normalized = normalizeUsername(username);
 
@@ -351,9 +350,11 @@ export default function StudentProfilePage() {
 
       if (response.status === 409) {
         // Atomic conflict: another student claimed the username concurrently
-        setErrorMessage(
-          data?.error || `The username '${normalized}' was just claimed by another student. Please choose a different username.`
-        );
+        const msg = data?.error || `The username '${normalized}' was just claimed by another student.`;
+        setErrorMessage(msg);
+        toast.error('Username is already taken.', {
+          description: 'Please choose a different username.',
+        });
         setAvailabilityState({
           status: 'already_taken',
           message: 'Username was just claimed by another student.',
@@ -363,18 +364,35 @@ export default function StudentProfilePage() {
       }
 
       if (!response.ok) {
-        throw new Error(data?.error || 'Failed to save profile. Please try again.');
+        const errorDetail = data?.error || 'Failed to save profile. Please try again.';
+        setErrorMessage(errorDetail);
+        toast.error('Profile update failed.', {
+          description: errorDetail,
+        });
+        return;
       }
 
+      const usernameChanged = normalized && normalized !== currentUsername;
       setCurrentUsername(normalized);
       setAvailabilityState({
         status: 'current_user',
         message: 'Currently your username',
         appearsAvailable: true,
       });
-      setSuccessMessage('Profile and semester records updated successfully.');
+
+      if (usernameChanged) {
+        toast.success('Username changed.', {
+          description: 'Your profile changes were also saved successfully.',
+        });
+      } else {
+        toast.success('Profile changes saved.');
+      }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Failed to save profile. Please try again.');
+      const fallbackMsg = err.message || 'Failed to save profile. Please try again.';
+      setErrorMessage(fallbackMsg);
+      toast.error('Profile update failed.', {
+        description: fallbackMsg,
+      });
     } finally {
       setSaving(false);
     }
@@ -401,13 +419,6 @@ export default function StudentProfilePage() {
         </div>
 
         {/* Feedback alerts */}
-        {successMessage && (
-          <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.25)] text-[#047857] dark:text-[#34D399] flex items-center gap-3 text-sm">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <span>{successMessage}</span>
-          </div>
-        )}
-
         {errorMessage && (
           <div className="p-4 rounded-xl bg-[#FEF2F2] dark:bg-[rgba(239,68,68,0.12)] border border-[#FECACA] dark:border-[rgba(239,68,68,0.25)] text-[#B91C1C] dark:text-[#F87171] flex items-center gap-3 text-sm">
             <AlertCircle className="w-5 h-5 shrink-0" />

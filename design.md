@@ -91,6 +91,47 @@
   - Refreshes/Form Saves: Existing populated data remains visible while buttons show non-blocking pending indicators to prevent duplicate submissions without layout jarring.
   - Numerical Validity: Treat zero (`0`) as a valid metric, GPA, or count rather than mistaking it for missing or uninitialized state.
 
+### 3.5 Glassmorphic Toast Notification Tokens & Placement
+- **Visual Design Philosophy**:
+  - Translucent frosted glass matching reference with `backdrop-filter: blur(16px)` and opaque fallback.
+  - Fine 1px subtle neutral border and soft layered drop-shadow.
+  - 16px corner radii (`rounded-2xl`) and comfortable `p-3.5 sm:p-4` padding.
+  - Small outlined status icon on left, title & optional description in middle, discreet close button on right.
+  - Background blur applies strictly to the toast surface; the underlying page remains pin-sharp and interactive.
+- **Light Theme Tokens**:
+  - Surface (`--toast-bg`): `rgba(255, 255, 255, 0.88)` (Warm translucent white).
+  - Border (`--toast-border`): `rgba(226, 226, 220, 0.85)` (Subtle neutral border).
+  - Shadow (`--toast-shadow`): `0 12px 32px -4px rgba(24, 25, 27, 0.08), 0 4px 12px -2px rgba(24, 25, 27, 0.04)`.
+  - Title (`--toast-title`): `#18191B` (Dark charcoal, high contrast).
+  - Description (`--toast-desc`): `#5E626C` (Muted readable neutral).
+  - Success Accent (`--toast-success-accent`): `#0D766E` (Muted clinical teal).
+  - Success Badge Bg (`--toast-success-bg`): `rgba(13, 118, 110, 0.08)`.
+  - Error Accent (`--toast-error-accent`): `#DC2626` (Restrained crimson red).
+  - Warning Accent (`--toast-warning-accent`): `#D97706` (Muted amber).
+  - Info Accent (`--toast-info-accent`): `#2563EB` (Restrained soft blue).
+- **Dark Theme Tokens**:
+  - Surface (`--toast-bg`): `rgba(23, 25, 30, 0.88)` (Translucent smoked charcoal).
+  - Border (`--toast-border`): `rgba(255, 255, 255, 0.09)` (Restrained light border).
+  - Shadow (`--toast-shadow`): `0 14px 36px -4px rgba(0, 0, 0, 0.55), 0 4px 16px -2px rgba(0, 0, 0, 0.35)`.
+  - Title (`--toast-title`): `#F3F4F6` (Crisp light slate).
+  - Description (`--toast-desc`): `#9CA3AF` (Muted secondary slate).
+  - Success Accent (`--toast-success-accent`): `#14B8A6` (Soft glowing teal).
+  - Success Badge Bg (`--toast-success-bg`): `rgba(20, 184, 166, 0.12)`.
+  - Error Accent (`--toast-error-accent`): `#F87171` (Soft readable red).
+  - Warning Accent (`--toast-warning-accent`): `#FBBF24` (Soft amber).
+  - Info Accent (`--toast-info-accent`): `#60A5FA` (Soft readable blue).
+- **Placement & Layering**:
+  - Fixed top-right: Desktop & tablet 20px margin (`sm:top-5 sm:right-5`), max-width 400px.
+  - Mobile: Full width with 12px side margins (`left-3 right-3 sm:left-auto`).
+  - Safe-Area Inset: `marginTop: env(safe-area-inset-top, 0px)`.
+  - Overlay Layering: `z-[100]` with `pointer-events-none` container and `pointer-events-auto` cards.
+  - Stacking: Displays at most 3 visible toasts simultaneously; queue bounded at 10 items.
+- **Motion & Accessibility**:
+  - Short fade and subtle vertical slide: `toast-enter` (220ms cubic-bezier(0.16, 1, 0.3, 1)), `toast-exit` (180ms).
+  - `prefers-reduced-motion`: Animations and transforms zeroed.
+  - Live Region: Polite announcements for success/info, assertive for actionable errors.
+  - Pause on hover and keyboard focus: Resumes countdown on leave/blur.
+
 ---
 
 ## 4. Typography Hierarchy

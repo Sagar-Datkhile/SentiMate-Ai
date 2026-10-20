@@ -10,6 +10,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { AppointmentCardSkeleton, LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { UserPlus, CheckCircle2, Shield, Mail, Building, Phone, Users } from 'lucide-react';
+import { toast } from '@/components/ui/Toast';
 
 interface CounsellorItem {
   id: string;
@@ -33,7 +34,6 @@ export default function AdminCounsellorsPage() {
   const [officeLocation, setOfficeLocation] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
-  const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
   useEffect(() => {
     // Load authorized counsellor directory without artificial delay
@@ -78,15 +78,15 @@ export default function AdminCounsellorsPage() {
       // Ignore
     }
 
-    setSuccessBanner(
-      `Counsellor invitation generated for ${fullName} (${email}). Secure activation link dispatched. Action recorded in audit logs.`
-    );
     setInviteModalOpen(false);
     setFullName('');
     setEmail('');
     setOfficeLocation('');
     setPhone('');
     setLoading(false);
+    toast.success('Counsellor account invitation sent.', {
+      description: `Secure activation link dispatched to ${email}.`,
+    });
   };
 
   return (
@@ -113,12 +113,7 @@ export default function AdminCounsellorsPage() {
           </Button>
         </div>
 
-        {successBanner && (
-          <div className="p-4 rounded-xl bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.12)] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.25)] text-[#047857] dark:text-[#34D399] flex items-center gap-3 text-xs sm:text-sm">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-            <span>{successBanner}</span>
-          </div>
-        )}
+
 
         {/* Counsellors List */}
         <div className="space-y-3">
