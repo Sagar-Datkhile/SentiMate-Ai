@@ -132,6 +132,25 @@
   - Live Region: Polite announcements for success/info, assertive for actionable errors.
   - Pause on hover and keyboard focus: Resumes countdown on leave/blur.
 
+### 3.6 Student Sidebar Collapse & ChatGPT-Style Account Menu
+- **Sidebar Collapse & Rail Mode**:
+  - Expanded Desktop Mode: Width `w-64 lg:w-72` (256px – 288px). Displays brand header, `SidebarToggle` (`PanelLeftClose`), full "New conversation" button, and conversation history list.
+  - Collapsed Rail Mode: Width `w-16` (64px). Displays centered `SidebarToggle` (`PanelLeftOpen`), tooltipped "New conversation" icon button (`Plus`), minimal spacer, and bottom account avatar trigger.
+  - Transition: Smooth `transition-[width] duration-200 ease-in-out` respecting `prefers-reduced-motion`.
+  - Local Persistence: Preference stored in `localStorage.getItem('sentimate_sidebar_collapsed')` with zero API dependencies.
+  - Responsive Behavior: Collapsed preference applies strictly to desktop viewports (`md:` breakpoint). Mobile viewports render an accessible full-width slide-over drawer with backdrop blur and explicit close control.
+- **ChatGPT-Style Account Popup (`AccountMenu`)**:
+  - Surface: Floating glassmorphic card with `backdrop-filter: blur(16px)`, `rounded-2xl` (~16px), fine border (`#E2E2DC` / `#2C3038`), and soft shadow (`shadow-2xl`).
+  - Anchor Positioning: Computed dynamically with collision detection. Anchors above the bottom account trigger in expanded desktop/mobile modes; anchors to the right of the rail trigger in collapsed mode.
+  - React Portal: Rendered via `createPortal` into `document.body` to eliminate clipping by overflow containers.
+  - Structure & Content Hierarchy:
+    1. Account Identity Header: Avatar with real user initial, full name, email/username subtitle, and role badge ("Student").
+    2. Navigation Entries: My Profile, Conversations, Wellbeing Check-ins, Appointments, Support Resources, and Human Support Referral. Includes active route indicator dot and font emphasis.
+    3. Settings & Appearance: Expandable inline theme selector (Light / Dark / System) with immediate feedback and local persistence.
+    4. Divider: Fine horizontal boundary.
+    5. Log Out: Bottom action with confirmation and error toast fallback.
+  - Dismissal & Focus: Dismisses on outside click, item navigation, or `Escape` key. Returns focus to `AccountTrigger` on dismiss. Arrow key navigation supported across all interactive menu items.
+
 ---
 
 ## 4. Typography Hierarchy

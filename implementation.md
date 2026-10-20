@@ -292,9 +292,44 @@ To eliminate visual layout shifts, prevent confusing placeholders, and provide c
   - `toast.success('Case assessment saved.')` on triage status update.
 - **Admin Counsellor Provisioning (`/admin/counsellors`)**:
   - `toast.success('Counsellor account invitation sent.')` on clinician dispatch.
-- **Admin Audit & Privacy (`/admin/audit`)**:
-  - `toast.success('Data rights request processed.')` on GDPR/FERPA fulfillment.
 - **Session Shells (`StudentShell`, `CounsellorShell`, `AdminShell`)**:
   - Invokes `toast.clear()` in `handleSignOut()` to flush notifications prior to redirect.
+
+---
+
+## 8. Student Sidebar Redesign & ChatGPT-Style Account Menu
+
+### 8.1 Component Decomposition
+- **`SidebarToggle` (`apps/web/src/components/layout/SidebarToggle.tsx`)**:
+  - Accessible toggle control switching between desktop expanded mode (`w-64 lg:w-72`) and narrow rail mode (`w-16`).
+  - Employs Lucide `PanelLeftClose` (expanded) and `PanelLeftOpen` (collapsed).
+  - Supplies accessible `aria-expanded={!isCollapsed}`, `aria-label`, and interactive `Tooltip`.
+  - Persists preference locally in `localStorage.getItem('sentimate_sidebar_collapsed')` without server calls.
+- **`AccountTrigger` (`apps/web/src/components/layout/AccountTrigger.tsx`)**:
+  - Anchored at the bottom of the sidebar/rail.
+  - In expanded mode: Full-width button with user avatar (real initial), display name, handle/email, and `ChevronsUpDown` menu indicator.
+  - In collapsed mode: Centered circular avatar button with accessible `Tooltip` (`Account: {displayName}`) and `aria-label`.
+  - Specifies `aria-haspopup="menu"` and `aria-expanded={isOpen}`.
+- **`AccountMenu` (`apps/web/src/components/layout/AccountMenu.tsx`)**:
+  - ChatGPT-style floating popup rendered via React Portal (`createPortal`) into `document.body` to avoid clipping.
+  - Automatic collision detection: dynamically positions above trigger in expanded desktop and mobile views, or beside trigger in collapsed rail mode. Clamped within viewport bounds with internal scrolling.
+  - Content Hierarchy:
+    1. Compact identity header (avatar, display name, handle/email, "Student" badge).
+    2. Primary navigation (My Profile, Conversations, Wellbeing, Appointments, Resources, Human Support Referral) with active route indicator dot.
+    3. Settings & Appearance with inline Light, Dark, System theme radio selectors connected to `useTheme()`.
+    4. Divider line.
+    5. Log out action with loading state, `toast.clear()`, Supabase session termination, and error toast fallback.
+  - Keyboard & Focus Control: Dismisses on `Escape` key, outside click, or link navigation, returning focus to the trigger. Arrow keys support navigating focus through menu items.
+- **`Tooltip` (`apps/web/src/components/ui/Tooltip.tsx`)**:
+  - Reusable accessible tooltip wrapper for icon-only buttons in collapsed mode.
+
+### 8.2 Cleaned Sidebar Navigation Layout
+- Removed standalone navigation links (Conversations, Wellbeing, Appointments, Resources, Profile, Request support button), standalone theme toggle, and standalone logout button from the main sidebar body.
+- Replaced with a unified ChatGPT-style paradigm:
+  - Top: Header with branding and collapse toggle.
+  - Action: "New conversation" button (icon-only in collapsed rail).
+  - Center: Recent Conversations list (expanded only).
+  - Bottom: Unified Account Trigger opening the Account Menu.
+
 
 

@@ -52,6 +52,15 @@
   - Automatic notification flushing (`toast.clear()`) on user sign-out in `StudentShell`, `CounsellorShell`, and `AdminShell`.
   - Audited and integrated across Student (`/student/profile`, `/student/appointments`, `/student/checkins`, `/student/referrals`), Counsellor (`/counsellor/cases`, `/counsellor/availability`, `/counsellor/dashboard`), and Admin (`/admin/counsellors`, `/admin/audit`), removing duplicate inline alerts.
   - Created verification test suite `test-toast.ts` (all 6 assertions passed) and interactive playground (`/dev/toast-preview`).
+- **Student Sidebar Redesign & ChatGPT-Style Account Menu** — ✅ Complete:
+  - Redesigned `StudentShell` with desktop collapse-to-rail toggle (`SidebarToggle`) switching between expanded mode (`w-64 lg:w-72`) and narrow rail mode (`w-16`).
+  - Added zero-API local persistence via `localStorage.getItem('sentimate_sidebar_collapsed')` preserving user layout preference across sessions.
+  - Built compact ChatGPT-style floating `AccountMenu` rendered into document.body via `createPortal` with dynamic collision detection and safe viewport bounds clamping.
+  - Cleaned sidebar body: removed secondary navigation links, standalone appearance button, and standalone logout button. Preserved "New conversation" and recent chat history in the sidebar.
+  - Moved navigation into the account popup in verified sequence: Identity Header, My Profile, Conversations, Wellbeing, Appointments, Resources, Human Support Referral, Settings (with inline Light/Dark/System theme selector), Divider, and Log out.
+  - Built `AccountTrigger` supporting both full bottom row layout (with avatar, real display name, handle, and `ChevronsUpDown`) and collapsed icon-only avatar layout with interactive `Tooltip`.
+  - Maintained keyboard focus management, Arrow navigation, Escape key dismissal returning focus to trigger, and outside-click dismissal.
+  - Verified with test suite `test-sidebar.ts` and Next.js production build (`npm run build`, 24 routes, exit code 0).
 
 ---
 
