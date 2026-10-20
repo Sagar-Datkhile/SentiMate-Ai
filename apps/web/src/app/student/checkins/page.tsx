@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StudentShell } from '@/components/layout/StudentShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
+import { CheckinCardSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Compass, CheckCircle2, TrendingUp, Moon, Zap, Smile, Users, BookOpen, Shield } from 'lucide-react';
 
 interface CheckinHistoryItem {
@@ -29,29 +31,48 @@ export default function StudentCheckinsPage() {
 
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [history, setHistory] = useState<CheckinHistoryItem[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
-  const [history, setHistory] = useState<CheckinHistoryItem[]>([
-    { id: 'c-1', date: 'Yesterday', mood: 4, sleep: 7.5, stress: 2, shared: true },
-    { id: 'c-2', date: '3 days ago', mood: 3, sleep: 5.0, stress: 4, shared: true },
-    { id: 'c-3', date: 'Last week', mood: 4, sleep: 8.0, stress: 2, shared: false },
-  ]);
+  useEffect(() => {
+    // Load student's saved check-in history without artificial delay
+    const loadCheckins = () => {
+      try {
+        const stored = sessionStorage.getItem('sentimate_checkins');
+        if (stored) {
+          setHistory(JSON.parse(stored));
+        } else {
+          setHistory([]);
+        }
+      } catch {
+        setHistory([]);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+    loadCheckins();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     const newItem: CheckinHistoryItem = {
       id: `c-${Date.now()}`,
       date: 'Just now',
-      mood: mood || 3,
+      mood: mood !== null ? mood : 3,
       sleep: parseFloat(sleepHours) || 7,
-      stress: stress || 3,
+      stress: stress !== null ? stress : 3,
       shared: shareWithCounsellor,
     };
 
-    setHistory([newItem, ...history]);
+    const updated = [newItem, ...history];
+    setHistory(updated);
+    try {
+      sessionStorage.setItem('sentimate_checkins', JSON.stringify(updated));
+    } catch {
+      // Ignore storage errors
+    }
     setSaving(false);
     setSubmitted(true);
   };
@@ -237,26 +258,43 @@ export default function StudentCheckinsPage() {
             </h2>
           </div>
 
-          <div className="space-y-2">
-            {history.map((item) => (
-              <div
-                key={item.id}
-                className="p-3.5 rounded-xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex items-center justify-between flex-wrap gap-3 text-xs"
-              >
-                <div>
-                  <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6]">{item.date}</span>
-                  <div className="text-[11px] text-[#71757E] mt-0.5">
-                    Mood: {item.mood} / 5 • Sleep: {item.sleep} hrs • Stress: {item.stress} / 5
+          <LoadingRegion
+            isLoading={isLoadingHistory}
+            announcement="Loading your check-in history..."
+            className="space-y-2"
+          >
+            {isLoadingHistory ? (
+              <div className="space-y-2.5">
+                <CheckinCardSkeleton />
+                <CheckinCardSkeleton />
+              </div>
+            ) : history.length === 0 ? (
+              <EmptyState
+                icon={TrendingUp}
+                title="No Check-ins Recorded Yet"
+                description="Complete your first self-reflection above to view your private wellbeing history and trends over time."
+              />
+            ) : (
+              history.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3.5 rounded-xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex items-center justify-between flex-wrap gap-3 text-xs"
+                >
+                  <div>
+                    <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6]">{item.date}</span>
+                    <div className="text-[11px] text-[#71757E] mt-0.5">
+                      Mood: {item.mood} / 5 • Sleep: {item.sleep} hrs • Stress: {item.stress} / 5
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={item.shared ? 'teal' : 'neutral'} size="sm">
+                      {item.shared ? 'Shared with Counsellor' : 'Private'}
+                    </Badge>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={item.shared ? 'teal' : 'neutral'} size="sm">
-                    {item.shared ? 'Shared with Counsellor' : 'Private'}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))
+            )}
+          </LoadingRegion>
         </div>
       </div>
     </StudentShell>

@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StudentShell } from '@/components/layout/StudentShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
+import { AppointmentCardSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Calendar, Clock, MapPin, CheckCircle2, AlertCircle, XCircle, UserCheck } from 'lucide-react';
 
 interface AvailableSlot {
@@ -28,58 +30,47 @@ interface AppointmentItem {
 }
 
 export default function StudentAppointmentsPage() {
-  const [appointments, setAppointments] = useState<AppointmentItem[]>([
-    {
-      id: 'apt-1',
-      counsellorName: 'Dr. Sarah Adams',
-      date: 'Thursday, Oct 22, 2026',
-      time: '2:00 PM – 2:45 PM',
-      status: 'confirmed',
-      location: 'Wellness Center Pavilion, Room 302',
-    },
-  ]);
-
-  const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([
-    {
-      id: 'slot-1',
-      counsellorName: 'Dr. Sarah Adams',
-      counsellorTitle: 'Senior Campus Psychologist',
-      location: 'Wellness Center Pavilion, Room 302',
-      date: 'Monday, Oct 26, 2026',
-      time: '10:00 AM – 10:45 AM',
-      isBooked: false,
-    },
-    {
-      id: 'slot-2',
-      counsellorName: 'Dr. Sarah Adams',
-      counsellorTitle: 'Senior Campus Psychologist',
-      location: 'Wellness Center Pavilion, Room 302',
-      date: 'Monday, Oct 26, 2026',
-      time: '11:00 AM – 11:45 AM',
-      isBooked: false,
-    },
-    {
-      id: 'slot-3',
-      counsellorName: 'Michael Chen, LMFT',
-      counsellorTitle: 'Student Wellbeing Specialist',
-      location: 'Counseling Wing, Room 104',
-      date: 'Tuesday, Oct 27, 2026',
-      time: '1:30 PM – 2:15 PM',
-      isBooked: false,
-    },
-  ]);
+  const [appointments, setAppointments] = useState<AppointmentItem[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
+  const [isLoadingAppointments, setIsLoadingAppointments] = useState(true);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(true);
 
   const [bookingSlot, setBookingSlot] = useState<AvailableSlot | null>(null);
   const [notes, setNotes] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
+  useEffect(() => {
+    // Load student appointments and published open slots
+    const loadAppointmentsData = () => {
+      try {
+        const storedAppointments = sessionStorage.getItem('sentimate_student_appointments');
+        if (storedAppointments) {
+          setAppointments(JSON.parse(storedAppointments));
+        } else {
+          setAppointments([]);
+        }
+
+        const storedSlots = sessionStorage.getItem('sentimate_counsellor_slots');
+        if (storedSlots) {
+          setAvailableSlots(JSON.parse(storedSlots));
+        } else {
+          setAvailableSlots([]);
+        }
+      } catch {
+        setAppointments([]);
+        setAvailableSlots([]);
+      } finally {
+        setIsLoadingAppointments(false);
+        setIsLoadingSlots(false);
+      }
+    };
+    loadAppointmentsData();
+  }, []);
+
   const handleConfirmBooking = async () => {
     if (!bookingSlot) return;
     setBookingLoading(true);
-
-    // Simulate transactional conflict-free booking operation
-    await new Promise((resolve) => setTimeout(resolve, 600));
 
     const newApt: AppointmentItem = {
       id: `apt-${Date.now()}`,
@@ -90,13 +81,23 @@ export default function StudentAppointmentsPage() {
       location: bookingSlot.location,
     };
 
-    setAppointments([newApt, ...appointments]);
-    setAvailableSlots((prev) =>
-      prev.map((s) => (s.id === bookingSlot.id ? { ...s, isBooked: true } : s))
+    const updatedApts = [newApt, ...appointments];
+    setAppointments(updatedApts);
+
+    const updatedSlots = availableSlots.map((s) =>
+      s.id === bookingSlot.id ? { ...s, isBooked: true } : s
     );
+    setAvailableSlots(updatedSlots);
+
+    try {
+      sessionStorage.setItem('sentimate_student_appointments', JSON.stringify(updatedApts));
+      sessionStorage.setItem('sentimate_counsellor_slots', JSON.stringify(updatedSlots));
+    } catch {
+      // Ignore storage errors
+    }
 
     setSuccessBanner(
-      `Appointment reserved with ${bookingSlot.counsellorName} for ${bookingSlot.date} at ${bookingSlot.time}. Transactional lock ensured no double booking.`
+      `Appointment reserved with ${bookingSlot.counsellorName} for ${bookingSlot.date} at ${bookingSlot.time}.`
     );
     setBookingSlot(null);
     setNotes('');
@@ -104,9 +105,15 @@ export default function StudentAppointmentsPage() {
   };
 
   const handleCancel = (id: string) => {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: 'cancelled' } : a))
+    const updated = appointments.map((a) =>
+      a.id === id ? { ...a, status: 'cancelled' as const } : a
     );
+    setAppointments(updated);
+    try {
+      sessionStorage.setItem('sentimate_student_appointments', JSON.stringify(updated));
+    } catch {
+      // Ignore
+    }
   };
 
   return (
@@ -140,67 +147,76 @@ export default function StudentAppointmentsPage() {
             Your Scheduled Sessions
           </h2>
 
-          {appointments.length === 0 ? (
-            <div className="p-6 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E] text-center text-xs text-[#71757E]">
-              You have no active appointments booked. Choose an available slot below.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {appointments.map((apt) => (
-                <Card
-                  key={apt.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">
-                        {apt.counsellorName}
-                      </span>
-                      <Badge
-                        variant={
-                          apt.status === 'confirmed'
-                            ? 'teal'
-                            : apt.status === 'completed'
-                            ? 'neutral'
-                            : 'red'
-                        }
-                        size="sm"
-                      >
-                        {apt.status}
-                      </Badge>
+          <LoadingRegion
+            isLoading={isLoadingAppointments}
+            announcement="Loading your scheduled appointments..."
+          >
+            {isLoadingAppointments ? (
+              <AppointmentCardSkeleton />
+            ) : appointments.length === 0 ? (
+              <EmptyState
+                icon={Calendar}
+                title="No Scheduled Appointments"
+                description="You have no active appointments booked. Choose an available slot below to connect with a campus counsellor."
+              />
+            ) : (
+              <div className="space-y-3">
+                {appointments.map((apt) => (
+                  <Card
+                    key={apt.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">
+                          {apt.counsellorName}
+                        </span>
+                        <Badge
+                          variant={
+                            apt.status === 'confirmed'
+                              ? 'teal'
+                              : apt.status === 'completed'
+                              ? 'neutral'
+                              : 'red'
+                          }
+                          size="sm"
+                        >
+                          {apt.status}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4 text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <span>{apt.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <span>{apt.time}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-[#71757E]" />
+                          <span>{apt.location}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
-                        <span>{apt.date}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
-                        <span>{apt.time}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-[#71757E]" />
-                        <span>{apt.location}</span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {apt.status === 'confirmed' && (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() => handleCancel(apt.id)}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs text-red-600 hover:text-red-700 dark:hover:text-red-400"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </div>
-          )}
+                    {apt.status === 'confirmed' && (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          onClick={() => handleCancel(apt.id)}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs text-red-600 hover:text-red-700 dark:hover:text-red-400"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </LoadingRegion>
         </div>
 
         {/* Section 2: Available Counsellor Slots */}
@@ -212,51 +228,69 @@ export default function StudentAppointmentsPage() {
             <span className="text-xs text-[#71757E]">Real-time open slots</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {availableSlots
-              .filter((s) => !s.isBooked)
-              .map((slot) => (
-                <Card key={slot.id} className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">
-                        {slot.counsellorName}
+          <LoadingRegion
+            isLoading={isLoadingSlots}
+            announcement="Loading available counsellor consultation slots..."
+          >
+            {isLoadingSlots ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <AppointmentCardSkeleton />
+                <AppointmentCardSkeleton />
+              </div>
+            ) : availableSlots.filter((s) => !s.isBooked).length === 0 ? (
+              <EmptyState
+                icon={Clock}
+                title="No Open Slots Currently Available"
+                description="All published consultation slots are currently booked. Please check back later or submit a direct support referral note."
+              />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {availableSlots
+                  .filter((s) => !s.isBooked)
+                  .map((slot) => (
+                    <Card key={slot.id} className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">
+                            {slot.counsellorName}
+                          </div>
+                          <div className="text-[11px] text-[#71757E]">{slot.counsellorTitle}</div>
+                        </div>
+                        <Badge variant="teal" size="sm">
+                          Open
+                        </Badge>
                       </div>
-                      <div className="text-[11px] text-[#71757E]">{slot.counsellorTitle}</div>
-                    </div>
-                    <Badge variant="teal" size="sm">
-                      Open
-                    </Badge>
-                  </div>
 
-                  <div className="space-y-1 text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
-                    <div className="flex items-center gap-1.5 font-medium">
-                      <Calendar className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
-                      <span>{slot.date}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
-                      <span>{slot.time}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-[#71757E]">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{slot.location}</span>
-                    </div>
-                  </div>
+                      <div className="space-y-1 text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <Calendar className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <span>{slot.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <span>{slot.time}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-[#71757E]">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span>{slot.location}</span>
+                        </div>
+                      </div>
 
-                  <div className="pt-2">
-                    <Button
-                      onClick={() => setBookingSlot(slot)}
-                      variant="primary"
-                      size="sm"
-                      className="w-full text-xs font-semibold"
-                    >
-                      Book this Slot
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-          </div>
+                      <div className="pt-2">
+                        <Button
+                          onClick={() => setBookingSlot(slot)}
+                          variant="primary"
+                          size="sm"
+                          className="w-full text-xs font-semibold"
+                        >
+                          Book this Slot
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+              </div>
+            )}
+          </LoadingRegion>
         </div>
       </div>
 

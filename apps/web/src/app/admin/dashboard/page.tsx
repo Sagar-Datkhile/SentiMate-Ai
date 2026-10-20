@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminShell } from '@/components/layout/AdminShell';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { StatCardSkeleton, LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
 import {
   Activity,
   Users,
@@ -18,6 +19,50 @@ import {
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
+  const [metrics, setMetrics] = useState({
+    activeStudents: 0,
+    activeCounsellors: 0,
+    completedSessions: 0,
+    voluntaryCheckins: 0,
+  });
+  const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
+
+  useEffect(() => {
+    // Load real institutional aggregates without artificial delay
+    const loadMetrics = () => {
+      try {
+        const counsellors = sessionStorage.getItem('sentimate_counsellors');
+        const counsellorsCount = counsellors ? JSON.parse(counsellors).length : 0;
+
+        const checkins = sessionStorage.getItem('sentimate_checkins');
+        const checkinsCount = checkins ? JSON.parse(checkins).length : 0;
+
+        const appointments = sessionStorage.getItem('sentimate_student_appointments');
+        const sessionsCount = appointments ? JSON.parse(appointments).length : 0;
+
+        const students = sessionStorage.getItem('sentimate_assigned_students');
+        const studentsCount = students ? JSON.parse(students).length : 0;
+
+        setMetrics({
+          activeStudents: studentsCount,
+          activeCounsellors: counsellorsCount,
+          completedSessions: sessionsCount,
+          voluntaryCheckins: checkinsCount,
+        });
+      } catch {
+        setMetrics({
+          activeStudents: 0,
+          activeCounsellors: 0,
+          completedSessions: 0,
+          voluntaryCheckins: 0,
+        });
+      } finally {
+        setIsLoadingMetrics(false);
+      }
+    };
+    loadMetrics();
+  }, []);
+
   return (
     <AdminShell>
       <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 w-full">
@@ -31,37 +76,55 @@ export default function AdminDashboardPage() {
               Institutional usage aggregates, service uptime, and integration telemetry.
             </p>
           </div>
-          <Badge variant="teal" size="md">
-            System Status: Healthy
-          </Badge>
+          {isLoadingMetrics ? (
+            <Skeleton className="h-6 w-36" />
+          ) : (
+            <Badge variant="teal" size="md">
+              System Status: Active
+            </Badge>
+          )}
         </div>
 
-        {/* Aggregate Stats (Suppressed small groups for privacy) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="p-4 space-y-1">
-            <div className="text-[11px] font-semibold text-[#71757E] uppercase">Total Active Students</div>
-            <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">1,280+</div>
-            <div className="text-[10px] text-[#0D766E] dark:text-[#2DD4BF]">Enrolled this semester</div>
-          </Card>
+        {/* Aggregate Stats */}
+        <LoadingRegion
+          isLoading={isLoadingMetrics}
+          announcement="Loading system metrics and institutional statistics..."
+        >
+          {isLoadingMetrics ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="p-4 space-y-1">
+                <div className="text-[11px] font-semibold text-[#71757E] uppercase">Total Active Students</div>
+                <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">{metrics.activeStudents}</div>
+                <div className="text-[10px] text-[#0D766E] dark:text-[#2DD4BF]">Enrolled this semester</div>
+              </Card>
 
-          <Card className="p-4 space-y-1">
-            <div className="text-[11px] font-semibold text-[#71757E] uppercase">Active Campus Counsellors</div>
-            <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">14</div>
-            <div className="text-[10px] text-[#71757E]">Across 5 departments</div>
-          </Card>
+              <Card className="p-4 space-y-1">
+                <div className="text-[11px] font-semibold text-[#71757E] uppercase">Active Campus Counsellors</div>
+                <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">{metrics.activeCounsellors}</div>
+                <div className="text-[10px] text-[#71757E]">Across clinical departments</div>
+              </Card>
 
-          <Card className="p-4 space-y-1">
-            <div className="text-[11px] font-semibold text-[#71757E] uppercase">Completed Sessions</div>
-            <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">342</div>
-            <div className="text-[10px] text-[#71757E]">This academic term</div>
-          </Card>
+              <Card className="p-4 space-y-1">
+                <div className="text-[11px] font-semibold text-[#71757E] uppercase">Completed Sessions</div>
+                <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">{metrics.completedSessions}</div>
+                <div className="text-[10px] text-[#71757E]">This academic term</div>
+              </Card>
 
-          <Card className="p-4 space-y-1">
-            <div className="text-[11px] font-semibold text-[#71757E] uppercase">Voluntary Check-ins</div>
-            <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">4,120+</div>
-            <div className="text-[10px] text-[#0D766E] dark:text-[#2DD4BF]">Anonymized aggregates</div>
-          </Card>
-        </div>
+              <Card className="p-4 space-y-1">
+                <div className="text-[11px] font-semibold text-[#71757E] uppercase">Voluntary Check-ins</div>
+                <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">{metrics.voluntaryCheckins}</div>
+                <div className="text-[10px] text-[#0D766E] dark:text-[#2DD4BF]">Anonymized reflections</div>
+              </Card>
+            </div>
+          )}
+        </LoadingRegion>
 
         {/* Service Integrations Health */}
         <div className="space-y-4">

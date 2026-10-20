@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CounsellorShell } from '@/components/layout/CounsellorShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
 import { Textarea } from '@/components/ui/Textarea';
+import { CaseCardSkeleton, LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import {
   FolderOpen,
   Plus,
@@ -37,43 +39,33 @@ interface CaseItem {
 }
 
 export default function CounsellorCasesPage() {
-  const [cases, setCases] = useState<CaseItem[]>([
-    {
-      id: 'case-01',
-      studentName: 'Alex P.',
-      prn: 'PRN-2024-ENG-0892',
-      status: 'in_progress',
-      priority: 'medium',
-      nextFollowUp: '2026-10-25',
-      assessmentSummary:
-        'Midterm burnout complicated by chronic sleep deprivation. Student consented to weekly pacing check-in.',
-      notes: [
-        {
-          id: 'note-1',
-          title: 'Initial Intake Session Observations',
-          content:
-            'Discussed time-blocking strategies for engineering lab reports. Student engaged well. Scheduled follow-up session for Oct 25.',
-          createdAt: 'Oct 19, 2026 at 11:30 AM',
-        },
-      ],
-    },
-    {
-      id: 'case-02',
-      studentName: 'Marcus V.',
-      prn: 'PRN-2023-CS-0419',
-      status: 'acknowledged',
-      priority: 'routine',
-      nextFollowUp: '2026-10-28',
-      assessmentSummary: 'Internship interview anxiety management.',
-      notes: [],
-    },
-  ]);
+  const [cases, setCases] = useState<CaseItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [activeCase, setActiveCase] = useState<CaseItem | null>(null);
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [newStatus, setNewStatus] = useState<string>('in_progress');
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Load counsellor case records from storage/session without delay
+    const loadCases = () => {
+      try {
+        const stored = sessionStorage.getItem('sentimate_counsellor_cases');
+        if (stored) {
+          setCases(JSON.parse(stored));
+        } else {
+          setCases([]);
+        }
+      } catch {
+        setCases([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadCases();
+  }, []);
 
   const handleAddNote = () => {
     if (!activeCase || !noteTitle.trim() || !noteContent.trim()) return;
@@ -85,17 +77,22 @@ export default function CounsellorCasesPage() {
       createdAt: 'Just now',
     };
 
-    setCases((prev) =>
-      prev.map((c) =>
-        c.id === activeCase.id
-          ? {
-              ...c,
-              notes: [newNote, ...c.notes],
-              status: (newStatus as any) || c.status,
-            }
-          : c
-      )
+    const updated = cases.map((c) =>
+      c.id === activeCase.id
+        ? {
+            ...c,
+            notes: [newNote, ...c.notes],
+            status: (newStatus as any) || c.status,
+          }
+        : c
     );
+
+    setCases(updated);
+    try {
+      sessionStorage.setItem('sentimate_counsellor_cases', JSON.stringify(updated));
+    } catch {
+      // Ignore
+    }
 
     setSuccessBanner(`Confidential case note added for ${activeCase.studentName}.`);
     setNoteTitle('');
@@ -116,9 +113,13 @@ export default function CounsellorCasesPage() {
               Confidential case records, progress tracking, and clinical session notes.
             </p>
           </div>
-          <Badge variant="teal" size="md">
-            {cases.length} Open Cases
-          </Badge>
+          {isLoading ? (
+            <Skeleton className="h-6 w-24" />
+          ) : (
+            <Badge variant="teal" size="md">
+              {cases.length} Open Cases
+            </Badge>
+          )}
         </div>
 
         {successBanner && (
@@ -128,8 +129,24 @@ export default function CounsellorCasesPage() {
           </div>
         )}
 
-        <div className="space-y-4">
-          {cases.map((c) => (
+        <LoadingRegion
+          isLoading={isLoading}
+          announcement="Loading longitudinal cases..."
+          className="space-y-4"
+        >
+          {isLoading ? (
+            <div className="space-y-4">
+              <CaseCardSkeleton />
+              <CaseCardSkeleton />
+            </div>
+          ) : cases.length === 0 ? (
+            <EmptyState
+              icon={FolderOpen}
+              title="No Active Cases On File"
+              description="Your caseload currently has no active case records. You can open a longitudinal case from the Referral Review Queue."
+            />
+          ) : (
+            cases.map((c) => (
             <Card key={c.id} className="p-5 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E2DC]/60 dark:border-[#2C3038]/60 pb-3">
                 <div className="flex items-center gap-3">
@@ -215,9 +232,10 @@ export default function CounsellorCasesPage() {
                   <span>Add Confidential Case Note</span>
                 </Button>
               </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))
+          )}
+        </LoadingRegion>
       </div>
 
       {/* Add Case Note Dialog */}

@@ -68,6 +68,29 @@
 - Dark Theme: `background: rgba(15, 17, 21, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(44, 48, 56, 0.8);`
 - Opaque fallbacks provided automatically via `@supports not (backdrop-filter: blur(1px))`.
 
+### 3.4 Skeleton Loading Tokens & Motion Design
+- **Light Theme Placeholder Tokens**:
+  - Surface Base (`--skeleton-base`): `#E8E8E2` (Soft neutral tone harmonious with `#FBFBFA` canvas).
+  - Shimmer Highlight (`--skeleton-highlight`): `#F5F5F2` (Gentle highlight providing subtle luminance contrast without stark glare).
+- **Dark Theme Placeholder Tokens**:
+  - Surface Base (`--skeleton-base`): `#22262E` (Muted slate-charcoal harmonious with `#0F1115` canvas).
+  - Shimmer Highlight (`--skeleton-highlight`): `#2C323D` (Restrained lighter charcoal sweep avoiding flash or distraction).
+- **Shimmer Animation Specification**:
+  - Linear gradient: `linear-gradient(90deg, var(--skeleton-base) 0%, var(--skeleton-highlight) 50%, var(--skeleton-base) 100%)`.
+  - Background size: `200% 100%`.
+  - Timing: `1.5s infinite ease-in-out`.
+  - Reduced Motion (`prefers-reduced-motion: reduce`): Shimmer animation is disabled; renders a static, neutral background to respect user vestibular comfort.
+- **Accessibility Invariants**:
+  - All decorative skeleton silhouettes (`Skeleton`) specify `aria-hidden="true"`.
+  - Asynchronous content boundaries are enclosed in `<LoadingRegion>` which toggles `aria-busy="true"` and issues exactly one polite `<span className="sr-only" role="status" aria-live="polite">` announcement per loading zone.
+- **Data State Principles**:
+  - Initial load: Render structural skeletons matching the target content layout (cards, lists, tables, charts, or form grids).
+  - Success: Transition immediately to real data.
+  - Empty: Calm, actionable `<EmptyState>` with a relevant primary trigger (e.g., booking an appointment or creating a session).
+  - Error: Concise `<ErrorState>` with a keyboard-accessible retry trigger.
+  - Refreshes/Form Saves: Existing populated data remains visible while buttons show non-blocking pending indicators to prevent duplicate submissions without layout jarring.
+  - Numerical Validity: Treat zero (`0`) as a valid metric, GPA, or count rather than mistaking it for missing or uninitialized state.
+
 ---
 
 ## 4. Typography Hierarchy

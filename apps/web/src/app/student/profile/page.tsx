@@ -17,6 +17,8 @@ import {
   Loader2,
   Info,
 } from 'lucide-react';
+import { ProfileSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/ui/ErrorState';
 import {
   normalizeUsername,
   validateUsernameFormat,
@@ -45,39 +47,39 @@ interface AvailabilityState {
 }
 
 export default function StudentProfilePage() {
-  const [fullName, setFullName] = useState('Alex Student');
-  const [currentUsername, setCurrentUsername] = useState('alex_student');
-  const [username, setUsername] = useState('alex_student');
-  const [prn, setPrn] = useState('PRN-2024-ENG-0892');
-  const [institution, setInstitution] = useState('Apex Institute of Technology');
-  const [department, setDepartment] = useState('Computer Engineering');
-  const [admissionYear, setAdmissionYear] = useState('2024');
-  const [currentSemester, setCurrentSemester] = useState('4');
-  const [about, setAbout] = useState(
-    'Sophomore studying computer engineering. Balancing coursework with campus robotics club.'
-  );
+  const [fullName, setFullName] = useState('');
+  const [currentUsername, setCurrentUsername] = useState('');
+  const [username, setUsername] = useState('');
+  const [prn, setPrn] = useState('');
+  const [institution, setInstitution] = useState('');
+  const [department, setDepartment] = useState('');
+  const [admissionYear, setAdmissionYear] = useState('');
+  const [currentSemester, setCurrentSemester] = useState('');
+  const [about, setAbout] = useState('');
 
   // 8 Semesters with null/empty support for future semesters
   const [semesters, setSemesters] = useState<SemesterSGPA[]>([
-    { semester: 1, sgpa: '8.45' },
-    { semester: 2, sgpa: '8.20' },
-    { semester: 3, sgpa: '8.10' },
-    { semester: 4, sgpa: '7.85' },
+    { semester: 1, sgpa: '' },
+    { semester: 2, sgpa: '' },
+    { semester: 3, sgpa: '' },
+    { semester: 4, sgpa: '' },
     { semester: 5, sgpa: '' },
     { semester: 6, sgpa: '' },
     { semester: 7, sgpa: '' },
     { semester: 8, sgpa: '' },
   ]);
 
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Availability query state
   const [availabilityState, setAvailabilityState] = useState<AvailabilityState>({
-    status: 'current_user',
-    message: 'Currently your username',
-    appearsAvailable: true,
+    status: 'idle',
+    message: undefined,
+    appearsAvailable: null,
   });
 
   // Short session-local cache for debounced username checks
@@ -95,48 +97,69 @@ export default function StudentProfilePage() {
     };
   }, []);
 
-  // Load real profile data from Supabase backend on mount
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const res = await fetch('/api/student/profile');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.fullName) setFullName(data.fullName);
-          if (data.username) {
-            setCurrentUsername(data.username);
-            setUsername(data.username);
-          } else {
-            setCurrentUsername('');
-            setUsername('');
-          }
-          if (data.prn) setPrn(data.prn);
-          if (data.institution) setInstitution(data.institution);
-          if (data.department) setDepartment(data.department);
-          if (data.admissionYear) setAdmissionYear(String(data.admissionYear));
-          if (data.currentSemester) setCurrentSemester(String(data.currentSemester));
-          if (data.about !== undefined) setAbout(data.about);
-          if (Array.isArray(data.semesters)) {
-            setSemesters((prev) =>
-              prev.map((s) => {
-                const found = data.semesters.find(
-                  (ds: any) => ds.semester === s.semester || ds.semester_number === s.semester
-                );
-                return found
-                  ? {
-                      semester: s.semester,
-                      sgpa:
-                        found.sgpa !== null && found.sgpa !== undefined ? String(found.sgpa) : '',
-                    }
-                  : s;
-              })
-            );
-          }
-        }
-      } catch (err) {
-        console.warn('[Profile] Failed to load profile from backend:', err);
+  const loadProfile = async () => {
+    setIsLoadingProfile(true);
+    setLoadError(null);
+    try {
+      const res = await fetch('/api/student/profile');
+      if (!res.ok) {
+        throw new Error('Could not load profile details from server.');
       }
-    };
+      const data = await res.json();
+      if (data.fullName) setFullName(data.fullName);
+      if (data.username) {
+        setCurrentUsername(data.username);
+        setUsername(data.username);
+        setAvailabilityState({
+          status: 'current_user',
+          message: 'Currently your username',
+          appearsAvailable: true,
+        });
+      } else {
+        setCurrentUsername('');
+        setUsername('');
+        setAvailabilityState({
+          status: 'idle',
+          message: undefined,
+          appearsAvailable: null,
+        });
+      }
+      if (data.prn) setPrn(data.prn);
+      if (data.institution) setInstitution(data.institution);
+      if (data.department) setDepartment(data.department);
+      if (data.admissionYear !== undefined && data.admissionYear !== null) {
+        setAdmissionYear(String(data.admissionYear));
+      }
+      if (data.currentSemester !== undefined && data.currentSemester !== null) {
+        setCurrentSemester(String(data.currentSemester));
+      }
+      if (data.about !== undefined) setAbout(data.about);
+      if (Array.isArray(data.semesters)) {
+        setSemesters((prev) =>
+          prev.map((s) => {
+            const found = data.semesters.find(
+              (ds: any) => ds.semester === s.semester || ds.semester_number === s.semester
+            );
+            return found
+              ? {
+                  semester: s.semester,
+                  sgpa:
+                    found.sgpa !== null && found.sgpa !== undefined ? String(found.sgpa) : '',
+                }
+              : s;
+          })
+        );
+      }
+    } catch (err: any) {
+      console.warn('[Profile] Failed to load profile:', err);
+      setLoadError(err.message || 'Unable to retrieve your student profile.');
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
+
+  // Load real profile data on mount
+  useEffect(() => {
     loadProfile();
   }, []);
 
@@ -392,9 +415,20 @@ export default function StudentProfilePage() {
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-6">
-          {/* Section 1: Basic Identity */}
-          <Card className="space-y-4">
+        {isLoadingProfile ? (
+          <LoadingRegion isLoading={true} announcement="Loading student profile and academic details...">
+            <ProfileSkeleton />
+          </LoadingRegion>
+        ) : loadError ? (
+          <ErrorState
+            title="Profile Unavailable"
+            message={loadError}
+            onRetry={loadProfile}
+          />
+        ) : (
+          <form onSubmit={handleSave} className="space-y-6">
+            {/* Section 1: Basic Identity */}
+            <Card className="space-y-4">
             <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-3">
               <User className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
               <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
@@ -592,6 +626,7 @@ export default function StudentProfilePage() {
             </Button>
           </div>
         </form>
+        )}
       </div>
     </StudentShell>
   );

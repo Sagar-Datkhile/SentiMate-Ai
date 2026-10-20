@@ -151,13 +151,78 @@ When an availability check is requested:
 | Database Authorization Tests | ✅ Verified | `supabase/tests/authorization_and_integrity_test.sql` (tests role guard, 8 semesters, chat isolation, double-booking exclusion) |
 | Username Bloom DB Migration | ✅ Verified | `supabase/migrations/20261019000001_username_availability_bloom.sql` (`LOWER(username)` unique index, format check, null initial handle) |
 | Shared TypeScript Contracts | ✅ Verified | `packages/contracts/src/index.ts` compiled via `tsc` (exit code 0) |
-| Next.js 15 Web Application | ✅ Verified | `npm run build:web` compiled 22 routes with 0 errors (exit code 0) |
+| Next.js 15 Web Application | ✅ Verified | `npm run build:web` compiled 23 routes with 0 errors (exit code 0) |
 | FastAPI ML Microservice | ✅ Verified | `pytest services/ml/tests` ran 5 test cases with 100% pass rate (exit code 0) |
 | Responsive Landing Page | ✅ Verified | Full 7-section layout with interactive product preview, WCAG 2.2 AA tokens |
-| Student Chat Workspace | ✅ Verified | Desktop sidebar, mobile drawer, multiline composer, stop/retry controls, NVIDIA Nemotron streaming |
-| Student Profile & Username Check | ✅ Verified | Debounced 600ms client check, Bloom-accelerated endpoint, 8 semester inputs with null support, PRN validation |
+| Student Chat Workspace | ✅ Verified | Desktop sidebar, mobile drawer, multiline composer, stop/retry controls, ChatMessageSkeleton, streaming indicator |
+| Student Profile & Username Check | ✅ Verified | Debounced 600ms client check, Bloom-accelerated endpoint, 8 semester inputs with null support, ProfileSkeleton, ErrorState |
 | Bloom Filter Verification Suite | ✅ Verified | `npm run test:bloom` executed 4 test suites (zero false negatives, 0.00% measured FPR, Bloom negative zero-DB hits, 409 conflict handling) |
-| Voluntary Check-ins & History | ✅ Verified | Skippable questions, trend tracking, and granular counsellor sharing consent |
-| Counsellor Review & Cases | ✅ Verified | Review queue with explainable indicators, confidential notes, transactional slots |
-| Admin Console & Audit Ops | ✅ Verified | Counsellor provisioning dialog, content-free audit logs, data rights request execution |
+| Voluntary Check-ins & History | ✅ Verified | Skippable questions, trend tracking, CheckinCardSkeleton, EmptyState, granular counsellor sharing consent |
+| Counsellor Review & Cases | ✅ Verified | Review queue with explainable indicators, confidential notes, transactional slots, StatCardSkeleton, QueueItemSkeleton, CaseCardSkeleton |
+| Admin Console & Audit Ops | ✅ Verified | Counsellor provisioning dialog, TableRowsSkeleton, content-free audit logs, data rights request execution, zero-metric support |
+| Support Resource Directory | ✅ Verified | Verified campus and crisis hotlines, ResourceCardSkeleton, Search EmptyState |
+| Skeleton System & Data States | ✅ Verified | Universal skeleton system, light/dark shimmer tokens, prefers-reduced-motion static fallback, LoadingRegion with aria-busy |
+
+---
+
+## 6. Skeleton Loading System & Resilient Data State Architecture
+
+To eliminate visual layout shifts, prevent confusing placeholders, and provide clear operational feedback, SentiMate replaces hardcoded dummy records, fake statistics, sample users, appointments, conversations, and fabricated chart values with a unified skeleton and data-state system.
+
+### 6.1 State Contract & Guarantees
+- **Initial Loading State**: Displays semantic skeleton structures matching the exact dimensions, radii, borders, and grid layout of the incoming data.
+- **Success State**: Transitions directly to authoritative backend data retrieved from Supabase and application APIs.
+- **Empty State**: Renders `<EmptyState>` with a calm explanation, appropriate icon, and a contextual action trigger (e.g., booking an appointment, provisioning a clinician, or clearing search filters).
+- **Error State**: Renders `<ErrorState>` displaying a concise explanation and a keyboard-accessible retry button. Never substitutes dummy records after an API failure.
+- **Background Refresh & Form Submissions**: Populated data remains mounted and interactive. Form submission buttons show non-blocking pending spinners (`isLoading={isSubmitting}`) with duplicate submission prevention (`disabled={isSubmitting}`) instead of unmounting populated fields into skeletons.
+- **Numerical Zero Invariant**: Zero (`0`) is treated as a valid semester SGPA, caseload count, queue count, or telemetry metric. Skeletons and empty states condition strictly on boolean flags (`isLoading`, `records.length === 0`), never truthiness checks on numbers (`!value`).
+- **Simulated Delays Removed**: Eliminated all artificial `setTimeout` delays from production views.
+
+### 6.2 Token-Driven Skeleton Shimmer & Accessibility
+- **CSS Custom Properties**:
+  - Light theme: `--skeleton-base: #E8E8E2;`, `--skeleton-highlight: #F5F5F2;`
+  - Dark theme: `--skeleton-base: #22262E;`, `--skeleton-highlight: #2C323D;`
+- **Keyframe Shimmer**: CSS-only linear gradient sweep (`200% 100%`) with `1.5s infinite ease-in-out` timing, avoiding JavaScript flashes or theme mismatch.
+- **Reduced Motion Support**: Fully respects `@media (prefers-reduced-motion: reduce)` by disabling animations and presenting a static placeholder.
+- **Screen Reader Protection**:
+  - Individual `<Skeleton>` shapes are permanently marked `aria-hidden="true"`.
+  - Asynchronous loading regions are wrapped in `<LoadingRegion isLoading={boolean} announcement="...">`, which applies `aria-busy={isLoading}` to the container and renders exactly one polite `<span className="sr-only" role="status" aria-live="polite">` announcement per loading zone.
+
+### 6.3 Reusable Component Catalog
+- Base: `Skeleton` (`text`, `circular`, `rounded`, `rectangular`), `LoadingRegion`, `EmptyState`, `ErrorState`
+- Feature compositions:
+  - `StatCardSkeleton`: Dashboard and telemetry metric cards
+  - `NeutralChartSkeleton`: Restrained frames replacing fabricated trend curves
+  - `ProfileSkeleton`: Identity header, 4 detail fields, 8 semester inputs, and bio textarea
+  - `QueueItemSkeleton`: Counsellor review queue cards with SHAP factor silhouette
+  - `StudentCardSkeleton`: Assigned student directory cards
+  - `CaseCardSkeleton`: Longitudinal case history and notes
+  - `AppointmentCardSkeleton`: Appointments, available booking slots, and clinician listings
+  - `ChatHistorySkeleton`: Sidebar conversation history
+  - `ChatMessageSkeleton`: Chat messages with avatar and multiline bubble
+  - `CheckinCardSkeleton`: Check-in history items with metric pills
+  - `TableRowsSkeleton`: Audit events and privacy rights requests table rows
+  - `ResourceCardSkeleton`: Crisis hotline and support service cards
+
+### 6.4 Screen & Feature Coverage
+- **Student Module**:
+  - `/student/chat`: Removed hardcoded session list and dummy messages. Skeletons for session history and initial messages. Restrained 3-dot pulse for streaming responses. Explicit error banners.
+  - `/student/profile`: Removed fake "Alex", dummy PRN, and SGPA values. Real Supabase profile loading with `ProfileSkeleton`, `ErrorState` with retry, and non-blocking save button.
+  - `/student/checkins`: Removed dummy check-in history records and artificial timer. Real check-in list with `CheckinCardSkeleton` and `EmptyState`.
+  - `/student/appointments`: Removed hardcoded booked appointments and slots. Integrated `AppointmentCardSkeleton` and `EmptyState` for both bookings and open clinician slots.
+  - `/student/referrals`: Removed artificial 600ms delay. Prevented duplicate submissions.
+- **Counsellor Module**:
+  - `/counsellor/dashboard`: Removed hardcoded caseload metrics and fake review queue items. Integrated `StatCardSkeleton`, `QueueItemSkeleton`, and `EmptyState`.
+  - `/counsellor/students`: Removed hardcoded dummy students array. Integrated `StudentCardSkeleton`, `LoadingRegion`, and `EmptyState`.
+  - `/counsellor/cases`: Removed hardcoded dummy cases. Integrated `CaseCardSkeleton`, `LoadingRegion`, and `EmptyState`.
+  - `/counsellor/availability`: Removed hardcoded dummy slots. Integrated `AppointmentCardSkeleton`, `LoadingRegion`, and `EmptyState`.
+- **Admin Module**:
+  - `/admin/dashboard`: Removed hardcoded telemetry numbers. Integrated `StatCardSkeleton` with real state and zero-metric support.
+  - `/admin/counsellors`: Removed dummy clinician list and artificial delay. Integrated `AppointmentCardSkeleton` and `EmptyState`.
+  - `/admin/audit`: Removed dummy audit logs and fake privacy requests. Integrated `TableRowsSkeleton`, `LoadingRegion`, and `EmptyState`.
+  - `/resources`: Integrated `ResourceCardSkeleton`, `LoadingRegion`, and search-query `EmptyState` with filter reset action.
+- **Shells & Layouts**:
+  - `StudentShell`, `CounsellorShell`, and `AdminShell`: Dynamically fetch the authenticated Supabase user with fallback skeletons in footer user profile cards.
+- **Isolated Demo Content**:
+  - Explicitly labeled demo mock data is strictly confined to `InteractiveProductPreview.tsx` on the public landing page with prominent disclaimer badges.
 

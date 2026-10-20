@@ -14,25 +14,33 @@ export async function middleware(request: NextRequest) {
     supabaseAnonKey &&
     supabaseUrl !== 'https://placeholder-project.supabase.co'
   ) {
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+    try {
+      const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
+            try {
+              cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+              supabaseResponse = NextResponse.next({
+                request,
+              });
+              cookiesToSet.forEach(({ name, value, options }) =>
+                supabaseResponse.cookies.set(name, value, options)
+              );
+            } catch {
+              // Ignore cookie mutations if response already committed
+            }
+          },
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    });
+      });
 
-    // Refresh auth token session
-    await supabase.auth.getUser();
+      // Refresh auth token session safely without crashing the request pipeline
+      await supabase.auth.getUser();
+    } catch (err) {
+      console.warn('[Middleware] Supabase auth refresh bypassed:', err);
+    }
   }
 
   return supabaseResponse;

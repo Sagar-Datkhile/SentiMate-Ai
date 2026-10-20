@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { Badge } from '../ui/Badge';
+import { Skeleton } from '../ui/Skeleton';
 import { createClient } from '@/lib/supabase/client';
 
 interface CounsellorShellProps {
@@ -27,11 +28,34 @@ interface CounsellorShellProps {
 
 export function CounsellorShell({
   children,
-  counsellorName = 'Dr. Sarah Adams',
+  counsellorName = 'Campus Counsellor',
 }: CounsellorShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [displayName, setDisplayName] = useState(counsellorName);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const name =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email?.split('@')[0];
+          if (name) setDisplayName(name);
+        }
+      } catch {
+        // Fall back to prop
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+    fetchUser();
+  }, [counsellorName]);
 
   const handleSignOut = async () => {
     try {
@@ -104,15 +128,25 @@ export function CounsellorShell({
 
       {/* Footer / Account */}
       <div className="p-3 border-t border-[#2C3038] flex items-center justify-between">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-7 h-7 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
-            {counsellorName.charAt(0)}
+        {isLoadingUser ? (
+          <div className="flex items-center gap-2 overflow-hidden flex-1">
+            <Skeleton variant="circular" className="w-7 h-7" />
+            <div className="space-y-1 flex-1">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-2.5 w-16" />
+            </div>
           </div>
-          <div className="truncate">
-            <span className="text-xs font-medium block truncate">{counsellorName}</span>
-            <span className="text-[10px] text-teal-400 block truncate">Licensed Counsellor</span>
+        ) : (
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-7 h-7 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+            <div className="truncate">
+              <span className="text-xs font-medium block truncate">{displayName}</span>
+              <span className="text-[10px] text-teal-400 block truncate">Licensed Counsellor</span>
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <button

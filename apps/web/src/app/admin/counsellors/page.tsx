@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminShell } from '@/components/layout/AdminShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Dialog } from '@/components/ui/Dialog';
+import { AppointmentCardSkeleton, LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { UserPlus, CheckCircle2, Shield, Mail, Building, Phone, Users } from 'lucide-react';
 
 interface CounsellorItem {
@@ -21,28 +23,8 @@ interface CounsellorItem {
 }
 
 export default function AdminCounsellorsPage() {
-  const [counsellors, setCounsellors] = useState<CounsellorItem[]>([
-    {
-      id: 'cns-1',
-      name: 'Dr. Sarah Adams',
-      email: 's.adams@university.edu',
-      title: 'Senior Campus Psychologist',
-      location: 'Wellness Pavilion Room 302',
-      activeCases: 8,
-      maxCases: 30,
-      status: 'active',
-    },
-    {
-      id: 'cns-2',
-      name: 'Michael Chen, LMFT',
-      email: 'm.chen@university.edu',
-      title: 'Student Wellbeing Specialist',
-      location: 'Counseling Wing Room 104',
-      activeCases: 5,
-      maxCases: 25,
-      status: 'active',
-    },
-  ]);
+  const [counsellors, setCounsellors] = useState<CounsellorItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -53,25 +35,49 @@ export default function AdminCounsellorsPage() {
   const [loading, setLoading] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
 
+  useEffect(() => {
+    // Load authorized counsellor directory without artificial delay
+    const loadCounsellors = () => {
+      try {
+        const stored = sessionStorage.getItem('sentimate_counsellors');
+        if (stored) {
+          setCounsellors(JSON.parse(stored));
+        } else {
+          setCounsellors([]);
+        }
+      } catch {
+        setCounsellors([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadCounsellors();
+  }, []);
+
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim() || !email.trim() || loading) return;
     setLoading(true);
-
-    // Call server action / protected operation
-    await new Promise((resolve) => setTimeout(resolve, 700));
 
     const newCounsellor: CounsellorItem = {
       id: `cns-${Date.now()}`,
-      name: fullName,
-      email,
-      title,
-      location: officeLocation,
+      name: fullName.trim(),
+      email: email.trim(),
+      title: title.trim() || 'Campus Counsellor',
+      location: officeLocation.trim() || 'Wellness Pavilion',
       activeCases: 0,
       maxCases: 30,
       status: 'invited',
     };
 
-    setCounsellors([newCounsellor, ...counsellors]);
+    const updated = [newCounsellor, ...counsellors];
+    setCounsellors(updated);
+    try {
+      sessionStorage.setItem('sentimate_counsellors', JSON.stringify(updated));
+    } catch {
+      // Ignore
+    }
+
     setSuccessBanner(
       `Counsellor invitation generated for ${fullName} (${email}). Secure activation link dispatched. Action recorded in audit logs.`
     );
@@ -120,39 +126,59 @@ export default function AdminCounsellorsPage() {
             Active Clinician Staff
           </h2>
 
-          {counsellors.map((c) => (
-            <Card
-              key={c.id}
-              className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-base text-[#18191B] dark:text-[#F3F4F6]">
-                    {c.name}
-                  </span>
-                  <Badge variant={c.status === 'active' ? 'teal' : 'amber'} size="sm">
-                    {c.status}
-                  </Badge>
-                </div>
-                <div className="text-xs text-[#4A4D54] dark:text-[#9CA3AF] flex items-center gap-3 flex-wrap">
-                  <span>{c.title}</span>
-                  <span>•</span>
-                  <span>{c.email}</span>
-                  <span>•</span>
-                  <span>{c.location}</span>
-                </div>
-                <div className="text-[11px] text-[#71757E] pt-1">
-                  Active Cases: <strong>{c.activeCases}</strong> / {c.maxCases} caseload cap
-                </div>
+          <LoadingRegion isLoading={isLoading} announcement="Loading authorized counsellors...">
+            {isLoading ? (
+              <div className="space-y-3">
+                <AppointmentCardSkeleton />
+                <AppointmentCardSkeleton />
+                <AppointmentCardSkeleton />
               </div>
+            ) : counsellors.length === 0 ? (
+              <EmptyState
+                icon={Users}
+                title="No Counsellors Provisioned"
+                description="No campus clinicians are currently registered in this workspace. Invite a certified counsellor to begin managing cases and receiving student referrals."
+                actionLabel="Invite New Counsellor"
+                onAction={() => setInviteModalOpen(true)}
+              />
+            ) : (
+              <div className="space-y-3">
+                {counsellors.map((c) => (
+                  <Card
+                    key={c.id}
+                    className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-base text-[#18191B] dark:text-[#F3F4F6]">
+                          {c.name}
+                        </span>
+                        <Badge variant={c.status === 'active' ? 'teal' : 'amber'} size="sm">
+                          {c.status}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-[#4A4D54] dark:text-[#9CA3AF] flex items-center gap-3 flex-wrap">
+                        <span>{c.title}</span>
+                        <span>•</span>
+                        <span>{c.email}</span>
+                        <span>•</span>
+                        <span>{c.location}</span>
+                      </div>
+                      <div className="text-[11px] text-[#71757E] pt-1">
+                        Active Cases: <strong>{c.activeCases}</strong> / {c.maxCases} caseload cap
+                      </div>
+                    </div>
 
-              <div className="flex items-center gap-2">
-                <Badge variant="neutral" size="sm">
-                  Role: Counsellor (Protected)
-                </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="neutral" size="sm">
+                        Role: Counsellor (Protected)
+                      </Badge>
+                    </div>
+                  </Card>
+                ))}
               </div>
-            </Card>
-          ))}
+            )}
+          </LoadingRegion>
         </div>
       </div>
 

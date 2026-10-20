@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   LifeBuoy,
@@ -17,6 +17,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { ResourceCardSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface SupportResource {
   id: string;
@@ -33,6 +35,12 @@ interface SupportResource {
 export default function ResourcesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Initial mount hydration without artificial delay
+    setIsLoading(false);
+  }, []);
 
   const resources: SupportResource[] = [
     {
@@ -185,66 +193,88 @@ export default function ResourcesPage() {
         </div>
 
         {/* Directory Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((res) => (
-            <Card
-              key={res.id}
-              className={`space-y-3.5 border ${
-                res.isEmergency
-                  ? 'border-red-200 dark:border-red-900/40 bg-red-50/20 dark:bg-red-950/10'
-                  : 'border-[#E2E2DC] dark:border-[#2C3038]'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-sm sm:text-base text-[#18191B] dark:text-[#F3F4F6]">
-                  {res.title}
-                </h3>
-                <Badge variant={res.isEmergency ? 'red' : 'teal'} size="sm">
-                  {res.hours}
-                </Badge>
-              </div>
-
-              <p className="text-xs text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed">
-                {res.description}
-              </p>
-
-              <div className="pt-2 border-t border-[#E2E2DC]/60 dark:border-[#2C3038]/60 space-y-2 text-xs">
-                {res.phone && (
-                  <div className="flex items-center gap-2">
-                    <PhoneCall className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
-                    <a
-                      href={`tel:${res.phone.replace(/[^0-9]/g, '')}`}
-                      className="font-bold text-[#0D766E] dark:text-[#2DD4BF] hover:underline"
-                    >
-                      {res.phone}
-                    </a>
+        <LoadingRegion isLoading={isLoading} announcement="Loading verified support resources...">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ResourceCardSkeleton />
+              <ResourceCardSkeleton />
+              <ResourceCardSkeleton />
+              <ResourceCardSkeleton />
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="No Matching Resources Found"
+              description="No crisis or support resources matched your current category or search criteria. Try broadening your keywords."
+              actionLabel="Reset Search Filters"
+              onAction={() => {
+                setSelectedCategory('all');
+                setSearchQuery('');
+              }}
+            />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filtered.map((res) => (
+                <Card
+                  key={res.id}
+                  className={`space-y-3.5 border ${
+                    res.isEmergency
+                      ? 'border-red-200 dark:border-red-900/40 bg-red-50/20 dark:bg-red-950/10'
+                      : 'border-[#E2E2DC] dark:border-[#2C3038]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-sm sm:text-base text-[#18191B] dark:text-[#F3F4F6]">
+                      {res.title}
+                    </h3>
+                    <Badge variant={res.isEmergency ? 'red' : 'teal'} size="sm">
+                      {res.hours}
+                    </Badge>
                   </div>
-                )}
 
-                {res.location && (
-                  <div className="flex items-center gap-2 text-[#71757E]">
-                    <Building className="w-3.5 h-3.5" />
-                    <span>{res.location}</span>
-                  </div>
-                )}
+                  <p className="text-xs text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed">
+                    {res.description}
+                  </p>
 
-                {res.url && (
-                  <div className="flex items-center gap-2">
-                    <ExternalLink className="w-3.5 h-3.5 text-[#71757E]" />
-                    <a
-                      href={res.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#0D766E] dark:text-[#2DD4BF] hover:underline truncate"
-                    >
-                      Official Website
-                    </a>
+                  <div className="pt-2 border-t border-[#E2E2DC]/60 dark:border-[#2C3038]/60 space-y-2 text-xs">
+                    {res.phone && (
+                      <div className="flex items-center gap-2">
+                        <PhoneCall className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                        <a
+                          href={`tel:${res.phone.replace(/[^0-9]/g, '')}`}
+                          className="font-bold text-[#0D766E] dark:text-[#2DD4BF] hover:underline"
+                        >
+                          {res.phone}
+                        </a>
+                      </div>
+                    )}
+
+                    {res.location && (
+                      <div className="flex items-center gap-2 text-[#71757E]">
+                        <Building className="w-3.5 h-3.5" />
+                        <span>{res.location}</span>
+                      </div>
+                    )}
+
+                    {res.url && (
+                      <div className="flex items-center gap-2">
+                        <ExternalLink className="w-3.5 h-3.5 text-[#71757E]" />
+                        <a
+                          href={res.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#0D766E] dark:text-[#2DD4BF] hover:underline truncate"
+                        >
+                          Official Website
+                        </a>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </LoadingRegion>
       </div>
     </div>
   );

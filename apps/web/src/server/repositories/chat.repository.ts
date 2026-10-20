@@ -45,7 +45,7 @@ export class ChatRepository {
         .select('*')
         .eq('id', sessionId)
         .eq('student_id', studentId)
-        .single();
+        .maybeSingle();
 
       if (error || !data) {
         return null;

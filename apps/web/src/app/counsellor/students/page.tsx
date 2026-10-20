@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CounsellorShell } from '@/components/layout/CounsellorShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
+import { StudentCardSkeleton, LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Users, Search, Shield, Eye, GraduationCap, CheckCircle2 } from 'lucide-react';
 
 interface AssignedStudent {
@@ -18,7 +20,7 @@ interface AssignedStudent {
   sharingScope: {
     checkins: boolean;
     academics: boolean;
-    chatHistory: boolean; // Always false by default
+    chatHistory: boolean;
   };
   recentCheckin?: {
     mood: number;
@@ -30,50 +32,27 @@ interface AssignedStudent {
 export default function CounsellorStudentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<AssignedStudent | null>(null);
+  const [students, setStudents] = useState<AssignedStudent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const students: AssignedStudent[] = [
-    {
-      id: 'stu-1',
-      name: 'Alex P.',
-      prn: 'PRN-2024-ENG-0892',
-      department: 'Computer Engineering',
-      semester: 4,
-      activeCase: true,
-      sharingScope: {
-        checkins: true,
-        academics: true,
-        chatHistory: false,
-      },
-      recentCheckin: { mood: 3, sleep: 4.5, stress: 4 },
-    },
-    {
-      id: 'stu-2',
-      name: 'Marcus V.',
-      prn: 'PRN-2023-CS-0419',
-      department: 'Computer Engineering',
-      semester: 6,
-      activeCase: true,
-      sharingScope: {
-        checkins: true,
-        academics: false,
-        chatHistory: false,
-      },
-      recentCheckin: { mood: 4, sleep: 7.5, stress: 2 },
-    },
-    {
-      id: 'stu-3',
-      name: 'Elena Rostova',
-      prn: 'PRN-2024-BIO-1102',
-      department: 'Biomedical Engineering',
-      semester: 2,
-      activeCase: false,
-      sharingScope: {
-        checkins: false,
-        academics: false,
-        chatHistory: false,
-      },
-    },
-  ];
+  useEffect(() => {
+    // Load assigned students directory from institutional records
+    const loadStudents = () => {
+      try {
+        const stored = sessionStorage.getItem('sentimate_assigned_students');
+        if (stored) {
+          setStudents(JSON.parse(stored));
+        } else {
+          setStudents([]);
+        }
+      } catch {
+        setStudents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadStudents();
+  }, []);
 
   const filtered = students.filter(
     (s) =>
@@ -95,9 +74,13 @@ export default function CounsellorStudentsPage() {
               Students assigned to your caseload under institutional boundary policies.
             </p>
           </div>
-          <Badge variant="teal" size="md">
-            {students.length} Total Assigned
-          </Badge>
+          {isLoading ? (
+            <Skeleton className="h-6 w-28" />
+          ) : (
+            <Badge variant="teal" size="md">
+              {students.length} Total Assigned
+            </Badge>
+          )}
         </div>
 
         {/* Search Bar */}
@@ -113,62 +96,89 @@ export default function CounsellorStudentsPage() {
         </div>
 
         {/* Students Table / List */}
-        <div className="space-y-3">
-          {filtered.map((student) => (
-            <Card
-              key={student.id}
-              className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#0D766E]/40 transition-colors"
-            >
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-base text-[#18191B] dark:text-[#F3F4F6]">
-                    {student.name}
-                  </span>
-                  <Badge variant="neutral" size="sm">
-                    {student.prn}
-                  </Badge>
-                  {student.activeCase && (
-                    <Badge variant="amber" size="sm">
-                      Active Case
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="text-xs text-[#71757E] flex items-center gap-3 flex-wrap">
-                  <span>{student.department}</span>
-                  <span>•</span>
-                  <span>Semester {student.semester}</span>
-                </div>
-
-                {/* Scope of Sharing Badges */}
-                <div className="flex items-center gap-2 pt-1 text-[11px]">
-                  <span className="text-[#71757E]">Consented Access:</span>
-                  <Badge variant={student.sharingScope.checkins ? 'teal' : 'neutral'} size="sm">
-                    Check-ins: {student.sharingScope.checkins ? 'Permitted' : 'Restricted'}
-                  </Badge>
-                  <Badge variant={student.sharingScope.academics ? 'teal' : 'neutral'} size="sm">
-                    Academics: {student.sharingScope.academics ? 'Permitted' : 'Restricted'}
-                  </Badge>
-                  <Badge variant="neutral" size="sm">
-                    Raw Chat: Restricted (Protected)
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  onClick={() => setSelectedStudent(student)}
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5 text-xs font-semibold"
+        <LoadingRegion
+          isLoading={isLoading}
+          announcement="Loading assigned students directory..."
+        >
+          {isLoading ? (
+            <div className="space-y-3">
+              <StudentCardSkeleton />
+              <StudentCardSkeleton />
+              <StudentCardSkeleton />
+            </div>
+          ) : filtered.length === 0 ? (
+            searchQuery ? (
+              <EmptyState
+                icon={Search}
+                title="No Matching Students Found"
+                description={`No assigned students match "${searchQuery}". Check the name, PRN or department filter.`}
+              />
+            ) : (
+              <EmptyState
+                icon={Users}
+                title="No Students Assigned Yet"
+                description="Your caseload currently has no active student assignments. Newly assigned students from institutional administration will appear here."
+              />
+            )
+          ) : (
+            <div className="space-y-3">
+              {filtered.map((student) => (
+                <Card
+                  key={student.id}
+                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#0D766E]/40 transition-colors"
                 >
-                  <Eye className="w-4 h-4" />
-                  <span>Inspect Permitted File</span>
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-base text-[#18191B] dark:text-[#F3F4F6]">
+                        {student.name}
+                      </span>
+                      <Badge variant="neutral" size="sm">
+                        {student.prn}
+                      </Badge>
+                      {student.activeCase && (
+                        <Badge variant="amber" size="sm">
+                          Active Case
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="text-xs text-[#71757E] flex items-center gap-3 flex-wrap">
+                      <span>{student.department}</span>
+                      <span>•</span>
+                      <span>Semester {student.semester}</span>
+                    </div>
+
+                    {/* Scope of Sharing Badges */}
+                    <div className="flex items-center gap-2 pt-1 text-[11px]">
+                      <span className="text-[#71757E]">Consented Access:</span>
+                      <Badge variant={student.sharingScope.checkins ? 'teal' : 'neutral'} size="sm">
+                        Check-ins: {student.sharingScope.checkins ? 'Permitted' : 'Restricted'}
+                      </Badge>
+                      <Badge variant={student.sharingScope.academics ? 'teal' : 'neutral'} size="sm">
+                        Academics: {student.sharingScope.academics ? 'Permitted' : 'Restricted'}
+                      </Badge>
+                      <Badge variant="neutral" size="sm">
+                        Raw Chat: Restricted (Protected)
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      onClick={() => setSelectedStudent(student)}
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs font-semibold"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Inspect Permitted File</span>
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </LoadingRegion>
       </div>
 
       {/* Student Permitted Profile Dialog */}

@@ -23,6 +23,7 @@ import {
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
+import { ChatHistorySkeleton, Skeleton } from '../ui/Skeleton';
 import { createClient } from '@/lib/supabase/client';
 
 export interface ChatSessionItem {
@@ -35,6 +36,7 @@ interface StudentShellProps {
   children: React.ReactNode;
   sessions?: ChatSessionItem[];
   activeSessionId?: string;
+  isLoadingSessions?: boolean;
   onNewSession?: () => void;
   onSelectSession?: (id: string) => void;
   onRenameSession?: (id: string, newTitle: string) => void;
@@ -46,6 +48,7 @@ export function StudentShell({
   children,
   sessions = [],
   activeSessionId,
+  isLoadingSessions = false,
   onNewSession,
   onSelectSession,
   onRenameSession,
@@ -59,6 +62,7 @@ export function StudentShell({
   const [editTitle, setEditTitle] = useState('');
   const [supportModalOpen, setSupportModalOpen] = useState(false);
   const [displayName, setDisplayName] = useState(studentName);
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -74,6 +78,8 @@ export function StudentShell({
         }
       } catch {
         // Fall back to prop
+      } finally {
+        setIsLoadingUser(false);
       }
     };
     fetchUser();
@@ -152,12 +158,22 @@ export function StudentShell({
       </div>
 
       {/* Conversation History List (if on chat route) */}
-      <div className="flex-1 overflow-y-auto px-3 py-1 space-y-1">
+      <div
+        className="flex-1 overflow-y-auto px-3 py-1 space-y-1"
+        aria-busy={isLoadingSessions}
+      >
         <div className="text-[11px] font-semibold uppercase tracking-wider text-[#71757E] px-2 py-1">
           Recent Conversations
         </div>
 
-        {sessions.length === 0 ? (
+        {isLoadingSessions ? (
+          <>
+            <span className="sr-only" role="status" aria-live="polite">
+              Loading recent conversations...
+            </span>
+            <ChatHistorySkeleton count={3} />
+          </>
+        ) : sessions.length === 0 ? (
           <div className="px-2 py-3 text-xs text-[#71757E] italic">No previous chats yet</div>
         ) : (
           sessions.map((s) => {
@@ -263,12 +279,19 @@ export function StudentShell({
 
       {/* Account & Theme Footer */}
       <div className="p-3 border-t border-[#E2E2DC] dark:border-[#2C3038] flex items-center justify-between">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-7 h-7 rounded-full bg-[#0D766E] text-white flex items-center justify-center text-xs font-bold shrink-0">
-            {displayName.charAt(0).toUpperCase()}
+        {isLoadingUser ? (
+          <div className="flex items-center gap-2 overflow-hidden flex-1" aria-hidden="true">
+            <Skeleton variant="circular" className="w-7 h-7" />
+            <Skeleton className="h-3.5 w-20" />
           </div>
-          <span className="text-xs font-medium truncate">{displayName}</span>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-7 h-7 rounded-full bg-[#0D766E] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+            <span className="text-xs font-medium truncate">{displayName}</span>
+          </div>
+        )}
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <button

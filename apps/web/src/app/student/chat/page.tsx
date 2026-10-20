@@ -18,6 +18,7 @@ import { StudentShell, ChatSessionItem } from '@/components/layout/StudentShell'
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
+import { ChatMessageSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { createClient } from '@/lib/supabase/client';
 
 interface Message {
@@ -29,22 +30,12 @@ interface Message {
 }
 
 export default function StudentChatPage() {
-  const [sessions, setSessions] = useState<ChatSessionItem[]>([
-    { id: 'sess-1', title: 'Midterm Pacing & Sleep', createdAt: '2026-10-18T10:00:00Z' },
-    { id: 'sess-2', title: 'Managing Lab Group Work', createdAt: '2026-10-15T14:30:00Z' },
-  ]);
-  const [activeSessionId, setActiveSessionId] = useState<string>('sess-1');
+  const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
+  const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(true);
+  const [activeSessionId, setActiveSessionId] = useState<string>('sess-current');
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'm-1',
-      senderRole: 'assistant',
-      content:
-        'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?',
-      timestamp: '10:00 AM',
-      status: 'completed',
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState<boolean>(true);
 
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,33 +48,64 @@ export default function StudentChatPage() {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    let isMounted = true;
+    const initChat = async () => {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const name =
-            user.user_metadata?.full_name ||
-            user.user_metadata?.name ||
-            user.email?.split('@')[0] ||
-            '';
-          if (name) {
-            setMessages([
-              {
-                id: 'm-1',
-                senderRole: 'assistant',
-                content: `Hello ${name}. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?`,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                status: 'completed',
-              },
-            ]);
-          }
+        const name =
+          user?.user_metadata?.full_name ||
+          user?.user_metadata?.name ||
+          user?.email?.split('@')[0] ||
+          '';
+
+        const greetingText = name
+          ? `Hello ${name}. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?`
+          : 'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?';
+
+        if (isMounted) {
+          const currentSession: ChatSessionItem = {
+            id: 'sess-current',
+            title: 'Current Session',
+            createdAt: new Date().toISOString(),
+          };
+          setSessions([currentSession]);
+          setActiveSessionId('sess-current');
+
+          setMessages([
+            {
+              id: 'm-welcome',
+              senderRole: 'assistant',
+              content: greetingText,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              status: 'completed',
+            },
+          ]);
         }
       } catch {
-        // Keep default greeting
+        if (isMounted) {
+          setMessages([
+            {
+              id: 'm-welcome',
+              senderRole: 'assistant',
+              content:
+                'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              status: 'completed',
+            },
+          ]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingSessions(false);
+          setIsLoadingMessages(false);
+        }
       }
     };
-    fetchUser();
+    initChat();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -243,6 +265,7 @@ export default function StudentChatPage() {
     <StudentShell
       sessions={sessions}
       activeSessionId={activeSessionId}
+      isLoadingSessions={isLoadingSessions}
       onNewSession={handleNewSession}
       onSelectSession={(id) => setActiveSessionId(id)}
       onRenameSession={handleRenameSession}
@@ -270,56 +293,75 @@ export default function StudentChatPage() {
         </div>
 
         {/* Message Thread Area */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
+        <LoadingRegion
+          isLoading={isLoadingMessages}
+          announcement="Loading conversation messages..."
+          className="flex-1 overflow-y-auto px-4 py-6 md:px-6"
+        >
           <div className="max-w-3xl mx-auto space-y-6">
-            {messages.map((m) => {
-              const isUser = m.senderRole === 'user';
-              return (
-                <div
-                  key={m.id}
-                  className={`flex items-start gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  {!isUser && (
-                    <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#0F1115] flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
-                      AI
-                    </div>
-                  )}
+            {isLoadingMessages ? (
+              <ChatMessageSkeleton />
+            ) : (
+              messages.map((m) => {
+                const isUser = m.senderRole === 'user';
+                return (
+                  <div
+                    key={m.id}
+                    className={`flex items-start gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}
+                  >
+                    {!isUser && (
+                      <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#0F1115] flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
+                        AI
+                      </div>
+                    )}
 
-                  <div className={`space-y-1 max-w-[85%] sm:max-w-[80%]`}>
-                    <div
-                      className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
-                        isUser
-                          ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115] border-transparent rounded-tr-xs'
-                          : m.status === 'failed'
-                          ? 'bg-[#FEF2F2] dark:bg-[rgba(239,68,68,0.12)] border-[#FECACA] dark:border-[rgba(239,68,68,0.25)] text-red-800 dark:text-red-300 rounded-tl-xs'
-                          : 'bg-white dark:bg-[#17191E] text-[#18191B] dark:text-[#F3F4F6] border-[#E2E2DC] dark:border-[#2C3038] rounded-tl-xs shadow-xs'
-                      }`}
-                    >
-                      {m.content}
-                      {m.status === 'streaming' && (
-                        <span className="inline-block w-1.5 h-4 ml-1 bg-current animate-pulse align-middle" />
-                      )}
+                    <div className={`space-y-1 max-w-[85%] sm:max-w-[80%]`}>
+                      <div
+                        className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
+                          isUser
+                            ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115] border-transparent rounded-tr-xs'
+                            : m.status === 'failed'
+                            ? 'bg-[#FEF2F2] dark:bg-[rgba(239,68,68,0.12)] border-[#FECACA] dark:border-[rgba(239,68,68,0.25)] text-red-800 dark:text-red-300 rounded-tl-xs'
+                            : 'bg-white dark:bg-[#17191E] text-[#18191B] dark:text-[#F3F4F6] border-[#E2E2DC] dark:border-[#2C3038] rounded-tl-xs shadow-xs'
+                        }`}
+                      >
+                        {m.status === 'streaming' && !m.content ? (
+                          <div className="flex items-center gap-1.5 py-1 px-0.5" aria-label="Assistant is thinking">
+                            <span className="w-2 h-2 rounded-full bg-[#0D766E]/70 dark:bg-[#14B8A6]/70 animate-pulse" />
+                            <span className="w-2 h-2 rounded-full bg-[#0D766E]/70 dark:bg-[#14B8A6]/70 animate-pulse [animation-delay:200ms]" />
+                            <span className="w-2 h-2 rounded-full bg-[#0D766E]/70 dark:bg-[#14B8A6]/70 animate-pulse [animation-delay:400ms]" />
+                            <span className="sr-only">Preparing response...</span>
+                          </div>
+                        ) : (
+                          <>
+                            {m.content}
+                            {m.status === 'streaming' && (
+                              <span className="inline-block w-1.5 h-4 ml-1 bg-current animate-pulse align-middle" aria-hidden="true" />
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div
+                        className={`text-[10px] text-[#71757E] px-1 ${
+                          isUser ? 'text-right' : 'text-left'
+                        }`}
+                      >
+                        {m.timestamp}
+                      </div>
                     </div>
-                    <div
-                      className={`text-[10px] text-[#71757E] px-1 ${
-                        isUser ? 'text-right' : 'text-left'
-                      }`}
-                    >
-                      {m.timestamp}
-                    </div>
+
+                    {isUser && (
+                      <div className="w-8 h-8 rounded-full bg-[#E2E2DC] dark:bg-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] flex items-center justify-center text-xs font-semibold shrink-0">
+                        You
+                      </div>
+                    )}
                   </div>
-
-                  {isUser && (
-                    <div className="w-8 h-8 rounded-full bg-[#E2E2DC] dark:bg-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] flex items-center justify-center text-xs font-semibold shrink-0">
-                      You
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })
+            )}
             <div ref={messagesEndRef} />
           </div>
-        </div>
+        </LoadingRegion>
 
         {/* Failed Input Retry Bar */}
         {lastFailedInput && (

@@ -37,8 +37,8 @@ export async function GET(req: NextRequest) {
 
     if (env.isConfigured.supabase) {
       const supabase = await createServerSupabaseClient();
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', studentId).single();
-      const { data: studentProfile } = await supabase.from('student_profiles').select('*').eq('id', studentId).single();
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', studentId).maybeSingle();
+      const { data: studentProfile } = await supabase.from('student_profiles').select('*').eq('id', studentId).maybeSingle();
       const { data: semesters } = await supabase.from('student_semester_results').select('*').eq('student_id', studentId).order('semester_number');
 
       return NextResponse.json({

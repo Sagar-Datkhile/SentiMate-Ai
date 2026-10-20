@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { Badge } from '../ui/Badge';
+import { Skeleton } from '../ui/Skeleton';
 import { createClient } from '@/lib/supabase/client';
 
 interface AdminShellProps {
@@ -29,6 +30,29 @@ export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [displayName, setDisplayName] = useState('System Administrator');
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const name =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email?.split('@')[0];
+          if (name) setDisplayName(name);
+        }
+      } catch {
+        // Fall back to default
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -108,15 +132,25 @@ export function AdminShell({ children }: AdminShellProps) {
 
       {/* Account Footer */}
       <div className="p-3 border-t border-[#242832] flex items-center justify-between">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-7 h-7 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
-            A
+        {isLoadingUser ? (
+          <div className="flex items-center gap-2 overflow-hidden flex-1">
+            <Skeleton variant="circular" className="w-7 h-7" />
+            <div className="space-y-1 flex-1">
+              <Skeleton className="h-3 w-28" />
+              <Skeleton className="h-2.5 w-16" />
+            </div>
           </div>
-          <div className="truncate">
-            <span className="text-xs font-medium block truncate">System Administrator</span>
-            <span className="text-[10px] text-amber-400 block truncate">Institution Admin</span>
+        ) : (
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-7 h-7 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+            <div className="truncate">
+              <span className="text-xs font-medium block truncate">{displayName}</span>
+              <span className="text-[10px] text-amber-400 block truncate">Institution Admin</span>
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <button

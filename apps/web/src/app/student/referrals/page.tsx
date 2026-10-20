@@ -18,12 +18,27 @@ export default function StudentReferralsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!reason.trim()) return;
+    if (!reason.trim() || loading) return;
 
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setLoading(false);
-    setSubmitted(true);
+    try {
+      const stored = sessionStorage.getItem('sentimate_referrals');
+      const list = stored ? JSON.parse(stored) : [];
+      list.push({
+        id: `ref-${Date.now()}`,
+        reason: reason.trim(),
+        priority,
+        shareCheckins,
+        shareAcademics,
+        submittedAt: new Date().toISOString(),
+      });
+      sessionStorage.setItem('sentimate_referrals', JSON.stringify(list));
+    } catch {
+      // Storage fallback
+    } finally {
+      setLoading(false);
+      setSubmitted(true);
+    }
   };
 
   return (

@@ -30,7 +30,7 @@ export class AuthRepository {
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileError || !profile) {
       return null;
@@ -45,7 +45,7 @@ export class AuthRepository {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) return null;
     return data as UserProfileRecord;

@@ -124,6 +124,31 @@ export class NvidiaChatAdapter {
       return response as unknown as AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
     };
 
+    let initialStream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
+    try {
+      initialStream = await makeStreamRequest(params.signal);
+    } catch (upstreamErr: any) {
+      if (
+        (upstreamErr?.status === 429 || upstreamErr?.status === 503 || upstreamErr?.status === 504) &&
+        !params.signal?.aborted
+      ) {
+        const retryAfter = upstreamErr?.headers?.['retry-after'];
+        const delayMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 750;
+        await new Promise((resolve) => setTimeout(resolve, Math.min(delayMs, 2000)));
+        try {
+          initialStream = await makeStreamRequest(params.signal);
+        } catch (retryErr: any) {
+          const statusCode = retryErr?.status || 503;
+          const msg = retryErr?.message || 'NVIDIA Nemotron chat service is currently unavailable';
+          throw new NvidiaChatServiceError(msg, statusCode, 'UPSTREAM_PROVIDER_ERROR');
+        }
+      } else {
+        const statusCode = upstreamErr?.status || 503;
+        const msg = upstreamErr?.message || 'NVIDIA Nemotron chat service is currently unavailable';
+        throw new NvidiaChatServiceError(msg, statusCode, 'UPSTREAM_PROVIDER_ERROR');
+      }
+    }
+
     return new ReadableStream<Uint8Array>({
       async start(controller) {
         let accumulatedText = '';
@@ -131,27 +156,7 @@ export class NvidiaChatAdapter {
         let streamStarted = false;
 
         try {
-          let stream;
-          try {
-            stream = await makeStreamRequest(params.signal);
-          } catch (upstreamErr: any) {
-            // Eligible bounded retry for transient 429/503/504 before streaming has started
-            if (
-              !retryAttempted &&
-              (upstreamErr?.status === 429 || upstreamErr?.status === 503 || upstreamErr?.status === 504) &&
-              !params.signal?.aborted
-            ) {
-              retryAttempted = true;
-              const retryAfter = upstreamErr?.headers?.['retry-after'];
-              const delayMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 750;
-              await new Promise((resolve) => setTimeout(resolve, Math.min(delayMs, 2000)));
-              stream = await makeStreamRequest(params.signal);
-            } else {
-              throw upstreamErr;
-            }
-          }
-
-          for await (const chunk of stream) {
+          for await (const chunk of initialStream) {
             if (params.signal?.aborted) {
               break;
             }
