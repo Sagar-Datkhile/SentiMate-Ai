@@ -20,15 +20,16 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useTheme } from '../theme-provider';
-import { Badge } from '../ui/Badge';
 import { toast } from '@/components/ui/Toast';
 import { createClient } from '@/lib/supabase/client';
+import { AvatarBubble } from './AvatarBubble';
 
 export interface UserProfileData {
   displayName: string;
   email?: string;
   username?: string;
   role?: string;
+  avatarUrl?: string;
 }
 
 interface AccountMenuProps {
@@ -224,8 +225,6 @@ export function AccountMenu({
     }
   };
 
-  const initialLetter = (userProfile.displayName || 'S').charAt(0).toUpperCase();
-
   const menuContent = (
     <div
       ref={menuRef}
@@ -241,20 +240,19 @@ export function AccountMenu({
     >
       {/* 1. Compact Account Identity Header */}
       <div className="p-3 border-b border-[#E2E2DC]/70 dark:border-[#1F2024]/70 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
-          {initialLetter}
-        </div>
+        <AvatarBubble
+          avatarUrl={userProfile.avatarUrl}
+          displayName={userProfile.displayName}
+          size={9}
+        />
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-xs text-[#18191B] dark:text-[#F3F4F6] truncate leading-tight">
             {userProfile.displayName || 'Student Account'}
           </div>
           <div className="text-[11px] text-[#71757E] truncate mt-0.5">
-            {userProfile.email || (userProfile.username ? `@${userProfile.username}` : 'Student')}
+            {userProfile.username ? `@${userProfile.username}` : ''}
           </div>
         </div>
-        <Badge variant="teal" size="sm" className="text-[10px] py-0.5 px-1.5 shrink-0">
-          Student
-        </Badge>
       </div>
 
       {/* Scrollable Items Container */}

@@ -4,6 +4,7 @@ import React from 'react';
 import { Tooltip } from '../ui/Tooltip';
 import { Skeleton } from '../ui/Skeleton';
 import { UserProfileData } from './AccountMenu';
+import { AvatarBubble } from './AvatarBubble';
 
 interface AccountTriggerProps {
   userProfile: UserProfileData;
@@ -22,8 +23,6 @@ export function AccountTrigger({
   isCollapsed = false,
   buttonRef,
 }: AccountTriggerProps) {
-  const initialLetter = (userProfile.displayName || 'S').charAt(0).toUpperCase();
-
   if (isLoading) {
     return isCollapsed ? (
       <div className="flex items-center justify-center p-2" aria-hidden="true">
@@ -51,17 +50,21 @@ export function AccountTrigger({
           aria-haspopup="menu"
           aria-expanded={isOpen}
           aria-label={`Account menu for ${userProfile.displayName}`}
-          className={`w-9 h-9 rounded-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] font-bold text-xs flex items-center justify-center shrink-0 transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] cursor-pointer shadow-xs ${
+          className={`w-9 h-9 rounded-full transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] cursor-pointer shadow-xs ${
             isOpen ? 'ring-2 ring-[#4F648C] dark:ring-[#91A7D0]' : ''
           }`}
         >
-          {initialLetter}
+          <AvatarBubble
+            avatarUrl={userProfile.avatarUrl}
+            displayName={userProfile.displayName}
+            size={9}
+          />
         </button>
       </Tooltip>
     );
   }
 
-  // Expanded Mode Trigger: Full Row Button with Avatar and Name (no shifting indicator)
+  // Expanded Mode Trigger: Full Row Button with Avatar and Name
   return (
     <button
       ref={buttonRef}
@@ -74,15 +77,14 @@ export function AccountTrigger({
         isOpen ? 'bg-[#EAEAE5] dark:bg-[#18191C]' : ''
       }`}
     >
-      <div className="w-8 h-8 rounded-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-        {initialLetter}
-      </div>
+      <AvatarBubble
+        avatarUrl={userProfile.avatarUrl}
+        displayName={userProfile.displayName}
+        size={8}
+      />
       <div className="min-w-0 flex-1">
         <div className="font-semibold text-xs text-[#18191B] dark:text-[#F3F4F6] truncate leading-tight">
           {userProfile.displayName}
-        </div>
-        <div className="text-[11px] text-[#71757E] truncate mt-0.5">
-          {userProfile.email || (userProfile.username ? `@${userProfile.username}` : 'Student')}
         </div>
       </div>
     </button>

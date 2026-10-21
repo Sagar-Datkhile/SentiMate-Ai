@@ -134,25 +134,47 @@ export function StudentShell({
             user.email?.split('@')[0] ||
             studentName;
 
-          // Also check profiles table for username
+          // Also check profiles table for avatar and student_profiles for username
           let username: string | undefined = undefined;
+          let avatarUrl: string | undefined = undefined;
           try {
-            const { data: profile } = await supabase
-              .from('student_profiles')
-              .select('username')
-              .eq('id', user.id)
-              .maybeSingle();
-            if (profile?.username) {
-              username = profile.username;
+            const [profileRes, studentRes] = await Promise.all([
+              supabase.from('profiles').select('avatar_url').eq('id', user.id).maybeSingle(),
+              supabase.from('student_profiles').select('username').eq('id', user.id).maybeSingle(),
+            ]);
+
+            if (studentRes.data?.username) {
+              username = studentRes.data.username;
+            } else if (user.email) {
+              username = user.email.split('@')[0];
+            }
+
+            // Uploaded profile photo takes priority over OAuth photo
+            if (profileRes.data?.avatar_url) {
+              avatarUrl = profileRes.data.avatar_url;
             }
           } catch {
             // Ignore optional profile lookup
+          }
+
+          // Fall back to Google / OAuth photo from user metadata if no uploaded photo
+          if (!avatarUrl) {
+            const meta = user.user_metadata || {};
+            const identityMeta = (user.identities?.[0]?.identity_data as Record<string, string> | undefined) || {};
+            avatarUrl =
+              meta.avatar_url ||
+              meta.picture ||
+              meta.photoURL ||
+              identityMeta.avatar_url ||
+              identityMeta.picture ||
+              undefined;
           }
 
           setUserProfile({
             displayName: name,
             email: user.email,
             username,
+            avatarUrl,
             role: 'Student',
           });
         }
