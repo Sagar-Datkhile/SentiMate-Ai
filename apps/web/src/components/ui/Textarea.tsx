@@ -25,7 +25,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
             error
               ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
               : 'border-[#E2E2DC] dark:border-[#1F2024] focus:border-[#4F648C] dark:focus:border-[#91A7D0] focus:ring-[#4F648C]/20'
-          } text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] focus:outline-none focus:ring-2 transition-all resize-y ${className}`}
+          } text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:ring-2 transition-all resize-y ${className}`}
           {...props}
         />
         {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}

@@ -21,9 +21,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (stored === 'light') {
         setThemeState('light');
         document.documentElement.classList.remove('dark');
+        document.documentElement.style.colorScheme = 'light';
       } else {
         setThemeState('dark');
         document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = 'dark';
         if (stored !== 'dark') {
           localStorage.setItem('sentimate-theme', 'dark');
         }
@@ -31,6 +33,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch {
       setThemeState('dark');
       document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
     }
 
     const handleStorage = (e: StorageEvent) => {
@@ -39,9 +42,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (val === 'light') {
           setThemeState('light');
           document.documentElement.classList.remove('dark');
+          document.documentElement.style.colorScheme = 'light';
         } else {
           setThemeState('dark');
           document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
         }
       }
     };
@@ -59,8 +64,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
     }
   };
 

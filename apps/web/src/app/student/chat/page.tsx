@@ -550,12 +550,6 @@ export default function StudentChatPage() {
                         {m.timestamp}
                       </div>
                     </div>
-
-                    {isUser && (
-                      <div className="w-8 h-8 rounded-full bg-[#E2E2DC] dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] flex items-center justify-center text-xs font-semibold shrink-0">
-                        You
-                      </div>
-                    )}
                   </div>
                 );
               })
@@ -594,15 +588,15 @@ export default function StudentChatPage() {
         )}
 
         {/* Bottom Multiline Composer with Pill Input and Circular Up Arrow Send Button */}
-        <div className="border-t border-[#E2E2DC] dark:border-[#1F2024] bg-[#FBFBFA] dark:bg-[#000000] p-3 sm:p-4 shrink-0">
-          <div className="max-w-3xl mx-auto">
+        <div className="bg-[#FBFBFA] dark:bg-[#000000] shrink-0 w-full px-4 sm:px-6 pt-3.5 pb-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:min-h-[104px] flex flex-col justify-center">
+          <div className="max-w-3xl w-full mx-auto">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
               }}
               style={{ backgroundColor: 'transparent' }}
-              className="relative flex items-end gap-2 !bg-transparent border border-[#E2E2DC] dark:border-[#2C2D32] rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 focus-within:border-[#4F648C] dark:focus-within:border-[#91A7D0] transition-all"
+              className="relative flex items-center gap-2 !bg-transparent border border-[#E2E2DC] dark:border-[#2C2D32] rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 focus-within:border-[#4F648C] dark:focus-within:border-[#91A7D0] transition-all"
             >
               <textarea
                 ref={textareaRef}
@@ -617,15 +611,15 @@ export default function StudentChatPage() {
                 rows={1}
                 placeholder="How are you feeling today?"
                 style={{ backgroundColor: 'transparent' }}
-                className="w-full !bg-transparent !border-0 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] dark:placeholder-[#8C9099] focus:outline-none resize-none max-h-32 min-h-[38px] py-1.5 px-3"
+                className="w-full min-w-0 !bg-transparent !border-0 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] dark:placeholder-[#8C9099] focus:outline-none resize-none max-h-32 min-h-[36px] py-2 px-3 leading-5"
               />
 
-              <div className="flex items-center gap-1 shrink-0 pb-0.5">
+              <div className="flex items-center shrink-0">
                 {isGenerating ? (
                   <button
                     type="button"
                     onClick={handleStop}
-                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition-all shrink-0 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    className="w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition-all shrink-0 cursor-pointer shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     title="Stop generation"
                     aria-label="Stop generating response"
                   >
@@ -635,7 +629,7 @@ export default function StudentChatPage() {
                   <button
                     type="submit"
                     disabled={!inputValue.trim()}
-                    className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] ${
+                    className={`w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] rounded-full flex items-center justify-center transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] ${
                       inputValue.trim()
                         ? 'bg-[#4F648C] hover:bg-[#405374] dark:bg-[#91A7D0] dark:hover:bg-[#A6B9DC] text-white dark:text-[#151B26] shadow-sm cursor-pointer'
                         : 'bg-[#E2E2DC] dark:bg-[#2A2B30] text-[#8C9099] dark:text-[#636773] cursor-not-allowed opacity-60'
@@ -649,7 +643,7 @@ export default function StudentChatPage() {
               </div>
             </form>
 
-            <div className="mt-2 text-center text-[11px] text-[#71757E] px-1">
+            <div className="mt-2.5 text-center text-[11px] leading-tight text-[#71757E] px-1 select-none">
               <span>SentiMate AI offers conversational reflections, not medical diagnosis.</span>
             </div>
           </div>

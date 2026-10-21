@@ -7,6 +7,7 @@ import { HeartHandshake, ShieldCheck, ArrowRight, AlertCircle, CheckCircle2, Loa
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
+import { Divider } from '@/components/ui/Divider';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
 import { createClient } from '@/lib/supabase/client';
@@ -179,12 +180,7 @@ export default function RegisterPage() {
             </button>
 
             {/* Divider */}
-            <div className="relative flex items-center justify-center">
-              <div className="border-t border-[#E2E2DC] dark:border-[#1F2024] w-full" />
-              <span className="bg-white dark:bg-[#0D0E11] px-3 text-[11px] font-semibold text-[#8C909B] uppercase tracking-wider shrink-0">
-                or register with email
-              </span>
-            </div>
+            <Divider>or register with email</Divider>
 
             <form onSubmit={handleRegister} className="space-y-4">
               <Input

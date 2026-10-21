@@ -88,12 +88,9 @@ export function InteractiveProductPreview() {
               </div>
             </div>
 
-            <div className="flex items-start justify-end gap-3">
+            <div className="flex items-start justify-end">
               <div className="bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] rounded-2xl rounded-tr-sm p-4 text-xs sm:text-sm max-w-[85%] leading-relaxed">
                 Honestly, pretty overwhelmed with algorithms and lab reports. I haven't slept more than 4 hours in three nights.
-              </div>
-              <div className="w-8 h-8 rounded-full bg-[#E2E2DC] dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] flex items-center justify-center text-xs font-semibold shrink-0">
-                You
               </div>
             </div>
 

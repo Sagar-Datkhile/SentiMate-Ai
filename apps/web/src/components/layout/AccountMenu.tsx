@@ -193,7 +193,7 @@ export function AccountMenu({
         throw error;
       }
       onClose();
-      router.push('/auth/login');
+      router.push('/');
       router.refresh();
     } catch (err: unknown) {
       console.error('[AccountMenu] Sign out failed:', err);

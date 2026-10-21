@@ -54,7 +54,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               error
                 ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
                 : 'border-[#E2E2DC] dark:border-[#1F2024] focus:border-[#4F648C] dark:focus:border-[#91A7D0] focus:ring-[#4F648C]/20'
-            } text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:ring-2 transition-all min-h-[44px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-[#F5F5F3] dark:disabled:bg-[#141518] ${
+            } text-[#18191B] dark:text-[#F3F4F6] [color-scheme:light] dark:[color-scheme:dark] focus:outline-none focus:ring-2 transition-all min-h-[44px] cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-[#F5F5F3] dark:disabled:bg-[#141518] ${
               !value && placeholder ? 'text-[#71757E]' : ''
             } ${className}`}
             {...props}

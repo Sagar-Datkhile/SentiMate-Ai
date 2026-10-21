@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
   --canvas-bg: #FBFBFA;
   --surface-1: #FFFFFF;
   --surface-2: #F4F4F1;
@@ -40,6 +41,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --canvas-bg: #000000;
   --surface-1: #0D0E11;
   --surface-2: #18191C;
@@ -139,6 +141,71 @@ body {
 .dark option {
   background-color: #18191C;
   color: #F3F4F6;
+}
+
+/* Browser Autofill Overrides (Chrome, Edge, Safari, Firefox) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #18191B !important;
+  caret-color: #18191B !important;
+  transition: background-color 500000s ease-in-out 0s;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill:active,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus,
+.dark select:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #18191C inset !important;
+  box-shadow: 0 0 0 1000px #18191C inset !important;
+  -webkit-text-fill-color: #F3F4F6 !important;
+  caret-color: #F3F4F6 !important;
+  transition: background-color 500000s ease-in-out 0s;
+}
+
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset, 0 0 0 2px rgba(79, 100, 140, 0.2) !important;
+  box-shadow: 0 0 0 1000px #FFFFFF inset, 0 0 0 2px rgba(79, 100, 140, 0.2) !important;
+}
+
+.dark input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #18191C inset, 0 0 0 2px rgba(145, 167, 208, 0.2) !important;
+  box-shadow: 0 0 0 1000px #18191C inset, 0 0 0 2px rgba(145, 167, 208, 0.2) !important;
+}
+
+input:autofill,
+textarea:autofill,
+select:autofill {
+  box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #18191B !important;
+  filter: none !important;
+}
+
+.dark input:autofill,
+.dark textarea:autofill,
+.dark select:autofill {
+  box-shadow: 0 0 0 1000px #18191C inset !important;
+  -webkit-text-fill-color: #F3F4F6 !important;
+  filter: none !important;
 }
 
 /* Glassmorphism with opaque fallback */

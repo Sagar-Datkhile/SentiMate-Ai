@@ -66,7 +66,7 @@ export function CounsellorShell({
     } catch (err) {
       console.warn('[CounsellorShell] Sign out error:', err);
     } finally {
-      router.push('/auth/login');
+      router.push('/');
       router.refresh();
     }
   };

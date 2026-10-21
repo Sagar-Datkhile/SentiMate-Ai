@@ -63,7 +63,7 @@ export function AdminShell({ children }: AdminShellProps) {
     } catch (err) {
       console.warn('[AdminShell] Sign out error:', err);
     } finally {
-      router.push('/auth/login');
+      router.push('/');
       router.refresh();
     }
   };
