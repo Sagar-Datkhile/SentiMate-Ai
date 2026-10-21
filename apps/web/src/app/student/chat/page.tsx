@@ -555,6 +555,14 @@ export default function StudentChatPage() {
     }
   };
 
+  // ── Derived layout state ──────────────────────────────────────────────────────
+  // "New chat" = no real DB session and only the welcome greeting is present.
+  // This drives both the centered composer and heading visibility without any flag.
+  const isNewChat =
+    activeSessionId === null &&
+    messages.length >= 1 &&
+    messages.every((m) => m.id === 'm-welcome');
+
   return (
     <StudentShell
       sessions={sessions}
@@ -565,29 +573,32 @@ export default function StudentChatPage() {
       onRenameSession={handleRenameSession}
       onDeleteSession={handleDeleteSession}
     >
-      <div className="flex flex-col h-full bg-[#FBFBFA] dark:bg-[#000000] relative">
+      {/*
+        Main chat area. When `isNewChat` the flex column justifies to center so
+        the composer + heading sit mid-screen. After the first message is sent the
+        messages list becomes flex-1, pushing the composer to the natural bottom.
+        A single `transition-all duration-[250ms] ease-out` on the inner wrapper
+        keeps the motion restrained and respects the layout shift.
+      */}
+      <div
+        className={`flex flex-col h-full bg-[#FBFBFA] dark:bg-[#000000] relative transition-all duration-[250ms] ease-out ${
+          isNewChat ? 'justify-center' : 'justify-start'
+        }`}
+      >
 
-        {/* Message Thread Area */}
+        {/* ── Message Thread Area (hidden in new-chat centered state) ── */}
         <LoadingRegion
           isLoading={isLoadingMessages}
           announcement="Loading conversation messages..."
-          className="flex-1 overflow-y-auto px-4 py-6 md:px-6"
+          className={`overflow-y-auto px-4 py-6 md:px-6 transition-all duration-[250ms] ease-out ${
+            isNewChat
+              ? 'flex-none max-h-0 overflow-hidden opacity-0 pointer-events-none select-none py-0'
+              : 'flex-1 opacity-100'
+          }`}
         >
           <div className="max-w-3xl mx-auto space-y-6">
             {isLoadingMessages ? (
               <ChatMessageSkeleton />
-            ) : messages.length === 0 ? (
-              <div className="h-full min-h-[50vh] flex flex-col items-center justify-center text-center px-4 select-none">
-                <div className="w-12 h-12 rounded-2xl bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center mb-4">
-                  <HeartHandshake className="w-6 h-6" />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#18191B] dark:text-[#F3F4F6] mb-2">
-                  What&apos;s on your mind today?
-                </h2>
-                <p className="text-xs sm:text-sm text-[#71757E] dark:text-[#8C9099] max-w-md">
-                  Talk through academic stress, daily thoughts, or anything weighing on you in private.
-                </p>
-              </div>
             ) : (
               messages.map((m) => {
                 const isUser = m.senderRole === 'user';
@@ -669,7 +680,27 @@ export default function StudentChatPage() {
           </div>
         </LoadingRegion>
 
-        {/* Bottom Multiline Composer */}
+        {/* ── Centered welcome heading (only visible in new-chat state) ── */}
+        <div
+          aria-hidden={!isNewChat}
+          className={`text-center px-4 pb-6 select-none transition-all duration-[250ms] ease-out motion-reduce:transition-none ${
+            isNewChat
+              ? 'opacity-100 max-h-48 mb-0'
+              : 'opacity-0 max-h-0 overflow-hidden pointer-events-none pb-0'
+          }`}
+        >
+          <div className="w-12 h-12 rounded-2xl bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center mb-4 mx-auto">
+            <HeartHandshake className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#18191B] dark:text-[#F3F4F6] mb-2">
+            What&apos;s on your mind today?
+          </h2>
+          <p className="text-xs sm:text-sm text-[#71757E] dark:text-[#8C9099] max-w-sm mx-auto">
+            Talk through academic stress, daily thoughts, or anything weighing on you in private.
+          </p>
+        </div>
+
+        {/* ── Composer — single instance, always mounted ── */}
         <div className="bg-[#FBFBFA] dark:bg-[#000000] shrink-0 w-full px-4 sm:px-6 pt-3.5 pb-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:min-h-[104px] flex flex-col justify-center">
           <div className="max-w-3xl w-full mx-auto">
             <form
