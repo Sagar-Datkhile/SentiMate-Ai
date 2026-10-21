@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { StudentShell } from '@/components/layout/StudentShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
-import { Badge } from '@/components/ui/Badge';
 import {
   User,
   CheckCircle2,
@@ -26,6 +26,43 @@ import {
   validateUsernameFormat,
   UsernameAvailabilityResponse,
 } from '@sentimate/contracts';
+
+/**
+ * Validates that an optional profile photo URL uses a secure HTTPS scheme
+ * and contains no embedded user credentials (RFC 3986).
+ */
+function validatePhotoUrl(urlStr: string): { isValid: boolean; error?: string } {
+  const trimmed = urlStr.trim();
+  if (!trimmed) {
+    return { isValid: true };
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return {
+      isValid: false,
+      error: 'Please enter a valid URL (e.g. https://example.com/photo.jpg).',
+    };
+  }
+
+  if (parsed.protocol !== 'https:') {
+    return {
+      isValid: false,
+      error: 'Only secure HTTPS image URLs are supported.',
+    };
+  }
+
+  if (parsed.username || parsed.password) {
+    return {
+      isValid: false,
+      error: 'URLs with embedded credentials are not allowed.',
+    };
+  }
+
+  return { isValid: true };
+}
 
 /** Locally-defined department options used when the API returns no departments. */
 const LOCAL_DEPARTMENT_OPTIONS = [
@@ -110,6 +147,14 @@ export default function StudentProfilePage() {
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Profile photo URL state
+  const [photoUrlInput, setPhotoUrlInput] = useState('');
+  const [stagedPhotoUrl, setStagedPhotoUrl] = useState('');
+  const [savedAvatarUrl, setSavedAvatarUrl] = useState<string | null>(null);
+  const [oauthAvatarUrl, setOauthAvatarUrl] = useState<string | null>(null);
+  const [urlValidationError, setUrlValidationError] = useState<string | null>(null);
+  const [imageLoadError, setImageLoadError] = useState(false);
+
   // Availability query state
   const [availabilityState, setAvailabilityState] = useState<AvailabilityState>({
     status: 'idle',
@@ -189,7 +234,52 @@ export default function StudentProfilePage() {
       if (data.currentSemester !== undefined && data.currentSemester !== null) {
         setCurrentSemester(String(data.currentSemester));
       }
-      if (data.about !== undefined) setAbout(data.about);
+      // Resolve saved photo and Google OAuth photo
+      let loadedSavedPhoto: string | null = data.avatarUrl || null;
+      let googlePhoto: string | null = null;
+
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const meta = user.user_metadata || {};
+          const identityMeta =
+            (user.identities?.[0]?.identity_data as Record<string, string> | undefined) || {};
+          googlePhoto =
+            meta.avatar_url ||
+            meta.picture ||
+            meta.photoURL ||
+            identityMeta.avatar_url ||
+            identityMeta.picture ||
+            null;
+
+          if (!loadedSavedPhoto) {
+            const { data: prof } = await supabase
+              .from('profiles')
+              .select('avatar_url')
+              .eq('id', user.id)
+              .maybeSingle();
+            if (prof?.avatar_url) {
+              loadedSavedPhoto = prof.avatar_url;
+            }
+          }
+        }
+      } catch {
+        // Ignore optional client lookup failure
+      }
+
+      setOauthAvatarUrl(googlePhoto);
+      if (loadedSavedPhoto) {
+        setSavedAvatarUrl(loadedSavedPhoto);
+        setPhotoUrlInput(loadedSavedPhoto);
+        setStagedPhotoUrl(loadedSavedPhoto);
+      } else {
+        setSavedAvatarUrl(null);
+        setPhotoUrlInput('');
+        setStagedPhotoUrl('');
+      }
       if (Array.isArray(data.semesters)) {
         setSemesters((prev) =>
           prev.map((s) => {
@@ -224,6 +314,57 @@ export default function StudentProfilePage() {
       prev.map((s) => (s.semester === semesterNum ? { ...s, sgpa: value } : s))
     );
   };
+
+  // ── Profile Photo URL handlers ────────────────────────────────────────────────
+
+  const handleApplyPhotoUrl = useCallback(() => {
+    const trimmed = photoUrlInput.trim();
+    if (!trimmed) {
+      setUrlValidationError(null);
+      setImageLoadError(false);
+      setStagedPhotoUrl('');
+      return;
+    }
+
+    const validation = validatePhotoUrl(trimmed);
+    if (!validation.isValid) {
+      setUrlValidationError(validation.error || 'Please enter a valid HTTPS image URL.');
+      return;
+    }
+
+    setUrlValidationError(null);
+    setImageLoadError(false);
+    setStagedPhotoUrl(trimmed);
+  }, [photoUrlInput]);
+
+  const handlePhotoUrlChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value;
+      setPhotoUrlInput(val);
+      if (urlValidationError) {
+        setUrlValidationError(null);
+      }
+    },
+    [urlValidationError]
+  );
+
+  const handleImageError = useCallback(() => {
+    setImageLoadError(true);
+  }, []);
+
+  // Determine active photo for preview according to priority:
+  // 1. Staged new URL (if valid and not broken)
+  // 2. Saved photo URL (previous photo retained on load error)
+  // 3. Google OAuth photo from sign-in metadata
+  // 4. Initials fallback
+  let displayPhotoUrl: string | null = null;
+  if (stagedPhotoUrl && !imageLoadError) {
+    displayPhotoUrl = stagedPhotoUrl;
+  } else if (savedAvatarUrl) {
+    displayPhotoUrl = savedAvatarUrl;
+  } else if (oauthAvatarUrl) {
+    displayPhotoUrl = oauthAvatarUrl;
+  }
 
   /**
    * Username input change handler with:
@@ -358,6 +499,18 @@ export default function StudentProfilePage() {
 
     const normalized = normalizeUsername(username);
 
+    // Validate photo URL if entered
+    const trimmedPhotoUrl = photoUrlInput.trim();
+    if (trimmedPhotoUrl) {
+      const urlVal = validatePhotoUrl(trimmedPhotoUrl);
+      if (!urlVal.isValid) {
+        setUrlValidationError(urlVal.error || 'Please enter a valid HTTPS image URL.');
+        setErrorMessage(urlVal.error || 'Please correct the profile photo URL before saving.');
+        setSaving(false);
+        return;
+      }
+    }
+
     // Client validation
     if (normalized) {
       const validation = validateUsernameFormat(normalized);
@@ -439,6 +592,38 @@ export default function StudentProfilePage() {
         return;
       }
 
+      // Update avatar_url in database
+      const newAvatarUrl = trimmedPhotoUrl || null;
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          await supabase
+            .from('profiles')
+            .update({ avatar_url: newAvatarUrl, updated_at: new Date().toISOString() })
+            .eq('id', user.id);
+        }
+      } catch (e) {
+        console.warn('[Profile Save] Failed to update avatar_url directly:', e);
+      }
+
+      setSavedAvatarUrl(newAvatarUrl);
+      setStagedPhotoUrl(trimmedPhotoUrl);
+      setImageLoadError(false);
+
+      // Dispatch shared profile state update for sidebar without page reload
+      const activeSidebarPhoto = newAvatarUrl || oauthAvatarUrl || undefined;
+      window.dispatchEvent(
+        new CustomEvent('sentimate:profile-updated', {
+          detail: {
+            avatarUrl: activeSidebarPhoto,
+            fullName,
+          },
+        })
+      );
+
       const usernameChanged = normalized && normalized !== currentUsername;
       setCurrentUsername(normalized);
       setAvailabilityState({
@@ -466,23 +651,19 @@ export default function StudentProfilePage() {
   };
 
   return (
-    <StudentShell studentName={fullName}>
+    <StudentShell studentName={fullName} avatarUrl={displayPhotoUrl || undefined}>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Page Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
-              Student Profile & Academics
-            </h1>
-            <p className="text-xs sm:text-sm text-[#71757E] mt-1">
-              Manage your identity, academic details, and semester records. Profile completion is optional and never blocks chat access.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="teal" size="md">
-              Student Account
-            </Badge>
-          </div>
+        <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
+          <h1
+            className="text-3xl sm:text-4xl font-serif text-[#18191B] dark:text-[#F3F4F6] tracking-tight"
+            style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+          >
+            My Profile
+          </h1>
+          <p className="text-xs sm:text-sm text-[#71757E] mt-1">
+            Manage your personal and academic details
+          </p>
         </div>
 
         {/* Feedback alerts */}
@@ -512,6 +693,84 @@ export default function StudentProfilePage() {
               <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
                 Personal Identity
               </h2>
+            </div>
+
+            {/* ── Profile Photo URL Section ── */}
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4 py-1">
+              {/* Circular preview */}
+              <div className="shrink-0 flex flex-col items-center gap-1.5">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#E2E2DC] dark:border-[#2C2D32] bg-[#EEF2F8] dark:bg-[#242E40] flex items-center justify-center shadow-xs shrink-0">
+                  {displayPhotoUrl ? (
+                    <img
+                      src={displayPhotoUrl}
+                      alt={fullName || 'Profile preview'}
+                      referrerPolicy="no-referrer"
+                      onError={handleImageError}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] font-bold flex items-center justify-center text-xl select-none">
+                      {(fullName || 'S').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <span className="text-[11px] text-[#71757E] text-center">Preview</span>
+              </div>
+
+              {/* URL Input & Controls */}
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <label
+                  htmlFor="profile-photo-url-input"
+                  className="block text-xs font-semibold text-[#18191B] dark:text-[#F3F4F6]"
+                >
+                  Profile photo URL
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="profile-photo-url-input"
+                    type="url"
+                    value={photoUrlInput}
+                    onChange={handlePhotoUrlChange}
+                    onBlur={handleApplyPhotoUrl}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleApplyPhotoUrl();
+                      }
+                    }}
+                    placeholder="https://example.com/photo.jpg"
+                    className="flex-1"
+                  />
+                  {photoUrlInput.trim() !== stagedPhotoUrl && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleApplyPhotoUrl}
+                      className="shrink-0"
+                    >
+                      Apply
+                    </Button>
+                  )}
+                </div>
+
+                {/* Inline error or help text */}
+                {urlValidationError ? (
+                  <p className="text-xs text-[#B91C1C] dark:text-[#F87171] mt-1 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{urlValidationError}</span>
+                  </p>
+                ) : imageLoadError && stagedPhotoUrl ? (
+                  <p className="text-xs text-[#B91C1C] dark:text-[#F87171] mt-1 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Unable to load image from this URL. Retaining previous photo.</span>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-[#71757E] leading-snug">
+                    Optional HTTPS image URL. Preview updates when applied or on blur.
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

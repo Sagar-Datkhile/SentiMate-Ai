@@ -647,7 +647,6 @@ export default function StudentChatPage() {
       onSelectSession={handleSelectSession}
       onRenameSession={handleRenameSession}
       onDeleteSession={handleDeleteSession}
-      onRegenerateTitle={handleRegenerateTitle}
     >
       {/*
         Main chat area. When `isNewChat` the flex column justifies to center so

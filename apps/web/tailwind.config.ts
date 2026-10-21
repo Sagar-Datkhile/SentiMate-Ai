@@ -81,6 +81,8 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+        instrument: ['"Instrument Serif"', 'Georgia', 'serif'],
       },
     },
   },

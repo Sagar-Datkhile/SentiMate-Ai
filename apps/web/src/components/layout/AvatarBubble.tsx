@@ -22,6 +22,12 @@ const SIZE_CLASSES: Record<number, string> = {
  */
 export function AvatarBubble({ avatarUrl, displayName, size = 8, className = '' }: AvatarBubbleProps) {
   const [imgError, setImgError] = useState(false);
+
+  // Reset error state if avatarUrl prop changes
+  React.useEffect(() => {
+    setImgError(false);
+  }, [avatarUrl]);
+
   const sizeClass = SIZE_CLASSES[size] ?? SIZE_CLASSES[8];
   const initialLetter = (displayName || 'S').charAt(0).toUpperCase();
   const showPhoto = !!avatarUrl && !imgError;
@@ -34,6 +40,7 @@ export function AvatarBubble({ avatarUrl, displayName, size = 8, className = '' 
       <img
         src={avatarUrl}
         alt={displayName}
+        referrerPolicy="no-referrer"
         onError={() => setImgError(true)}
         className={`${base} object-cover`}
         aria-hidden="true"
