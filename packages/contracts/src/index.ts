@@ -145,6 +145,33 @@ export type UsernameAvailabilityResponse = z.infer<typeof UsernameAvailabilityRe
 
 export const StudentProfileUpdateSchema = z.object({
   fullName: z.string().min(2).optional(),
+  avatarUrl: z
+    .union([z.string(), z.null(), z.undefined()])
+    .transform((val) => {
+      if (val === undefined) return undefined;
+      if (val === null) return null;
+      const trimmed = val.trim();
+      return trimmed === '' ? null : trimmed;
+    })
+    .refine(
+      (val) => {
+        if (val === null || val === undefined) return true;
+        try {
+          const parsed = new URL(val);
+          return (
+            parsed.protocol === 'https:' &&
+            !parsed.username &&
+            !parsed.password
+          );
+        } catch {
+          return false;
+        }
+      },
+      {
+        message: 'Avatar URL must be a valid secure HTTPS URL without embedded credentials',
+      }
+    )
+    .optional(),
   username: z
     .string()
     .transform(normalizeUsername)
