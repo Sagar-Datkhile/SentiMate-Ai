@@ -819,14 +819,20 @@ export default function StudentChatPage() {
             data-animating={helloAnimating ? 'true' : 'false'}
             aria-label={
               firstName
-                ? `Hey ${firstName}, What's on your mind today`
-                : `Hey, What's on your mind today`
+                ? `Hey ${firstName}, What's on your mind today?`
+                : `Hey, What's on your mind today?`
             }
           >
             {firstName ? (
-              <>{`Hey ${firstName},`}<br />{`What’s on your mind today`}</>
+              <>
+                <span>{`Hey ${firstName},`}</span>
+                <span className="sentimate-question">What’s on your mind today?</span>
+              </>
             ) : (
-              <>{`Hey,`}<br />{`What’s on your mind today`}</>
+              <>
+                <span>Hey,</span>
+                <span className="sentimate-question">What’s on your mind today?</span>
+              </>
             )}
           </h1>
         </div>

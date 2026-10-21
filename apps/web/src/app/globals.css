@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -412,3 +412,15 @@ select:autofill {
     clip-path: none !important;
   }
 }
+
+/* Playfair Display — applied only to the 'What’s on your mind today?' line */
+.sentimate-question {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 500;
+  display: block;
+  line-height: 1.25;
+  margin-top: 0.25rem;
+  padding-top: 0.05em;
+  padding-bottom: 0.1em;
+}
+
