@@ -23,6 +23,7 @@ import { createClient } from '@/lib/supabase/client';
 import { SidebarToggle } from './SidebarToggle';
 import { AccountTrigger } from './AccountTrigger';
 import { AccountMenu, UserProfileData } from './AccountMenu';
+import { DeleteConversationDialog } from './DeleteConversationDialog';
 
 export interface ChatSessionItem {
   id: string;
@@ -39,7 +40,7 @@ interface StudentShellProps {
   onNewSession?: () => void;
   onSelectSession?: (id: string) => void;
   onRenameSession?: (id: string, newTitle: string) => void;
-  onDeleteSession?: (id: string) => void;
+  onDeleteSession?: (id: string) => Promise<void> | void;
   studentName?: string;
 }
 
@@ -86,6 +87,7 @@ export function StudentShell({
   // Delete confirmation dialog state
   const [deleteModalSession, setDeleteModalSession] = useState<ChatSessionItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -257,16 +259,18 @@ export function StudentShell({
     setMenuSession(null);
     setMenuCoords(null);
     setMobileDrawerOpen(false);
+    setDeleteError(null);
     setDeleteModalSession(session);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteModalSession || isDeleting) return;
     const target = deleteModalSession;
     setIsDeleting(true);
+    setDeleteError(null);
     try {
       if (onDeleteSession) {
-        onDeleteSession(target.id);
+        await onDeleteSession(target.id);
       }
       toast.success('Conversation deleted', {
         description: `"${target.title}" has been deleted.`,
@@ -275,7 +279,8 @@ export function StudentShell({
         handleNewChatAction();
       }
       setDeleteModalSession(null);
-    } catch {
+    } catch (err: any) {
+      setDeleteError(err?.message || 'Failed to delete conversation. Please try again.');
       toast.error('Failed to delete conversation');
     } finally {
       setIsDeleting(false);
@@ -767,42 +772,20 @@ export function StudentShell({
       </Dialog>
 
       {/* 6. Delete Confirmation Dialog */}
-      <Dialog
+      <DeleteConversationDialog
         isOpen={!!deleteModalSession}
         onClose={() => {
-          if (!isDeleting) setDeleteModalSession(null);
+          if (!isDeleting) {
+            setDeleteModalSession(null);
+            setDeleteError(null);
+          }
         }}
-        title="Delete Conversation"
-        description={`Are you sure you want to delete "${deleteModalSession?.title}"? This conversation will be permanently removed.`}
-      >
-        <div className="space-y-4 pt-1">
-          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 text-xs text-red-700 dark:text-red-300">
-            This action cannot be undone. All messages within this conversation will be permanently removed.
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={isDeleting}
-              onClick={() => setDeleteModalSession(null)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              size="sm"
-              disabled={isDeleting}
-              isLoading={isDeleting}
-              onClick={handleConfirmDelete}
-            >
-              Delete
-            </Button>
-          </div>
-        </div>
-      </Dialog>
+        onConfirm={handleConfirmDelete}
+        title={deleteModalSession?.title ?? ''}
+        isDeleting={isDeleting}
+        error={deleteError}
+        triggerRef={activeTriggerRef}
+      />
 
       {/* 7. Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">

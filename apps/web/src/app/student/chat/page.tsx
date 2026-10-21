@@ -19,7 +19,6 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
 import { ChatMessageSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
-import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/ui/Toast';
 import { AssistantAvatar } from '@/components/layout/AssistantAvatar';
 
@@ -148,38 +147,6 @@ export default function StudentChatPage() {
     }
   }, []);
 
-  // ── Greeting message (for blank new-chat state) ──────────────────────────────
-
-  const buildGreeting = useCallback(async (): Promise<Message> => {
-    try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      const name =
-        user?.user_metadata?.full_name ||
-        user?.user_metadata?.name ||
-        user?.email?.split('@')[0] ||
-        '';
-      const text = name
-        ? `Hello ${name}. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?`
-        : 'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?';
-      return {
-        id: 'm-welcome',
-        senderRole: 'assistant',
-        content: text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'completed',
-      };
-    } catch {
-      return {
-        id: 'm-welcome',
-        senderRole: 'assistant',
-        content: 'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'completed',
-      };
-    }
-  }, []);
-
   // ── Initial mount: load sessions ─────────────────────────────────────────────
 
   useEffect(() => {
@@ -187,20 +154,16 @@ export default function StudentChatPage() {
     (async () => {
       await loadSessions();
       if (!mounted) return;
-      // Show welcome greeting for brand-new users (no sessions yet)
-      const greeting = await buildGreeting();
-      if (!mounted) return;
-      setMessages([greeting]);
     })();
     return () => { mounted = false; };
-  }, [loadSessions, buildGreeting]);
+  }, [loadSessions]);
 
   // ── Load messages when active session changes ────────────────────────────────
 
   useEffect(() => {
     if (!activeSessionId || !isUUID(activeSessionId)) {
-      // null or temp ID → show greeting for new-chat state
-      buildGreeting().then((g) => setMessages([g]));
+      // null or temp ID → empty state for new chat
+      setMessages([]);
       setIsLoadingMessages(false);
       return;
     }
@@ -230,7 +193,7 @@ export default function StudentChatPage() {
     })();
 
     return () => { cancelled = true; };
-  }, [activeSessionId, buildGreeting]);
+  }, [activeSessionId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -495,7 +458,7 @@ export default function StudentChatPage() {
   const handleNewSession = () => {
     // Don't create a DB session yet — it will be created lazily on first message
     setActiveSessionId(null);
-    buildGreeting().then((g) => setMessages([g]));
+    setMessages([]);
   };
 
   const handleSelectSession = (id: string) => {
@@ -545,23 +508,21 @@ export default function StudentChatPage() {
     try {
       const res = await fetch(`/api/chat/sessions/${id}`, { method: 'DELETE' });
       if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
         // Rollback: re-add the session
         if (removed) setSessions((prev) => [removed, ...prev]);
-        toast.error('Failed to delete conversation');
+        throw new Error(errorData?.error || 'Failed to delete conversation on server.');
       }
-    } catch {
+    } catch (err: any) {
       if (removed) setSessions((prev) => [removed, ...prev]);
-      toast.error('Failed to delete conversation');
+      throw err;
     }
   };
 
   // ── Derived layout state ──────────────────────────────────────────────────────
-  // "New chat" = no real DB session and only the welcome greeting is present.
-  // This drives both the centered composer and heading visibility without any flag.
-  const isNewChat =
-    activeSessionId === null &&
-    messages.length >= 1 &&
-    messages.every((m) => m.id === 'm-welcome');
+  // "New chat" = no real DB session and no messages sent yet.
+  // Drives both the centered composer and heading visibility without any persistent flag.
+  const isNewChat = activeSessionId === null && messages.length === 0;
 
   return (
     <StudentShell
