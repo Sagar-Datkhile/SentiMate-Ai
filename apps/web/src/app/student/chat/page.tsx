@@ -21,6 +21,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { ChatMessageSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
 import { AssistantAvatar } from '@/components/layout/AssistantAvatar';
+import { createClient } from '@/lib/supabase/client';
 
 interface Message {
   id: string;
@@ -154,6 +155,35 @@ export default function StudentChatPage() {
   const manuallyRenamedSessionIdsRef = useRef<Set<string>>(new Set());
   const autoTitleGeneratedSessionIdsRef = useRef<Set<string>>(new Set());
   const titleJobsInFlightRef = useRef<Set<string>>(new Set());
+
+  // ── Welcome heading first-name ─────────────────────────────────────────────
+  const [firstName, setFirstName] = useState<string>('');
+  // Tracks whether we have already played the reveal for the current new-chat
+  // entry. Stored in a ref so it survives re-renders without triggering them.
+  const helloAnimPlayedRef = useRef(false);
+  const [helloAnimating, setHelloAnimating] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const full =
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email?.split('@')[0] ||
+            '';
+          // Extract only the first word (first name), trimming whitespace
+          const first = full.trim().split(/\s+/)[0] ?? '';
+          setFirstName(first);
+        }
+      } catch {
+        // Ignore — heading degrades gracefully without a name
+      }
+    })();
+  }, []);
+
 
   const latestAssistantMessageId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -638,6 +668,20 @@ export default function StudentChatPage() {
   // Drives both the centered composer and heading visibility without any persistent flag.
   const isNewChat = activeSessionId === null && messages.length === 0;
 
+  // Fire the hello reveal exactly once per new-chat entry; never replays on
+  // typing, re-renders, theme changes or sidebar toggles.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (isNewChat && !helloAnimPlayedRef.current) {
+      helloAnimPlayedRef.current = true;
+      setHelloAnimating(true);
+    }
+    if (!isNewChat) {
+      helloAnimPlayedRef.current = false;
+      setHelloAnimating(false);
+    }
+  }, [isNewChat]);
+
   return (
     <StudentShell
       sessions={sessions}
@@ -758,21 +802,33 @@ export default function StudentChatPage() {
         {/* ── Centered welcome heading (only visible in new-chat state) ── */}
         <div
           aria-hidden={!isNewChat}
-          className={`text-center px-4 pb-6 select-none transition-all duration-[250ms] ease-out motion-reduce:transition-none ${
+          className={`text-center px-4 pb-6 transition-all duration-[250ms] ease-out motion-reduce:transition-none ${
             isNewChat
-              ? 'opacity-100 max-h-48 mb-0'
+              ? 'opacity-100 max-h-64 mb-0'
               : 'opacity-0 max-h-0 overflow-hidden pointer-events-none pb-0'
           }`}
         >
-          <div className="w-12 h-12 rounded-2xl bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center mb-4 mx-auto">
-            <HeartHandshake className="w-6 h-6" />
-          </div>
-          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#18191B] dark:text-[#F3F4F6] mb-2">
-            What&apos;s on your mind today?
-          </h2>
-          <p className="text-xs sm:text-sm text-[#71757E] dark:text-[#8C9099] max-w-sm mx-auto">
-            Talk through academic stress, daily thoughts, or anything weighing on you in private.
-          </p>
+          {/*
+            Heading uses Instrument Serif with a static pastel gradient and a
+            clip-path sweep animation for the handwriting-style reveal.
+            data-animating drives the CSS animation; it is set once per
+            new-chat entry and never replayed on typing or re-renders.
+          */}
+          <h1
+            className="sentimate-hello-heading text-[30px] leading-[1.2] sm:text-[48px] sm:leading-[1.15] lg:text-[52px] mx-auto max-w-2xl mb-5 px-2"
+            data-animating={helloAnimating ? 'true' : 'false'}
+            aria-label={
+              firstName
+                ? `Hey ${firstName}, What's on your mind today`
+                : `Hey, What's on your mind today`
+            }
+          >
+            {firstName ? (
+              <>{`Hey ${firstName},`}<br />{`What’s on your mind today`}</>
+            ) : (
+              <>{`Hey,`}<br />{`What’s on your mind today`}</>
+            )}
+          </h1>
         </div>
 
         {/* ── Composer — single instance, always mounted ── */}

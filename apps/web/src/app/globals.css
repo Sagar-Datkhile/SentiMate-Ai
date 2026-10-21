@@ -347,3 +347,68 @@ select:autofill {
   transform-box: fill-box;
   transform-origin: center;
 }
+
+/* ── Welcome heading: handwriting-style left-to-right reveal ── */
+@keyframes sentimate-hello-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
+}
+
+.sentimate-hello-heading {
+  font-family: 'Instrument Serif', Georgia, serif;
+  /* Pastel gradient: soft-blue → lavender → pink → warm-peach */
+  background: linear-gradient(
+    100deg,
+    #7BA7D4 0%,
+    #A78BCC 30%,
+    #D47BAB 65%,
+    #E8A87C 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* Reserve space before reveal so layout doesn't shift */
+  display: block;
+  will-change: clip-path;
+}
+
+/* Play once, no replay */
+.sentimate-hello-heading[data-animating='true'] {
+  animation: sentimate-hello-reveal 2.1s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* Light-mode: slightly darker pastels for contrast on white canvas */
+:root .sentimate-hello-heading {
+  background: linear-gradient(
+    100deg,
+    #5A8EC4 0%,
+    #9070C0 30%,
+    #C4618F 65%,
+    #D98A58 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Dark-mode: brighter, lighter pastels for contrast on black canvas */
+.dark .sentimate-hello-heading {
+  background: linear-gradient(
+    100deg,
+    #93C0E8 0%,
+    #B9A0DE 30%,
+    #E49FC8 65%,
+    #F2BF96 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sentimate-hello-heading[data-animating='true'] {
+    animation: none !important;
+    clip-path: none !important;
+  }
+}
