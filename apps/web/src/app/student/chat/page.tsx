@@ -426,8 +426,12 @@ export default function StudentChatPage() {
   const handleDeleteSession = (id: string) => {
     const remaining = sessions.filter((s) => s.id !== id);
     setSessions(remaining);
-    if (activeSessionId === id && remaining.length > 0) {
-      setActiveSessionId(remaining[0].id);
+    if (activeSessionId === id) {
+      if (remaining.length > 0) {
+        setActiveSessionId(remaining[0].id);
+      } else {
+        handleNewSession();
+      }
     }
   };
 

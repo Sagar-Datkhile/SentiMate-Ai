@@ -1,19 +1,23 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Plus,
   HeartHandshake,
   Trash2,
-  Edit2,
-  Check,
+  Pencil,
+  Share2,
+  MoreVertical,
   Menu,
   X,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Dialog } from '../ui/Dialog';
 import { Tooltip } from '../ui/Tooltip';
+import { toast } from '@/components/ui/Toast';
 import { ChatHistorySkeleton } from '../ui/Skeleton';
 import { createClient } from '@/lib/supabase/client';
 import { SidebarToggle } from './SidebarToggle';
@@ -65,9 +69,26 @@ export function StudentShell({
   });
   const [isLoadingUser, setIsLoadingUser] = useState(true);
 
-  // Conversation renaming state
-  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState('');
+  // Actions menu state
+  const [mounted, setMounted] = useState(false);
+  const [menuSession, setMenuSession] = useState<ChatSessionItem | null>(null);
+  const [menuCoords, setMenuCoords] = useState<{ left: number; top: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuItemsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const activeTriggerRef = useRef<HTMLElement | null>(null);
+
+  // Rename dialog state
+  const [renameModalSession, setRenameModalSession] = useState<ChatSessionItem | null>(null);
+  const [renameTitle, setRenameTitle] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+
+  // Delete confirmation dialog state
+  const [deleteModalSession, setDeleteModalSession] = useState<ChatSessionItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Refs for trigger button positioning
   const desktopTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -144,16 +165,173 @@ export function StudentShell({
     fetchUser();
   }, [studentName]);
 
-  const handleStartRename = (session: ChatSessionItem) => {
-    setEditingSessionId(session.id);
-    setEditTitle(session.title);
+  const handleToggleMenu = (session: ChatSessionItem, triggerEl: HTMLElement) => {
+    if (menuSession?.id === session.id) {
+      setMenuSession(null);
+      setMenuCoords(null);
+      return;
+    }
+
+    const rect = triggerEl.getBoundingClientRect();
+    const menuWidth = 190;
+    const menuHeight = 135;
+    const margin = 8;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let left = rect.right - menuWidth;
+    if (left < margin) {
+      left = Math.max(margin, rect.left);
+    }
+    if (left + menuWidth > viewportWidth - margin) {
+      left = viewportWidth - menuWidth - margin;
+    }
+
+    let top: number;
+    if (rect.bottom + menuHeight + margin <= viewportHeight) {
+      top = rect.bottom + 4;
+    } else if (rect.top - menuHeight - margin >= 0) {
+      top = rect.top - menuHeight - 4;
+    } else {
+      top = Math.max(margin, viewportHeight - menuHeight - margin);
+    }
+
+    activeTriggerRef.current = triggerEl;
+    setMenuCoords({ left, top });
+    setMenuSession(session);
   };
 
-  const handleSaveRename = (id: string) => {
-    if (editTitle.trim() && onRenameSession) {
-      onRenameSession(id, editTitle.trim());
+  const handleOpenRename = (session: ChatSessionItem) => {
+    setMenuSession(null);
+    setMenuCoords(null);
+    setMobileDrawerOpen(false);
+    setRenameTitle(session.title);
+    setRenameModalSession(session);
+  };
+
+  const handleConfirmRename = () => {
+    if (!renameModalSession || isRenaming) return;
+    const trimmed = renameTitle.trim();
+    if (!trimmed) return;
+
+    setIsRenaming(true);
+    try {
+      if (onRenameSession) {
+        onRenameSession(renameModalSession.id, trimmed);
+      }
+      toast.success('Conversation renamed', {
+        description: `Updated title to "${trimmed}".`,
+      });
+      setRenameModalSession(null);
+    } catch {
+      toast.error('Failed to rename conversation');
+    } finally {
+      setIsRenaming(false);
     }
-    setEditingSessionId(null);
+  };
+
+  const handleOpenDelete = (session: ChatSessionItem) => {
+    setMenuSession(null);
+    setMenuCoords(null);
+    setMobileDrawerOpen(false);
+    setDeleteModalSession(session);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteModalSession || isDeleting) return;
+    const target = deleteModalSession;
+    setIsDeleting(true);
+    try {
+      if (onDeleteSession) {
+        onDeleteSession(target.id);
+      }
+      toast.success('Conversation deleted', {
+        description: `"${target.title}" has been deleted.`,
+      });
+      if (target.id === activeSessionId) {
+        handleNewChatAction();
+      }
+      setDeleteModalSession(null);
+    } catch {
+      toast.error('Failed to delete conversation');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Close menu on outside click, scroll or Escape
+  useEffect(() => {
+    if (!menuSession) return;
+
+    const handlePointerDown = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(target) &&
+        activeTriggerRef.current &&
+        !activeTriggerRef.current.contains(target)
+      ) {
+        setMenuSession(null);
+        setMenuCoords(null);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMenuSession(null);
+        setMenuCoords(null);
+        activeTriggerRef.current?.focus();
+      }
+    };
+
+    const handleClose = () => {
+      setMenuSession(null);
+      setMenuCoords(null);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleClose);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleClose);
+    };
+  }, [menuSession]);
+
+  // Focus management inside menu
+  useEffect(() => {
+    if (menuSession) {
+      requestAnimationFrame(() => {
+        menuItemsRef.current[0]?.focus();
+      });
+    }
+  }, [menuSession]);
+
+  const handleMenuKeyDown = (e: React.KeyboardEvent) => {
+    const items = menuItemsRef.current.filter(Boolean) as HTMLButtonElement[];
+    if (items.length === 0) return;
+
+    const currentIndex = items.findIndex((el) => el === document.activeElement);
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % items.length;
+      items[nextIndex]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = currentIndex <= 0 ? items.length - 1 : currentIndex - 1;
+      items[prevIndex]?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setMenuSession(null);
+      setMenuCoords(null);
+      activeTriggerRef.current?.focus();
+    }
   };
 
   const handleNewChatAction = () => {
@@ -270,10 +448,11 @@ export function StudentShell({
             ) : (
               sessions.map((s) => {
                 const isActive = s.id === activeSessionId;
+                const isMenuOpen = menuSession?.id === s.id;
                 return (
                   <div
                     key={s.id}
-                    className={`group relative flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-colors cursor-pointer ${
+                    className={`group relative flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${
                       isActive
                         ? 'bg-white dark:bg-[#18191C] font-medium text-[#4F648C] dark:text-[#91A7D0] shadow-xs'
                         : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
@@ -282,56 +461,28 @@ export function StudentShell({
                       if (onSelectSession) onSelectSession(s.id);
                     }}
                   >
-                    {editingSessionId === s.id ? (
-                      <div
-                        className="flex items-center gap-1 w-full"
-                        onClick={(e) => e.stopPropagation()}
+                    <span className="truncate flex-1 min-w-0 pr-1.5">{s.title}</span>
+
+                    <div className="shrink-0 w-7 h-7 flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          handleToggleMenu(s, e.currentTarget);
+                        }}
+                        aria-label={`Options for "${s.title}"`}
+                        aria-haspopup="menu"
+                        aria-expanded={isMenuOpen}
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] ${
+                          isMenuOpen
+                            ? 'opacity-100 bg-[#E2E2DC] dark:bg-[#222327] text-[#18191B] dark:text-[#F3F4F6]'
+                            : 'opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 focus-visible:opacity-100 text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6] hover:bg-[#E2E2DC] dark:hover:bg-[#222327]'
+                        }`}
                       >
-                        <input
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          onKeyDown={(e) => e.key === 'Enter' && handleSaveRename(s.id)}
-                          className="w-full px-1.5 py-0.5 rounded bg-white dark:bg-[#121316] border border-[#4F648C] dark:border-[#91A7D0] text-xs"
-                          autoFocus
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleSaveRename(s.id)}
-                          className="p-1 hover:text-green-600"
-                          aria-label="Confirm rename"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <span className="truncate flex-1">{s.title}</span>
-                        <div className="hidden group-hover:flex items-center gap-1 shrink-0 ml-1">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStartRename(s);
-                            }}
-                            className="p-1 text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]"
-                            aria-label="Rename conversation"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (onDeleteSession) onDeleteSession(s.id);
-                            }}
-                            className="p-1 text-[#71757E] hover:text-red-600"
-                            aria-label="Delete conversation"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </>
-                    )}
+                        <MoreVertical className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 );
               })
@@ -410,10 +561,11 @@ export function StudentShell({
               ) : (
                 sessions.map((s) => {
                   const isActive = s.id === activeSessionId;
+                  const isMenuOpen = menuSession?.id === s.id;
                   return (
                     <div
                       key={s.id}
-                      className={`flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-colors cursor-pointer ${
+                      className={`group relative flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${
                         isActive
                           ? 'bg-white dark:bg-[#18191C] font-medium text-[#4F648C] dark:text-[#91A7D0] shadow-xs'
                           : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
@@ -423,7 +575,24 @@ export function StudentShell({
                         setMobileDrawerOpen(false);
                       }}
                     >
-                      <span className="truncate flex-1">{s.title}</span>
+                      <span className="truncate flex-1 min-w-0 pr-1.5">{s.title}</span>
+
+                      <div className="shrink-0 w-7 h-7 flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            handleToggleMenu(s, e.currentTarget);
+                          }}
+                          aria-label={`Options for "${s.title}"`}
+                          aria-haspopup="menu"
+                          aria-expanded={isMenuOpen}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer opacity-100 text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6] hover:bg-[#E2E2DC] dark:hover:bg-[#222327] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0]"
+                        >
+                          <MoreVertical className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   );
                 })
@@ -454,7 +623,167 @@ export function StudentShell({
         isCollapsed={isCollapsed && !mobileDrawerOpen}
       />
 
-      {/* 4. Main Content Area */}
+      {/* 4. Conversation Actions 3-dot Menu (Portal) */}
+      {mounted && menuSession && menuCoords && createPortal(
+        <div
+          ref={menuRef}
+          role="menu"
+          aria-label={`Options for ${menuSession.title}`}
+          className="fixed z-[120] w-[190px] rounded-xl bg-white/95 dark:bg-[#0D0E11]/95 backdrop-blur-xl border border-[#E2E2DC] dark:border-[#1F2024] shadow-2xl p-1 text-[#18191B] dark:text-[#F3F4F6] animate-in fade-in-0 zoom-in-95 duration-100 select-none flex flex-col space-y-0.5"
+          style={{ left: `${menuCoords.left}px`, top: `${menuCoords.top}px` }}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={handleMenuKeyDown}
+        >
+          {/* Rename Action */}
+          <button
+            ref={(el) => { menuItemsRef.current[0] = el; }}
+            type="button"
+            role="menuitem"
+            onClick={() => handleOpenRename(menuSession)}
+            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-[#18191B] dark:text-[#F3F4F6] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] focus-visible:bg-[#F4F4F1] dark:focus-visible:bg-[#18191C] focus-visible:outline-none transition-colors cursor-pointer"
+          >
+            <Pencil className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0] shrink-0" />
+            <span>Rename</span>
+          </button>
+
+          {/* Share Action (Disabled with accessible explanation) */}
+          <button
+            ref={(el) => { menuItemsRef.current[1] = el; }}
+            type="button"
+            role="menuitem"
+            disabled
+            aria-disabled="true"
+            title="Private conversations cannot be shared to protect student privacy"
+            className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-medium text-[#71757E] opacity-50 cursor-not-allowed select-none"
+          >
+            <div className="flex items-center gap-2.5">
+              <Share2 className="w-3.5 h-3.5 text-[#71757E] shrink-0" />
+              <span>Share</span>
+            </div>
+            <span className="text-[10px] text-[#71757E] bg-[#EAEAE5] dark:bg-[#1F2024] px-1.5 py-0.5 rounded font-normal">
+              Private
+            </span>
+          </button>
+
+          {/* Divider */}
+          <div className="border-t border-[#E2E2DC]/70 dark:border-[#1F2024]/70 my-0.5" />
+
+          {/* Delete Action */}
+          <button
+            ref={(el) => { menuItemsRef.current[2] = el; }}
+            type="button"
+            role="menuitem"
+            onClick={() => handleOpenDelete(menuSession)}
+            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 focus-visible:bg-red-50 dark:focus-visible:bg-red-950/30 focus-visible:outline-none transition-colors cursor-pointer"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0" />
+            <span>Delete</span>
+          </button>
+        </div>,
+        document.body
+      )}
+
+      {/* 5. Rename Dialog */}
+      <Dialog
+        isOpen={!!renameModalSession}
+        onClose={() => {
+          if (!isRenaming) setRenameModalSession(null);
+        }}
+        title="Rename Conversation"
+        description="Enter a new title for this conversation."
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleConfirmRename();
+          }}
+          className="space-y-4 pt-1"
+        >
+          <div>
+            <label
+              htmlFor="rename-session-title"
+              className="block text-xs font-semibold text-[#18191B] dark:text-[#F3F4F6] mb-1.5"
+            >
+              Title
+            </label>
+            <input
+              id="rename-session-title"
+              type="text"
+              value={renameTitle}
+              onChange={(e) => setRenameTitle(e.target.value)}
+              placeholder="Conversation title"
+              autoFocus
+              maxLength={100}
+              disabled={isRenaming}
+              className="w-full px-3 py-2 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#2C2D32] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] focus:outline-none focus:ring-2 focus:ring-[#4F648C] dark:focus:ring-[#91A7D0] transition-colors"
+            />
+            {renameTitle.trim().length === 0 && (
+              <p className="text-[11px] text-red-500 mt-1">Title cannot be empty.</p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={isRenaming}
+              onClick={() => setRenameModalSession(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={!renameTitle.trim() || isRenaming}
+              isLoading={isRenaming}
+            >
+              Save
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+
+      {/* 6. Delete Confirmation Dialog */}
+      <Dialog
+        isOpen={!!deleteModalSession}
+        onClose={() => {
+          if (!isDeleting) setDeleteModalSession(null);
+        }}
+        title="Delete Conversation"
+        description={`Are you sure you want to delete "${deleteModalSession?.title}"? This conversation will be permanently removed.`}
+      >
+        <div className="space-y-4 pt-1">
+          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 text-xs text-red-700 dark:text-red-300">
+            This action cannot be undone. All messages within this conversation will be permanently removed.
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={isDeleting}
+              onClick={() => setDeleteModalSession(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              disabled={isDeleting}
+              isLoading={isDeleting}
+              onClick={handleConfirmDelete}
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* 7. Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Mobile Top Bar */}
         <header className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] shrink-0 h-14">
