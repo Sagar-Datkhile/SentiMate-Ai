@@ -42,6 +42,7 @@ interface StudentShellProps {
   onRenameSession?: (id: string, newTitle: string) => void;
   onDeleteSession?: (id: string) => Promise<void> | void;
   studentName?: string;
+  avatarUrl?: string;
 }
 
 export function StudentShell({
@@ -54,6 +55,7 @@ export function StudentShell({
   onRenameSession,
   onDeleteSession,
   studentName = 'Alex',
+  avatarUrl,
 }: StudentShellProps) {
   const router = useRouter();
 
@@ -189,6 +191,37 @@ export function StudentShell({
     };
     fetchUser();
   }, [studentName]);
+
+  // Synchronize avatarUrl prop immediately when provided
+  useEffect(() => {
+    if (avatarUrl !== undefined) {
+      setUserProfile((prev) => (prev ? { ...prev, avatarUrl } : prev));
+    }
+  }, [avatarUrl]);
+
+  // Listen for real-time shared profile updates across the app (no page reload)
+  useEffect(() => {
+    const handleProfileUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent<{ avatarUrl?: string; fullName?: string }>;
+      if (customEvent.detail) {
+        setUserProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                displayName: customEvent.detail.fullName ?? prev.displayName,
+                avatarUrl:
+                  customEvent.detail.avatarUrl !== undefined
+                    ? customEvent.detail.avatarUrl
+                    : prev.avatarUrl,
+              }
+            : prev
+        );
+      }
+    };
+
+    window.addEventListener('sentimate:profile-updated', handleProfileUpdate);
+    return () => window.removeEventListener('sentimate:profile-updated', handleProfileUpdate);
+  }, []);
 
   const handleToggleMenu = (session: ChatSessionItem, triggerEl: HTMLElement) => {
     if (menuSession?.id === session.id) {
