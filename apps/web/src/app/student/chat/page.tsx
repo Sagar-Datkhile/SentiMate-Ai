@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   ArrowUp,
   Square,
@@ -21,6 +21,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { ChatMessageSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/components/ui/Toast';
+import { AssistantAvatar } from '@/components/layout/AssistantAvatar';
 
 interface Message {
   id: string;
@@ -90,13 +91,21 @@ export default function StudentChatPage() {
 
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [lastFailedInput, setLastFailedInput] = useState<string | null>(null);
   const [consentAcknowledged, setConsentAcknowledged] = useState(true);
   const [consentModalOpen, setConsentModalOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const latestAssistantMessageId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].senderRole === 'assistant') {
+        return messages[i].id;
+      }
+    }
+    return null;
+  }, [messages]);
 
   useEffect(() => {
     let isMounted = true;
@@ -168,7 +177,6 @@ export default function StudentChatPage() {
     if (!text || isGenerating) return;
 
     setInputValue('');
-    setLastFailedInput(null);
 
     const userMessageId = `u-${Date.now()}`;
     const userMessage: Message = {
@@ -247,7 +255,6 @@ export default function StudentChatPage() {
         );
       } else {
         const sanitized = sanitizeErrorMessage(err?.message);
-        setLastFailedInput(text);
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantMessageId
@@ -260,10 +267,6 @@ export default function StudentChatPage() {
               : m
           )
         );
-        toast.error('Unable to receive response', {
-          description: sanitized,
-          duration: 5000,
-        });
       }
     } finally {
       setIsGenerating(false);
@@ -293,7 +296,6 @@ export default function StudentChatPage() {
     if (!precedingUserPrompt) return;
     const textToRetry = precedingUserPrompt.content;
 
-    setLastFailedInput(null);
     setMessages((prev) =>
       prev.map((m) =>
         m.id === failedAssistantId
@@ -358,7 +360,6 @@ export default function StudentChatPage() {
         );
       } else {
         const sanitized = sanitizeErrorMessage(err?.message);
-        setLastFailedInput(textToRetry);
         setMessages((prev) =>
           prev.map((m) =>
             m.id === failedAssistantId
@@ -371,10 +372,6 @@ export default function StudentChatPage() {
               : m
           )
         );
-        toast.error('Unable to receive response', {
-          description: sanitized,
-          duration: 5000,
-        });
       }
     } finally {
       setIsGenerating(false);
@@ -393,8 +390,6 @@ export default function StudentChatPage() {
     const lastFailed = [...messages].reverse().find((m) => m.status === 'failed');
     if (lastFailed) {
       handleRetryMessage(lastFailed.id);
-    } else if (lastFailedInput) {
-      handleSendMessage(lastFailedInput);
     }
   };
 
@@ -476,17 +471,8 @@ export default function StudentChatPage() {
                     key={m.id}
                     className={`flex items-start gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    {!isUser && (
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-xs ${
-                          m.status === 'failed'
-                            ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800'
-                            : 'bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26]'
-                        }`}
-                        title={m.status === 'failed' ? 'Service Notification' : 'AI Companion'}
-                      >
-                        {m.status === 'failed' ? <AlertCircle className="w-4 h-4" /> : 'AI'}
-                      </div>
+                    {!isUser && m.id === latestAssistantMessageId && (
+                      <AssistantAvatar isLatest={true} animated={m.status !== 'failed'} />
                     )}
 
                     <div className={`space-y-1 max-w-[85%] sm:max-w-[80%]`}>
@@ -496,10 +482,10 @@ export default function StudentChatPage() {
                             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
                             <div className="space-y-1 min-w-0">
                               <p className="font-semibold text-xs text-amber-900 dark:text-amber-300">
-                                Unable to generate response
+                                Unable to receive response
                               </p>
                               <p className="text-xs text-amber-800/90 dark:text-amber-200/90 leading-relaxed">
-                                {m.errorMessage || 'The conversational companion is temporarily unavailable. Your message was preserved.'}
+                                {m.errorMessage || 'Unable to receive a response from the AI companion service. Please try again in a few moments.'}
                               </p>
                             </div>
                           </div>
@@ -557,35 +543,6 @@ export default function StudentChatPage() {
             <div ref={messagesEndRef} />
           </div>
         </LoadingRegion>
-
-        {/* Failed Input Retry Bar */}
-        {lastFailedInput && (
-          <div className="bg-[#FFFBEB] dark:bg-[rgba(245,158,11,0.12)] border-t border-[#FDE68A] dark:border-[rgba(245,158,11,0.25)] p-2.5 px-4 flex items-center justify-between text-xs text-[#B45309] dark:text-[#FBBF24]">
-            <div className="flex items-center gap-2 min-w-0">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span className="truncate">Response could not be generated for: &quot;{lastFailedInput.slice(0, 40)}{lastFailedInput.length > 40 ? '...' : ''}&quot;</span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                onClick={handleRetry}
-                variant="outline"
-                size="sm"
-                className="gap-1 min-h-[32px] bg-white dark:bg-[#18191C]"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Retry</span>
-              </Button>
-              <button
-                type="button"
-                onClick={() => setLastFailedInput(null)}
-                aria-label="Dismiss retry notice"
-                className="p-1 rounded text-[#B45309] dark:text-[#FBBF24] hover:bg-black/5 dark:hover:bg-white/10"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Bottom Multiline Composer with Pill Input and Circular Up Arrow Send Button */}
         <div className="bg-[#FBFBFA] dark:bg-[#000000] shrink-0 w-full px-4 sm:px-6 pt-3.5 pb-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:min-h-[104px] flex flex-col justify-center">

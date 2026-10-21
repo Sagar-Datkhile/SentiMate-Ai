@@ -323,4 +323,25 @@ select:autofill {
     animation: none !important;
     transform: none !important;
   }
+
+  .sentimate-eye-animating {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Sentimate Assistant Eye Blink Animation */
+@keyframes sentimate-eye-blink {
+  0%, 93%, 100% {
+    transform: scaleY(1);
+  }
+  95.5%, 97.5% {
+    transform: scaleY(0.08);
+  }
+}
+
+.sentimate-eye-animating {
+  animation: sentimate-eye-blink 5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
 }

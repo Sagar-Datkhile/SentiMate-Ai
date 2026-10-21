@@ -191,15 +191,13 @@ export class NvidiaChatAdapter {
         {
           model: env.nvidiaModel || 'nvidia/nemotron-3-super-120b-a12b',
           messages,
-          temperature: 1.0,
+          temperature: 0.7,
           top_p: 0.95,
           max_tokens: 512,
           stream: true,
           stream_options: {
             include_usage: true,
           },
-          // Disable dynamic reasoning (LRM mode) for supportive, low-latency conversational chat
-          // per NVIDIA Nemotron-3 Super API specifications
           ...({
             chat_template_kwargs: {
               enable_thinking: false,
@@ -211,27 +209,34 @@ export class NvidiaChatAdapter {
       return response as unknown as AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
     };
 
-    let initialStream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>;
-    try {
-      initialStream = await makeStreamRequest(params.signal);
-    } catch (upstreamErr: any) {
-      if (
-        (upstreamErr?.status === 429 || upstreamErr?.status === 503 || upstreamErr?.status === 504) &&
-        !params.signal?.aborted
-      ) {
-        const retryAfter = upstreamErr?.headers?.['retry-after'];
-        const delayMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : 750;
-        await new Promise((resolve) => setTimeout(resolve, Math.min(delayMs, 2000)));
-        try {
-          initialStream = await makeStreamRequest(params.signal);
-        } catch (retryErr: any) {
-          const parsed = this.parseUpstreamError(retryErr);
-          throw new NvidiaChatServiceError(parsed.message, parsed.statusCode, parsed.code);
+    let initialStream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk> | null = null;
+    let lastError: any = null;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      if (params.signal?.aborted) break;
+      try {
+        initialStream = await makeStreamRequest(params.signal);
+        break;
+      } catch (err: any) {
+        lastError = err;
+        const status = err?.status;
+        const isRetryable =
+          !params.signal?.aborted &&
+          (status === 429 || (typeof status === 'number' && status >= 500) || !status || err?.code === 'ECONNRESET' || err?.code === 'ETIMEDOUT');
+
+        if (isRetryable && attempt < 3) {
+          const retryAfter = err?.headers?.['retry-after'];
+          const delayMs = retryAfter ? parseInt(retryAfter, 10) * 1000 : attempt * 600;
+          await new Promise((resolve) => setTimeout(resolve, Math.min(delayMs, 2000)));
+          continue;
         }
-      } else {
-        const parsed = this.parseUpstreamError(upstreamErr);
-        throw new NvidiaChatServiceError(parsed.message, parsed.statusCode, parsed.code);
+        break;
       }
+    }
+
+    if (!initialStream) {
+      const parsed = this.parseUpstreamError(lastError);
+      throw new NvidiaChatServiceError(parsed.message, parsed.statusCode, parsed.code);
     }
 
     const self = this;

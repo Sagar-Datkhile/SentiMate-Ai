@@ -14,6 +14,7 @@ interface TooltipProps {
   side?: 'top' | 'right' | 'bottom' | 'left';
   align?: 'start' | 'center' | 'end';
   delayMs?: number;
+  className?: string;
 }
 
 export function Tooltip({
@@ -22,6 +23,7 @@ export function Tooltip({
   side = 'right',
   align = 'center',
   delayMs = 200,
+  className,
 }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -62,7 +64,7 @@ export function Tooltip({
   };
 
   return (
-    <div className="relative inline-flex items-center" onMouseLeave={handleHide}>
+    <div className={className || "relative inline-flex items-center"} onMouseLeave={handleHide}>
       {React.cloneElement(children, {
         onMouseEnter: (e: React.MouseEvent) => {
           children.props.onMouseEnter?.(e);
