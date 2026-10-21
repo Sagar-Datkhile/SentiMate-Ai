@@ -49,7 +49,7 @@ export default function StudentReferralsPage() {
     <StudentShell>
       <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div className="flex items-center gap-2">
             <HeartHandshake className="w-5 h-5 text-[#0D766E] dark:text-[#14B8A6]" />
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
@@ -72,7 +72,7 @@ export default function StudentReferralsPage() {
             <p className="text-xs sm:text-sm text-[#4A4D54] dark:text-[#9CA3AF] max-w-lg mx-auto leading-relaxed">
               Your referral has been sent to campus psychological services. Your assigned counsellor will review your note and initiate contact or confirm an appointment slot during campus operating hours.
             </p>
-            <div className="p-3 bg-[#F4F4F1] dark:bg-[#1F2228] rounded-xl text-xs text-[#71757E] max-w-md mx-auto">
+            <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl text-xs text-[#71757E] max-w-md mx-auto">
               <strong>Notice:</strong> Submitting a referral does not imply immediate human monitoring. For acute emergencies, call 988 or campus emergency services directly.
             </div>
           </Card>
@@ -102,7 +102,7 @@ export default function StudentReferralsPage() {
                       className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition-colors min-h-[44px] ${
                         priority === p
                           ? 'border-[#0D766E] dark:border-[#14B8A6] bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.15)] text-[#0D766E] dark:text-[#2DD4BF]'
-                          : 'border-[#E2E2DC] dark:border-[#2C3038] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1]'
+                          : 'border-[#E2E2DC] dark:border-[#1F2024] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C]'
                       }`}
                     >
                       {p}
@@ -112,7 +112,7 @@ export default function StudentReferralsPage() {
               </div>
 
               {/* Granular Sharing Consent Controls */}
-              <div className="pt-2 border-t border-[#E2E2DC] dark:border-[#2C3038] space-y-3">
+              <div className="pt-2 border-t border-[#E2E2DC] dark:border-[#1F2024] space-y-3">
                 <span className="block text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                   Granular Sharing Permissions
                 </span>
@@ -152,7 +152,7 @@ export default function StudentReferralsPage() {
                 </label>
               </div>
 
-              <div className="p-3 bg-[#F4F4F1] dark:bg-[#1F2228] rounded-xl flex items-center gap-2 text-xs text-[#71757E]">
+              <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl flex items-center gap-2 text-xs text-[#71757E]">
                 <Clock className="w-4 h-4 shrink-0 text-[#0D766E] dark:text-[#14B8A6]" />
                 <span>Counsellor review occurs during campus business hours (Mon–Fri 8:30 AM – 5:00 PM).</span>
               </div>

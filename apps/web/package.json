@@ -9,7 +9,9 @@
     "lint": "next lint",
     "test:chat": "node test-chat-api.mjs",
     "test:adapter": "npx tsx test-adapter.ts",
-    "test:bloom": "npx tsx test-username-bloom.ts"
+    "test:bloom": "npx tsx test-username-bloom.ts",
+    "test:institution": "npx tsx test-institution-departments.ts",
+    "db:seed": "npx tsx seed-institution-departments.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.1",

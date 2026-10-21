@@ -5,6 +5,7 @@ import { StudentShell } from '@/components/layout/StudentShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Badge } from '@/components/ui/Badge';
 import {
@@ -26,9 +27,30 @@ import {
   UsernameAvailabilityResponse,
 } from '@sentimate/contracts';
 
+/** Locally-defined department options used when the API returns no departments. */
+const LOCAL_DEPARTMENT_OPTIONS = [
+  'Computer Engineering',
+  'Information Technology',
+  'Artificial Intelligence & Data Science',
+  'Mechanical Engineering',
+  'Electronics and Telecommunication Engineering',
+] as const;
+
 interface SemesterSGPA {
   semester: number;
   sgpa: string;
+}
+
+interface InstitutionInfo {
+  id: string;
+  name: string;
+  code: string;
+}
+
+interface DepartmentInfo {
+  id: string;
+  name: string;
+  code: string;
 }
 
 type AvailabilityStatus =
@@ -52,8 +74,21 @@ export default function StudentProfilePage() {
   const [currentUsername, setCurrentUsername] = useState('');
   const [username, setUsername] = useState('');
   const [prn, setPrn] = useState('');
-  const [institution, setInstitution] = useState('');
-  const [department, setDepartment] = useState('');
+  const [institution, setInstitution] = useState<InstitutionInfo>({
+    id: 'b339af53-fef8-4cfd-b6d8-a9042dc80ab5',
+    name: "Pune Vidyarthi Griha's College of Engineering & S.S. Dhamankar Institute of Management, Nashik",
+    code: 'PVGCOE_NASHIK',
+  });
+  const [departmentId, setDepartmentId] = useState<string>('');
+  const [availableDepartments, setAvailableDepartments] = useState<DepartmentInfo[]>([]);
+  // Holds the selected label when running in local-only mode (no API departments).
+  // This is NEVER sent as departmentId to the backend.
+  const [localDepartmentLabel, setLocalDepartmentLabel] = useState<string>('');
+  const [incompatibleDepartment, setIncompatibleDepartment] = useState<{
+    id: string;
+    name: string;
+    flaggedForReview: boolean;
+  } | null>(null);
   const [admissionYear, setAdmissionYear] = useState('');
   const [currentSemester, setCurrentSemester] = useState('');
   const [about, setAbout] = useState('');
@@ -125,8 +160,29 @@ export default function StudentProfilePage() {
         });
       }
       if (data.prn) setPrn(data.prn);
-      if (data.institution) setInstitution(data.institution);
-      if (data.department) setDepartment(data.department);
+      if (data.institution) {
+        if (typeof data.institution === 'object' && data.institution.name) {
+          setInstitution(data.institution);
+        } else if (typeof data.institution === 'string') {
+          setInstitution((prev) => ({ ...prev, name: data.institution }));
+        }
+      }
+      if (Array.isArray(data.departments)) {
+        setAvailableDepartments(data.departments);
+      }
+      if (data.departmentId !== undefined && data.departmentId !== null) {
+        setDepartmentId(data.departmentId);
+      } else if (data.department) {
+        const matched = data.departments?.find(
+          (d: any) => d.name === data.department || d.code === data.department || d.id === data.department
+        );
+        if (matched) setDepartmentId(matched.id);
+      }
+      if (data.incompatibleDepartment) {
+        setIncompatibleDepartment(data.incompatibleDepartment);
+      } else {
+        setIncompatibleDepartment(null);
+      }
       if (data.admissionYear !== undefined && data.admissionYear !== null) {
         setAdmissionYear(String(data.admissionYear));
       }
@@ -318,6 +374,18 @@ export default function StudentProfilePage() {
       return;
     }
 
+    // Validation: prevent saving if an invalid department selection was made while reference data is unavailable
+    if (departmentId && availableDepartments.length > 0) {
+      const isValidDept =
+        availableDepartments.some((d) => d.id === departmentId) ||
+        (incompatibleDepartment && incompatibleDepartment.id === departmentId);
+      if (!isValidDept) {
+        setErrorMessage('The selected department is not recognized. Please choose a valid department.');
+        setSaving(false);
+        return;
+      }
+    }
+
     for (const sem of semesters) {
       if (sem.sgpa.trim() !== '') {
         const val = parseFloat(sem.sgpa);
@@ -337,10 +405,9 @@ export default function StudentProfilePage() {
           fullName,
           username: normalized,
           prn: prn.trim(),
-          institution,
-          department,
-          admissionYear,
-          currentSemester,
+          departmentId: departmentId || null,
+          admissionYear: admissionYear ? parseInt(admissionYear, 10) : undefined,
+          currentSemester: currentSemester ? parseInt(currentSemester, 10) : undefined,
           about,
           semesters,
         }),
@@ -402,7 +469,7 @@ export default function StudentProfilePage() {
     <StudentShell studentName={fullName}>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Page Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Student Profile & Academics
@@ -440,7 +507,7 @@ export default function StudentProfilePage() {
           <form onSubmit={handleSave} className="space-y-6">
             {/* Section 1: Basic Identity */}
             <Card className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-3">
+            <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
               <User className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
               <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
                 Personal Identity
@@ -516,7 +583,7 @@ export default function StudentProfilePage() {
 
           {/* Section 2: Educational Context */}
           <Card className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-3">
+            <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
               <GraduationCap className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
               <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
                 Institutional Details
@@ -524,18 +591,77 @@ export default function StudentProfilePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Institution"
-                value={institution}
-                onChange={(e) => setInstitution(e.target.value)}
-                required
-              />
-              <Input
-                label="Department / Major"
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                required
-              />
+              {/* Institution (Read-Only) */}
+              <div className="w-full">
+                <label
+                  htmlFor="institution-display"
+                  className="block text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5"
+                >
+                  Institution
+                </label>
+                <div
+                  id="institution-display"
+                  tabIndex={0}
+                  aria-readonly="true"
+                  className="w-full rounded-lg px-3.5 py-2.5 text-sm bg-[#F5F5F3] dark:bg-[#141518] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px] flex items-center leading-relaxed select-text focus:outline-none focus:ring-2 focus:ring-[#0D766E]/20"
+                >
+                  <span className="break-words whitespace-normal w-full font-medium">
+                    {institution.name || "Pune Vidyarthi Griha's College of Engineering & S.S. Dhamankar Institute of Management, Nashik"}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-[#71757E]">
+                  Default institutional affiliation (read-only).
+                </p>
+              </div>
+
+              {/* Department (Accessible Single-Select Dropdown) */}
+              <div className="w-full">
+                {availableDepartments.length > 0 ? (
+                  /* API-backed mode: value is a UUID sent to the backend */
+                  <Select
+                    id="department-select"
+                    label="Department"
+                    placeholder="Select your department"
+                    value={departmentId}
+                    onChange={(e) => setDepartmentId(e.target.value)}
+                    options={availableDepartments.map((d) => ({
+                      value: d.id,
+                      label: d.name,
+                    }))}
+                    helperText="Optional academic department (does not restrict chatbot access)."
+                  />
+                ) : (
+                  /* Local-only mode: options defined client-side; selection is display-only and not persisted */
+                  <>
+                    <Select
+                      id="department-select"
+                      label="Department"
+                      placeholder="Select your department"
+                      value={localDepartmentLabel}
+                      onChange={(e) => setLocalDepartmentLabel(e.target.value)}
+                      options={LOCAL_DEPARTMENT_OPTIONS.map((name) => ({
+                        value: name,
+                        label: name,
+                      }))}
+                      helperText="Optional academic department (does not restrict chatbot access)."
+                    />
+                    {localDepartmentLabel && (
+                      <p className="mt-1 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                        <Info className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                        Department selection is display-only until department data loads from the server.
+                      </p>
+                    )}
+                  </>
+                )}
+                {incompatibleDepartment && (
+                  <div className="mt-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2">
+                    <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                    <div className="leading-relaxed">
+                      <span className="font-semibold">Review Flag:</span> Existing assignment (<span className="font-medium underline">{incompatibleDepartment.name}</span>) is outside verified departments and has been preserved. You may select an active department above or leave it preserved.
+                    </div>
+                  </div>
+                )}
+              </div>
               <Input
                 label="PRN (Permanent Registration Number)"
                 value={prn}
@@ -565,7 +691,7 @@ export default function StudentProfilePage() {
 
           {/* Section 3: 8 Semesters Academic Records */}
           <Card className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#2C3038] pb-3">
+            <div className="flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
                 <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
@@ -585,7 +711,7 @@ export default function StudentProfilePage() {
               {semesters.map((sem) => (
                 <div
                   key={sem.semester}
-                  className="p-3 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#FAFAF8] dark:bg-[#15171C] space-y-1.5"
+                  className="p-3 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#FAFAF8] dark:bg-[#18191C] space-y-1.5"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-[#18191B] dark:text-[#F3F4F6]">

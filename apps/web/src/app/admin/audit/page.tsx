@@ -75,7 +75,7 @@ export default function AdminAuditPage() {
     <AdminShell>
       <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Content-Free Audit Trail & Privacy Operations
@@ -145,7 +145,7 @@ export default function AdminAuditPage() {
         </div>
 
         {/* Section 2: Audit Logs Table */}
-        <div className="space-y-4 pt-6 border-t border-[#E2E2DC] dark:border-[#2C3038]">
+        <div className="space-y-4 pt-6 border-t border-[#E2E2DC] dark:border-[#1F2024]">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
               Recent Administrative Audit Events
@@ -163,9 +163,9 @@ export default function AdminAuditPage() {
                 description="No administrative or privileged security events have been logged yet in this system session."
               />
             ) : (
-              <div className="rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] overflow-hidden bg-white dark:bg-[#17191E]">
+              <div className="rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] overflow-hidden bg-white dark:bg-[#0D0E11]">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#F4F4F1] dark:bg-[#1F2228] border-b border-[#E2E2DC] dark:border-[#2C3038] text-[#71757E] uppercase tracking-wider font-semibold">
+                  <thead className="bg-[#F4F4F1] dark:bg-[#18191C] border-b border-[#E2E2DC] dark:border-[#1F2024] text-[#71757E] uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="px-4 py-3">Timestamp</th>
                       <th className="px-4 py-3">Actor Role</th>
@@ -174,9 +174,9 @@ export default function AdminAuditPage() {
                       <th className="px-4 py-3">Anonymized Hash</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E2E2DC] dark:divide-[#2C3038]">
+                  <tbody className="divide-y divide-[#E2E2DC] dark:divide-[#1F2024]">
                     {auditLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-[#F4F4F1]/50 dark:hover:bg-[#1F2228]/50">
+                      <tr key={log.id} className="hover:bg-[#F4F4F1]/50 dark:hover:bg-[#18191C]/50">
                         <td className="px-4 py-3 text-[#71757E] whitespace-nowrap">{log.timestamp}</td>
                         <td className="px-4 py-3">
                           <Badge variant="neutral" size="sm">

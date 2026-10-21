@@ -17,7 +17,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-[#FBFBFA] dark:bg-[#0F1115] text-[#18191B] dark:text-[#F3F4F6] flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-[#FBFBFA] dark:bg-[#000000] text-[#18191B] dark:text-[#F3F4F6] flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md w-full space-y-6">
         <div className="w-14 h-14 mx-auto rounded-2xl bg-[#FEF2F2] dark:bg-[rgba(239,68,68,0.12)] text-[#B91C1C] dark:text-[#F87171] flex items-center justify-center shadow-sm">
           <AlertTriangle className="w-8 h-8" />
@@ -29,7 +29,7 @@ export default function GlobalError({
             An unexpected error occurred while rendering this page. Your session and saved conversations remain safe.
           </p>
           {error.message && (
-            <div className="p-3 bg-[#F4F4F1] dark:bg-[#1F2228] rounded-xl text-xs font-mono text-[#71757E] text-left break-words">
+            <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl text-xs font-mono text-[#71757E] text-left break-words">
               {error.message}
             </div>
           )}

@@ -36,12 +36,12 @@
 }
 
 .dark {
-  --canvas-bg: #0F1115;
-  --surface-1: #17191E;
-  --surface-2: #1F2228;
-  --surface-3: #282C34;
-  --border-subtle: #2C3038;
-  --border-strong: #3E434E;
+  --canvas-bg: #000000;
+  --surface-1: #0D0E11;
+  --surface-2: #18191C;
+  --surface-3: #222327;
+  --border-subtle: #1F2024;
+  --border-strong: #2E3036;
   --text-primary: #F3F4F6;
   --text-secondary: #9CA3AF;
   --text-tertiary: #6B7280;
@@ -50,11 +50,11 @@
   --brand-teal-light: rgba(20, 184, 166, 0.12);
   --brand-teal-border: rgba(20, 184, 166, 0.25);
   --focus-ring: rgba(20, 184, 166, 0.4);
-  --skeleton-base: #22262E;
-  --skeleton-highlight: #2C323D;
-  --toast-bg: rgba(23, 25, 30, 0.88);
-  --toast-border: rgba(255, 255, 255, 0.09);
-  --toast-shadow: 0 14px 36px -4px rgba(0, 0, 0, 0.55), 0 4px 16px -2px rgba(0, 0, 0, 0.35);
+  --skeleton-base: #141518;
+  --skeleton-highlight: #202227;
+  --toast-bg: rgba(14, 15, 17, 0.92);
+  --toast-border: rgba(255, 255, 255, 0.08);
+  --toast-shadow: 0 14px 36px -4px rgba(0, 0, 0, 0.75), 0 4px 16px -2px rgba(0, 0, 0, 0.55);
   --toast-title: #F3F4F6;
   --toast-desc: #9CA3AF;
   --toast-success-accent: #14B8A6;
@@ -76,6 +76,63 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Deep pitch-black theme overrides throughout */
+.dark,
+.dark body {
+  background-color: #000000 !important;
+  color: #F3F4F6;
+}
+
+.dark [class*="bg-[#0F1115]"] {
+  background-color: #000000 !important;
+}
+
+.dark [class*="bg-[#17191E]"] {
+  background-color: #0D0E11 !important;
+}
+
+.dark [class*="bg-[#1F2228]"] {
+  background-color: #18191C !important;
+}
+
+.dark [class*="bg-[#15171C]"] {
+  background-color: #121316 !important;
+}
+
+.dark [class*="bg-[#1A1D23]"] {
+  background-color: #141518 !important;
+}
+
+.dark [class*="bg-[#282C34]"] {
+  background-color: #222327 !important;
+}
+
+.dark [class*="border-[#2C3038]"] {
+  border-color: #1F2024 !important;
+}
+
+.dark [class*="border-[#3E434E]"] {
+  border-color: #2E3036 !important;
+}
+
+.dark [class*="text-[#0F1115]"] {
+  color: #000000 !important;
+}
+
+/* Ensure native inputs, selects, textareas inherit the consistent dark palette */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark textarea,
+.dark select {
+  background-color: #18191C;
+  border-color: #1F2024;
+  color: #F3F4F6;
+}
+
+.dark option {
+  background-color: #18191C;
+  color: #F3F4F6;
+}
+
 /* Glassmorphism with opaque fallback */
 .glass-nav {
   background-color: var(--canvas-bg);
@@ -89,7 +146,7 @@ body {
     -webkit-backdrop-filter: blur(12px);
   }
   .dark .glass-nav {
-    background-color: rgba(15, 17, 21, 0.85);
+    background-color: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }

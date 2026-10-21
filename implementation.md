@@ -331,5 +331,89 @@ To eliminate visual layout shifts, prevent confusing placeholders, and provide c
   - Center: Recent Conversations list (expanded only).
   - Bottom: Unified Account Trigger opening the Account Menu.
 
+---
+
+## 9. Default Institution & Department Dropdown Configuration
+
+### 9.1 Overview & Requirements
+- **Default Institution**:
+  - Name: `"Pune Vidyarthi Griha's College of Engineering & S.S. Dhamankar Institute of Management, Nashik"`
+  - Code: `'PVGCOE_NASHIK'`
+  - Behavior: Displayed by default for new student profiles; read-only in My Profile with clean text-wrapping on mobile; resolved through database `institution_id` (foreign key) rather than duplicating name string in profiles; assigned via trusted backend logic; existing non-null institution assignments preserved.
+- **Department Dropdown**:
+  - Label: `"Department"`, Component: Accessible single-select dropdown (`<Select>`), Placeholder: `"Select your department"` (empty value `""`).
+  - Five Verified Options:
+    1. `"Computer Engineering"` (Code: `'COMP'`)
+    2. `"Information Technology"` (Code: `'IT'`)
+    3. `"Artificial Intelligence & Data Science"` (Code: `'AIDS'`)
+    4. `"Mechanical Engineering"` (Code: `'MECH'`)
+    5. `"Electronics and Telecommunication Engineering"` (Code: `'ENTC'`)
+  - Behavior: Optional (does not block chatbot access); does not automatically select the first department; displays student's saved selection on load; saves `department_id` through existing profile update flow; validates server-side that department belongs to student's assigned institution; preserves existing department assignments and flags incompatible legacy values for review rather than silently replacing them.
+
+### 9.2 Database Schema & Migration (`20261019000002`)
+- **Versioned Migration File**: `supabase/migrations/20261019000002_default_institution_and_departments.sql`.
+- **Constraint Relaxation & Missing Configuration Report**:
+  - `contact_email` and `emergency_contact` were defined as `NOT NULL` in the initial schema (`schema.db`).
+  - Invariant: *Do not invent contact emails, emergency numbers or other required institutional details.*
+  - The migration relaxes both columns to nullable:
+    ```sql
+    ALTER TABLE public.institutions ALTER COLUMN contact_email DROP NOT NULL;
+    ALTER TABLE public.institutions ALTER COLUMN emergency_contact DROP NOT NULL;
+    ```
+  - **Missing Configuration**: Official university contact email and campus emergency hotline number were not provided in the specification. These columns are left unpopulated (`NULL`) pending official campus administration configuration.
+- **Idempotent Seeding & Identification Reuse**:
+  - Checks if institution exists by `code = 'PVGCOE_NASHIK'` or name, reusing existing UUID `b339af53-fef8-4cfd-b6d8-a9042dc80ab5`.
+  - Seeds all 5 departments for this institution with unique composite index `(institution_id, code)` without duplicate records.
+- **Backfill Migration**:
+  - Explicitly updates `profiles` where `institution_id IS NULL` to `v_default_institution_id`.
+  - Invariant: Strictly preserves existing non-null institution assignments.
+- **Row Level Security (RLS)**:
+  - Grants SELECT to authenticated users on `institutions` (where `is_active = TRUE`) and `departments`.
+- **Registration Trigger Hardening**:
+  - Updated `public.handle_new_user()` to resolve default institution and insert `profiles.institution_id = v_default_institution_id` while strictly locking role to `'student'`.
+
+### 9.3 Backend Profile API (`/api/student/profile`)
+- **GET Handler**:
+  - Resolves student's assigned `institution_id` -> queries `institutions` for `id, name, code`. Falls back to default institution if unassigned.
+  - Fetches available `departments` for this institution and returns them in the payload, allowing the client to cache reference data without separate requests.
+  - Detects if the student has an assigned `department_id` that is not part of the active institution's offerings (e.g. legacy or cross-institution ID). Instead of wiping it, returns `incompatibleDepartment: { id, name, flaggedForReview: true }`.
+- **PUT Handler**:
+  - Accepts `departmentId` (UUID string or `null`/empty string to clear).
+  - Strict Security Invariant: Ignores any client-supplied `institutionId` or `institution` strings; clients cannot alter institution affiliation.
+  - Server-side validation: Verifies that the provided `departmentId` exists and belongs to the student's assigned `institution_id`. Rejects mismatches with HTTP 400 (`INVALID_DEPARTMENT_INSTITUTION`).
+  - Updates `student_profiles.department_id` atomically.
+
+### 9.4 Frontend UI (`/student/profile`)
+- **Component**: `apps/web/src/components/ui/Select.tsx`:
+  - Accessible single-select component wrapping native `<select>` with custom styling, `min-h-[44px]`, focus rings, `ChevronDown` indicator, and screen-reader label associations.
+- **Institution Display**:
+  - Rendered as read-only field with `tabIndex={0}`, `aria-readonly="true"`, and `break-words whitespace-normal` guaranteeing clean text-wrapping on mobile viewports.
+- **Department Dropdown**:
+  - Displays placeholder `"Select your department"`. Does not auto-select first item.
+  - Pre-selects student's saved `department_id`.
+  - Caches reference data in component state from `loadProfile()`; zero duplicate fetches on dropdown open or rerender.
+  - If reference data is unavailable, prevents submitting invalid selections.
+  - Renders informational review banner when an incompatible legacy assignment is detected.
+- **Feedback**:
+  - Dispatches top-right glassmorphic toast notification on save: `toast.success('Profile changes saved.')`.
+  - Dispatches `toast.error('Profile update failed.')` on error.
+
+### 9.5 Verification Summary
+- **Test Suite**: `apps/web/test-institution-departments.ts` (`npm run test:institution`).
+  - All 26 assertions passed:
+    - Default institution name and code exact match.
+    - All 5 departments exact names and codes match.
+    - Reference data resolution via GET.
+    - Selection persistence via PUT.
+    - Optional clearing to null.
+    - Rejection of invalid/cross-institution department IDs (HTTP 400).
+    - Tamper resistance: client-supplied institution ID strictly ignored.
+    - Role authorization: non-students rejected with HTTP 403.
+- **Existing Checks Verified**:
+  - `npm run test:bloom`: All username availability tests passed.
+  - `npm run test:sidebar`: All sidebar and account menu tests passed.
+  - `npx tsc --noEmit`: 0 TypeScript errors.
+  - `npm run build`: Next.js 15 production build succeeded (24 static & dynamic routes, exit code 0).
+
 
 

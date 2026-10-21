@@ -19,13 +19,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary:
-        'bg-[#0D766E] text-white hover:bg-[#0F766E] dark:bg-[#14B8A6] dark:hover:bg-[#2DD4BF] dark:text-[#0F1115] focus-visible:ring-[#0D766E]',
+        'bg-[#0D766E] text-white hover:bg-[#0F766E] dark:bg-[#14B8A6] dark:hover:bg-[#2DD4BF] dark:text-[#000000] focus-visible:ring-[#0D766E]',
       secondary:
-        'bg-[#F4F4F1] text-[#18191B] hover:bg-[#EAEAE5] dark:bg-[#1F2228] dark:text-[#F3F4F6] dark:hover:bg-[#282C34] focus-visible:ring-[#71757E]',
+        'bg-[#F4F4F1] text-[#18191B] hover:bg-[#EAEAE5] dark:bg-[#18191C] dark:text-[#F3F4F6] dark:hover:bg-[#222327] focus-visible:ring-[#71757E]',
       outline:
-        'border border-[#E2E2DC] text-[#18191B] bg-transparent hover:bg-[#F4F4F1] dark:border-[#2C3038] dark:text-[#F3F4F6] dark:hover:bg-[#1F2228] focus-visible:ring-[#0D766E]',
+        'border border-[#E2E2DC] text-[#18191B] bg-transparent hover:bg-[#F4F4F1] dark:border-[#1F2024] dark:text-[#F3F4F6] dark:hover:bg-[#18191C] focus-visible:ring-[#0D766E]',
       ghost:
-        'text-[#4A4D54] hover:bg-[#F4F4F1] dark:text-[#9CA3AF] dark:hover:bg-[#1F2228] hover:text-[#18191B] dark:hover:text-[#F3F4F6]',
+        'text-[#4A4D54] hover:bg-[#F4F4F1] dark:text-[#9CA3AF] dark:hover:bg-[#18191C] hover:text-[#18191B] dark:hover:text-[#F3F4F6]',
       danger:
         'bg-[#B91C1C] text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-500 focus-visible:ring-red-600',
     };

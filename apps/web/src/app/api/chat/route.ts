@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
 
     console.error('[Chat API] Unexpected handler error:', error);
     return NextResponse.json(
-      { error: error?.message || 'Internal server error processing chat request', code: 'INTERNAL_ERROR' },
+      { error: 'An unexpected error occurred while processing your request. Please try again.', code: 'INTERNAL_ERROR' },
       { status: 500 }
     );
   }

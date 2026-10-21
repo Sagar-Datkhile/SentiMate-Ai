@@ -64,52 +64,51 @@ export function AccountMenu({
     setMounted(true);
   }, []);
 
-  // Update positioning relative to trigger and viewport bounds
+  // Determine positioning relative to trigger and viewport bounds
   const updatePosition = useCallback(() => {
     if (!triggerRef.current) return;
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const margin = 8;
-    const menuWidth = 270;
-    const estimatedHeight = settingsExpanded ? 460 : 380;
+    const menuWidth = 272;
+    const estimatedHeight = 420;
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
 
+    // Anchor horizontally to trigger left, clamped to viewport bounds
     let left = triggerRect.left;
-    let bottom: number | undefined = undefined;
+    if (left + menuWidth > viewportWidth - margin) {
+      left = Math.max(margin, viewportWidth - menuWidth - margin);
+    }
+    if (left < margin) {
+      left = margin;
+    }
+
+    // Anchor vertically above the trigger (or below if not enough room above)
+    let bottom: number | undefined = viewportHeight - triggerRect.top + margin;
     let top: number | undefined = undefined;
 
-    if (isCollapsed && triggerRect.right + menuWidth + margin <= viewportWidth) {
-      // In collapsed mode on desktop, position to the right of the rail trigger
-      left = triggerRect.right + margin;
-      // Align bottom of menu with bottom of trigger
-      bottom = viewportHeight - triggerRect.bottom;
-      if (bottom + estimatedHeight > viewportHeight) {
-        bottom = margin;
-      }
-    } else {
-      // In expanded mode or mobile, position above the trigger
-      bottom = viewportHeight - triggerRect.top + margin;
-
-      // Adjust horizontal position if trigger would overflow right
-      if (left + menuWidth > viewportWidth - margin) {
-        left = Math.max(margin, viewportWidth - menuWidth - margin);
-      }
-      if (left < margin) {
-        left = margin;
-      }
+    // If clipping at the top of the viewport when placed above:
+    if (triggerRect.top - margin < estimatedHeight && triggerRect.bottom + estimatedHeight + margin <= viewportHeight) {
+      bottom = undefined;
+      top = triggerRect.bottom + margin;
     }
 
     setCoords({ left, bottom, top });
-  }, [triggerRef, isCollapsed, settingsExpanded]);
+  }, [triggerRef]);
 
+  // Determine viewport position when opened and keep stationary until closed.
+  // Recalculate only when reopened and on viewport resize to prevent clipping.
   useEffect(() => {
     if (isOpen) {
       updatePosition();
-      window.addEventListener('resize', updatePosition);
-      window.addEventListener('scroll', updatePosition, true);
+
+      const handleResize = () => {
+        updatePosition();
+      };
+
+      window.addEventListener('resize', handleResize);
       return () => {
-        window.removeEventListener('resize', updatePosition);
-        window.removeEventListener('scroll', updatePosition, true);
+        window.removeEventListener('resize', handleResize);
       };
     }
   }, [isOpen, updatePosition]);
@@ -233,7 +232,7 @@ export function AccountMenu({
       ref={menuRef}
       role="menu"
       aria-label="Account and navigation menu"
-      className="fixed z-[110] w-[272px] max-w-[calc(100vw-24px)] rounded-2xl bg-white/95 dark:bg-[#17191E]/95 backdrop-blur-xl border border-[#E2E2DC] dark:border-[#2C3038] shadow-2xl p-1.5 text-[#18191B] dark:text-[#F3F4F6] animate-in fade-in-0 zoom-in-95 duration-150 select-none overflow-hidden flex flex-col"
+      className="fixed z-[110] w-[272px] max-w-[calc(100vw-24px)] rounded-2xl bg-white/95 dark:bg-[#0D0E11]/95 backdrop-blur-xl border border-[#E2E2DC] dark:border-[#1F2024] shadow-2xl p-1.5 text-[#18191B] dark:text-[#F3F4F6] animate-in fade-in-0 zoom-in-95 duration-150 select-none overflow-hidden flex flex-col"
       style={{
         left: `${coords.left}px`,
         bottom: coords.bottom !== undefined ? `${coords.bottom}px` : undefined,
@@ -242,8 +241,8 @@ export function AccountMenu({
       }}
     >
       {/* 1. Compact Account Identity Header */}
-      <div className="p-3 border-b border-[#E2E2DC]/70 dark:border-[#2C3038]/70 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#0F1115] font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+      <div className="p-3 border-b border-[#E2E2DC]/70 dark:border-[#1F2024]/70 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#000000] font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
           {initialLetter}
         </div>
         <div className="flex-1 min-w-0">
@@ -275,7 +274,7 @@ export function AccountMenu({
               className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E] ${
                 isActive
                   ? 'bg-teal-50 dark:bg-teal-950/30 text-[#0D766E] dark:text-[#2DD4BF] font-semibold'
-                  : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#1F2228] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
+                  : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -297,7 +296,7 @@ export function AccountMenu({
             role="menuitem"
             aria-expanded={settingsExpanded}
             onClick={() => setSettingsExpanded(!settingsExpanded)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#1F2228] hover:text-[#18191B] dark:hover:text-[#F3F4F6] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E]"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] hover:text-[#18191B] dark:hover:text-[#F3F4F6] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E]"
           >
             <div className="flex items-center gap-2.5">
               <Settings className="w-4 h-4 text-[#71757E]" />
@@ -312,17 +311,17 @@ export function AccountMenu({
 
           {/* Inline Theme Preferences */}
           {settingsExpanded && (
-            <div className="ml-4 pl-3 border-l border-[#E2E2DC] dark:border-[#2C3038] my-1 space-y-1 animate-in fade-in-0 duration-150">
+            <div className="ml-4 pl-3 border-l border-[#E2E2DC] dark:border-[#1F2024] my-1 space-y-1 animate-in fade-in-0 duration-150">
               <div className="text-[10px] uppercase font-semibold text-[#71757E] tracking-wider px-2 py-0.5">
                 Theme
               </div>
-              <div className="grid grid-cols-3 gap-1 p-1 bg-[#F4F4F1] dark:bg-[#1F2228] rounded-xl">
+              <div className="grid grid-cols-3 gap-1 p-1 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl">
                 <button
                   type="button"
                   onClick={() => setTheme('light')}
                   className={`flex flex-col items-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-colors ${
                     theme === 'light'
-                      ? 'bg-white dark:bg-[#282C34] text-[#0D766E] dark:text-[#2DD4BF] shadow-xs font-semibold'
+                      ? 'bg-white dark:bg-[#222327] text-[#0D766E] dark:text-[#2DD4BF] shadow-xs font-semibold'
                       : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
                   }`}
                   aria-label="Light theme"
@@ -336,7 +335,7 @@ export function AccountMenu({
                   onClick={() => setTheme('dark')}
                   className={`flex flex-col items-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-colors ${
                     theme === 'dark'
-                      ? 'bg-white dark:bg-[#282C34] text-[#0D766E] dark:text-[#2DD4BF] shadow-xs font-semibold'
+                      ? 'bg-white dark:bg-[#222327] text-[#0D766E] dark:text-[#2DD4BF] shadow-xs font-semibold'
                       : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
                   }`}
                   aria-label="Dark theme"
@@ -350,7 +349,7 @@ export function AccountMenu({
                   onClick={() => setTheme('system')}
                   className={`flex flex-col items-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-colors ${
                     theme === 'system'
-                      ? 'bg-white dark:bg-[#282C34] text-[#0D766E] dark:text-[#2DD4BF] shadow-xs font-semibold'
+                      ? 'bg-white dark:bg-[#222327] text-[#0D766E] dark:text-[#2DD4BF] shadow-xs font-semibold'
                       : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
                   }`}
                   aria-label="System theme"
@@ -365,7 +364,7 @@ export function AccountMenu({
       </div>
 
       {/* 4. Divider & Log out */}
-      <div className="pt-1 mt-1 border-t border-[#E2E2DC]/70 dark:border-[#2C3038]/70">
+      <div className="pt-1 mt-1 border-t border-[#E2E2DC]/70 dark:border-[#1F2024]/70">
         <button
           type="button"
           ref={setItemRef}

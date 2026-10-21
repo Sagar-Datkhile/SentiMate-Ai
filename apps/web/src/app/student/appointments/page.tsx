@@ -135,7 +135,7 @@ export default function StudentAppointmentsPage() {
     <StudentShell>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Counsellor Appointments & Availability
@@ -230,7 +230,7 @@ export default function StudentAppointmentsPage() {
         </div>
 
         {/* Section 2: Available Counsellor Slots */}
-        <div className="space-y-4 pt-6 border-t border-[#E2E2DC] dark:border-[#2C3038]">
+        <div className="space-y-4 pt-6 border-t border-[#E2E2DC] dark:border-[#1F2024]">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
               Available Open Time Slots
@@ -325,7 +325,7 @@ export default function StudentAppointmentsPage() {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Briefly state what you'd like to discuss (e.g., midterm burnout, sleep trouble)..."
               rows={3}
-              className="w-full rounded-lg p-2.5 bg-white dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038] text-xs text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E]"
+              className="w-full rounded-lg p-2.5 bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E]"
             />
           </div>
 

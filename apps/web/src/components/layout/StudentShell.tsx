@@ -163,29 +163,44 @@ export function StudentShell({
   };
 
   return (
-    <div className="flex h-screen bg-[#FBFBFA] dark:bg-[#0F1115] overflow-hidden">
+    <div className="flex h-screen bg-[#FBFBFA] dark:bg-[#000000] overflow-hidden">
       {/* 1. Desktop Sidebar / Rail */}
       <aside
-        className={`hidden md:flex flex-col h-full bg-[#F4F4F1] dark:bg-[#17191E] border-r border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] shrink-0 transition-[width] duration-200 ease-in-out select-none relative z-30 ${
+        className={`hidden md:flex flex-col h-full bg-[#F4F4F1] dark:bg-[#0D0E11] border-r border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] shrink-0 transition-[width] duration-200 ease-in-out select-none relative z-30 ${
           isCollapsed ? 'w-16' : 'w-64 lg:w-72'
         }`}
       >
         {/* Top Header */}
         <div
-          className={`flex items-center border-b border-[#E2E2DC] dark:border-[#2C3038] shrink-0 ${
+          className={`flex items-center border-b border-[#E2E2DC] dark:border-[#1F2024] shrink-0 ${
             isCollapsed ? 'p-2 justify-center h-16' : 'p-3.5 justify-between h-16'
           }`}
         >
           {isCollapsed ? (
-            <SidebarToggle
-              isCollapsed={true}
-              onToggle={handleToggleCollapse}
-              side="right"
-            />
+            /* Collapsed header: show brand icon by default, toggle icon on hover */
+            <div className="group relative flex items-center justify-center">
+              {/* Brand icon (default) */}
+              <div
+                onClick={handleToggleCollapse}
+                role="button"
+                aria-label="Expand sidebar"
+                className="w-9 h-9 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000] shadow-xs shrink-0 cursor-pointer transition-opacity duration-150 group-hover:opacity-0 select-none"
+              >
+                <HeartHandshake className="w-4 h-4" aria-hidden="true" />
+              </div>
+              {/* Expand toggle icon (revealed on hover) */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <SidebarToggle
+                  isCollapsed={true}
+                  onToggle={handleToggleCollapse}
+                  side="right"
+                />
+              </div>
+            </div>
           ) : (
             <>
               <Link href="/student/chat" className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#0F1115] shadow-xs shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000] shadow-xs shrink-0">
                   <HeartHandshake className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
@@ -214,7 +229,7 @@ export function StudentShell({
                 type="button"
                 onClick={handleNewChatAction}
                 aria-label="New conversation"
-                className="w-10 h-10 rounded-xl bg-white dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-[#0D766E] dark:text-[#14B8A6] flex items-center justify-center transition-colors shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E]"
+                className="w-10 h-10 rounded-xl bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-[#0D766E] dark:text-[#14B8A6] flex items-center justify-center transition-colors shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E]"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -223,7 +238,7 @@ export function StudentShell({
             <Button
               onClick={handleNewChatAction}
               variant="outline"
-              className="w-full justify-start gap-2 bg-white dark:bg-[#1F2228] border-[#E2E2DC] dark:border-[#2C3038] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-xs font-semibold shadow-xs"
+              className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-xs font-semibold shadow-xs"
             >
               <Plus className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
               <span>New conversation</span>
@@ -260,8 +275,8 @@ export function StudentShell({
                     key={s.id}
                     className={`group relative flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-white dark:bg-[#1F2228] font-medium text-[#0D766E] dark:text-[#2DD4BF] shadow-xs'
-                        : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#1F2228]'
+                        ? 'bg-white dark:bg-[#18191C] font-medium text-[#0D766E] dark:text-[#2DD4BF] shadow-xs'
+                        : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
                     }`}
                     onClick={() => {
                       if (onSelectSession) onSelectSession(s.id);
@@ -276,7 +291,7 @@ export function StudentShell({
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleSaveRename(s.id)}
-                          className="w-full px-1.5 py-0.5 rounded bg-white dark:bg-[#17191E] border border-[#0D766E] text-xs"
+                          className="w-full px-1.5 py-0.5 rounded bg-white dark:bg-[#121316] border border-[#0D766E] text-xs"
                           autoFocus
                         />
                         <button
@@ -325,7 +340,7 @@ export function StudentShell({
         )}
 
         {/* Bottom Account Trigger */}
-        <div className={`border-t border-[#E2E2DC] dark:border-[#2C3038] shrink-0 ${
+        <div className={`border-t border-[#E2E2DC] dark:border-[#1F2024] shrink-0 ${
           isCollapsed ? 'p-2 flex justify-center' : 'p-2.5'
         }`}>
           <AccountTrigger
@@ -347,15 +362,15 @@ export function StudentShell({
             onClick={() => setMobileDrawerOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative w-72 max-w-[85%] h-full bg-[#F4F4F1] dark:bg-[#17191E] z-10 shadow-2xl flex flex-col text-[#18191B] dark:text-[#F3F4F6]">
+          <div className="relative w-72 max-w-[85%] h-full bg-[#F4F4F1] dark:bg-[#0D0E11] z-10 shadow-2xl flex flex-col text-[#18191B] dark:text-[#F3F4F6]">
             {/* Mobile Header */}
-            <div className="p-3.5 flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#2C3038] h-16 shrink-0">
+            <div className="p-3.5 flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#1F2024] h-16 shrink-0">
               <Link
                 href="/student/chat"
                 className="flex items-center gap-2.5 min-w-0"
                 onClick={() => setMobileDrawerOpen(false)}
               >
-                <div className="w-8 h-8 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#0F1115] shadow-xs">
+                <div className="w-8 h-8 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000] shadow-xs">
                   <HeartHandshake className="w-4 h-4" />
                 </div>
                 <div>
@@ -366,7 +381,7 @@ export function StudentShell({
               <button
                 type="button"
                 onClick={() => setMobileDrawerOpen(false)}
-                className="p-1.5 rounded-lg text-[#71757E] hover:bg-[#EAEAE5] dark:hover:bg-[#1F2228] min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-1.5 rounded-lg text-[#71757E] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C] min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
@@ -378,7 +393,7 @@ export function StudentShell({
               <Button
                 onClick={handleNewChatAction}
                 variant="outline"
-                className="w-full justify-start gap-2 bg-white dark:bg-[#1F2228] border-[#E2E2DC] dark:border-[#2C3038] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-xs font-semibold shadow-xs"
+                className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-xs font-semibold shadow-xs"
               >
                 <Plus className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
                 <span>New conversation</span>
@@ -400,8 +415,8 @@ export function StudentShell({
                       key={s.id}
                       className={`flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-colors cursor-pointer ${
                         isActive
-                          ? 'bg-white dark:bg-[#1F2228] font-medium text-[#0D766E] dark:text-[#2DD4BF] shadow-xs'
-                          : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#1F2228]'
+                          ? 'bg-white dark:bg-[#18191C] font-medium text-[#0D766E] dark:text-[#2DD4BF] shadow-xs'
+                          : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
                       }`}
                       onClick={() => {
                         if (onSelectSession) onSelectSession(s.id);
@@ -416,7 +431,7 @@ export function StudentShell({
             </div>
 
             {/* Mobile Account Trigger */}
-            <div className="border-t border-[#E2E2DC] dark:border-[#2C3038] p-2.5 shrink-0">
+            <div className="border-t border-[#E2E2DC] dark:border-[#1F2024] p-2.5 shrink-0">
               <AccountTrigger
                 buttonRef={mobileTriggerRef}
                 userProfile={userProfile}
@@ -442,11 +457,11 @@ export function StudentShell({
       {/* 4. Main Content Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
         {/* Mobile Top Bar */}
-        <header className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E] shrink-0 h-14">
+        <header className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] shrink-0 h-14">
           <button
             type="button"
             onClick={() => setMobileDrawerOpen(true)}
-            className="p-1.5 rounded-lg text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#1F2228] min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+            className="p-1.5 rounded-lg text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
             aria-label="Open sidebar navigation"
           >
             <Menu className="w-6 h-6" />

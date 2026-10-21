@@ -72,6 +72,94 @@ export class NvidiaChatAdapter {
   }
 
   /**
+   * Parse and sanitize upstream provider errors.
+   * Strips internal provider UUIDs, account hashes, and raw JSON to prevent leakage,
+   * while logging detailed diagnostics server-side and returning human-friendly messages
+   * with accurate HTTP status codes (e.g. 502/503 for upstream failures, not 404).
+   */
+  public parseUpstreamError(upstreamErr: any): { message: string; statusCode: number; code: string } {
+    const rawStatus = typeof upstreamErr?.status === 'number' ? upstreamErr.status : undefined;
+    const rawMessage = typeof upstreamErr?.message === 'string' ? upstreamErr.message : '';
+    let detail = '';
+
+    // Inspect parsed error body if provided by OpenAI SDK
+    if (upstreamErr?.error && typeof upstreamErr.error === 'object') {
+      detail = upstreamErr.error.detail || upstreamErr.error.message || upstreamErr.error.title || '';
+    } else if (rawMessage) {
+      const jsonMatch = rawMessage.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          detail = parsed.detail || parsed.message || parsed.title || '';
+        } catch {
+          // ignore parsing error
+        }
+      }
+    }
+
+    // Always log the exact upstream diagnostic on server terminal
+    console.error('[NvidiaChatAdapter] Upstream provider error:', {
+      status: rawStatus,
+      rawMessage,
+      detail: detail || undefined,
+    });
+
+    // 1. Account access / credits exhaustion / missing function entitlements
+    // (e.g., NVIDIA NIM returns 404 "Function '<uuid>': Not found for account '<account_id>'")
+    if (
+      detail.toLowerCase().includes('not found for account') ||
+      rawMessage.toLowerCase().includes('not found for account') ||
+      rawStatus === 401 ||
+      rawStatus === 403
+    ) {
+      return {
+        statusCode: 503,
+        code: 'UPSTREAM_ACCOUNT_ACCESS_ERROR',
+        message:
+          'The AI conversation service is currently unavailable due to an upstream API account or credit limitation. Please check back later or contact campus support.',
+      };
+    }
+
+    // 2. Model not found or deprecated
+    if (rawStatus === 404 || rawStatus === 410) {
+      return {
+        statusCode: 502,
+        code: 'UPSTREAM_MODEL_UNAVAILABLE',
+        message:
+          'The configured AI conversation model is currently unavailable upstream. Please try again later.',
+      };
+    }
+
+    // 3. Upstream rate limiting
+    if (rawStatus === 429) {
+      return {
+        statusCode: 429,
+        code: 'RATE_LIMITED',
+        message:
+          'The conversation service is experiencing high demand right now. Please wait a moment and try again.',
+      };
+    }
+
+    // 4. Upstream Gateway / Service unavailable / Timeout
+    if (rawStatus === 502 || rawStatus === 503 || rawStatus === 504 || rawMessage.toLowerCase().includes('timeout')) {
+      return {
+        statusCode: 503,
+        code: 'UPSTREAM_SERVICE_UNAVAILABLE',
+        message:
+          'The conversation service is momentarily unavailable. Please try again shortly.',
+      };
+    }
+
+    // 5. Default fallback for other upstream failures
+    return {
+      statusCode: 503,
+      code: 'UPSTREAM_PROVIDER_ERROR',
+      message:
+        'Unable to receive a response from the AI companion service. Please try again in a few moments.',
+    };
+  }
+
+  /**
    * Stream conversational response from NVIDIA Nemotron
    */
   async streamResponse(params: StreamChatParams): Promise<ReadableStream<Uint8Array>> {
@@ -97,7 +185,6 @@ export class NvidiaChatAdapter {
     ];
 
     const encoder = new TextEncoder();
-    let retryAttempted = false;
 
     const makeStreamRequest = async (currentSignal?: AbortSignal) => {
       const response = await client.chat.completions.create(
@@ -138,16 +225,16 @@ export class NvidiaChatAdapter {
         try {
           initialStream = await makeStreamRequest(params.signal);
         } catch (retryErr: any) {
-          const statusCode = retryErr?.status || 503;
-          const msg = retryErr?.message || 'NVIDIA Nemotron chat service is currently unavailable';
-          throw new NvidiaChatServiceError(msg, statusCode, 'UPSTREAM_PROVIDER_ERROR');
+          const parsed = this.parseUpstreamError(retryErr);
+          throw new NvidiaChatServiceError(parsed.message, parsed.statusCode, parsed.code);
         }
       } else {
-        const statusCode = upstreamErr?.status || 503;
-        const msg = upstreamErr?.message || 'NVIDIA Nemotron chat service is currently unavailable';
-        throw new NvidiaChatServiceError(msg, statusCode, 'UPSTREAM_PROVIDER_ERROR');
+        const parsed = this.parseUpstreamError(upstreamErr);
+        throw new NvidiaChatServiceError(parsed.message, parsed.statusCode, parsed.code);
       }
     }
+
+    const self = this;
 
     return new ReadableStream<Uint8Array>({
       async start(controller) {
@@ -207,16 +294,11 @@ export class NvidiaChatAdapter {
 
           controller.close();
         } catch (streamError: any) {
-          // If streaming already started, do NOT retry; pass error through
-          const errorMsg = streamError?.message || 'Error occurred communicating with NVIDIA Nemotron';
-          console.error('[NvidiaChatAdapter] Streaming error:', {
-            error: errorMsg,
-            status: streamError?.status,
-            streamStarted,
-          });
-
-          params.onError?.(streamError);
-          controller.error(streamError);
+          // If streaming already started, pass sanitized error through
+          const parsed = self.parseUpstreamError(streamError);
+          const sanitizedError = new NvidiaChatServiceError(parsed.message, parsed.statusCode, parsed.code);
+          params.onError?.(sanitizedError);
+          controller.error(sanitizedError);
         }
       },
     });

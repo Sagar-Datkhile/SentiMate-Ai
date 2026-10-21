@@ -77,7 +77,7 @@ export function LoadingRegion({
  */
 export function StatCardSkeleton() {
   return (
-    <div className="p-4 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] space-y-2">
+    <div className="p-4 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] space-y-2">
       <Skeleton className="h-3 w-24" />
       <Skeleton className="h-8 w-16 my-1" />
       <Skeleton className="h-2.5 w-32" />
@@ -93,7 +93,7 @@ export function NeutralChartSkeleton({ height = '180px' }: { height?: string }) 
   return (
     <div
       aria-hidden="true"
-      className="w-full rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038] p-4 flex flex-col justify-between"
+      className="w-full rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] p-4 flex flex-col justify-between"
       style={{ height }}
     >
       <div className="flex items-center justify-between">
@@ -126,7 +126,7 @@ export function ProfileSkeleton() {
   return (
     <div className="space-y-6">
       {/* Header Skeleton */}
-      <div className="p-6 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex flex-col sm:flex-row items-center gap-5">
+      <div className="p-6 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex flex-col sm:flex-row items-center gap-5">
         <Skeleton variant="circular" className="w-20 h-20" />
         <div className="space-y-2 text-center sm:text-left flex-1">
           <Skeleton className="h-6 w-48 mx-auto sm:mx-0" />
@@ -137,7 +137,7 @@ export function ProfileSkeleton() {
       </div>
 
       {/* Form Fields Grid */}
-      <div className="p-6 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] space-y-5">
+      <div className="p-6 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] space-y-5">
         <Skeleton className="h-5 w-40" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -159,11 +159,11 @@ export function ProfileSkeleton() {
         </div>
 
         {/* 8-Semester Grid Skeleton */}
-        <div className="pt-4 border-t border-[#E2E2DC] dark:border-[#2C3038] space-y-3">
+        <div className="pt-4 border-t border-[#E2E2DC] dark:border-[#1F2024] space-y-3">
           <Skeleton className="h-4 w-44" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
-              <div key={sem} className="p-3 rounded-lg border border-[#E2E2DC] dark:border-[#2C3038] space-y-2">
+              <div key={sem} className="p-3 rounded-lg border border-[#E2E2DC] dark:border-[#1F2024] space-y-2">
                 <Skeleton className="h-3 w-16" />
                 <Skeleton className="h-8 w-full" />
               </div>
@@ -186,8 +186,8 @@ export function ProfileSkeleton() {
  */
 export function QueueItemSkeleton() {
   return (
-    <div className="p-5 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E2DC]/60 dark:border-[#2C3038]/60 pb-3">
+    <div className="p-5 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E2DC]/60 dark:border-[#1F2024]/60 pb-3">
         <div className="flex items-center gap-3">
           <Skeleton className="h-5 w-28" />
           <Skeleton className="h-5 w-24" />
@@ -205,7 +205,7 @@ export function QueueItemSkeleton() {
       </div>
 
       {/* Model explanation container */}
-      <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038] space-y-2.5">
+      <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] space-y-2.5">
         <div className="flex items-center justify-between">
           <Skeleton className="h-4 w-48" />
           <Skeleton className="h-5 w-32" />
@@ -230,7 +230,7 @@ export function QueueItemSkeleton() {
  */
 export function StudentCardSkeleton() {
   return (
-    <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div className="space-y-2 flex-1">
         <div className="flex items-center gap-2">
           <Skeleton className="h-5 w-32" />
@@ -256,8 +256,8 @@ export function StudentCardSkeleton() {
  */
 export function CaseCardSkeleton() {
   return (
-    <div className="p-5 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E2DC]/60 dark:border-[#2C3038]/60 pb-3">
+    <div className="p-5 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E2DC]/60 dark:border-[#1F2024]/60 pb-3">
         <div className="flex items-center gap-3">
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-5 w-24" />
@@ -284,7 +284,7 @@ export function CaseCardSkeleton() {
  */
 export function AppointmentCardSkeleton() {
   return (
-    <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div className="space-y-2 flex-1">
         <div className="flex items-center gap-2">
           <Skeleton className="h-5 w-36" />
@@ -307,7 +307,7 @@ export function ChatHistorySkeleton({ count = 3 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="rounded-lg px-2.5 py-2 flex items-center justify-between bg-white/40 dark:bg-[#1F2228]/40"
+          className="rounded-lg px-2.5 py-2 flex items-center justify-between bg-white/40 dark:bg-[#18191C]/40"
         >
           <Skeleton className="h-3.5 w-40" />
           <Skeleton className="h-3 w-8" />
@@ -339,7 +339,7 @@ export function ChatMessageSkeleton() {
  */
 export function CheckinCardSkeleton() {
   return (
-    <div className="p-4 rounded-xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="p-4 rounded-xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-24" />
@@ -365,7 +365,7 @@ export function TableRowsSkeleton({ rows = 4 }: { rows?: number }) {
       {Array.from({ length: rows }).map((_, i) => (
         <div
           key={i}
-          className="p-3.5 rounded-xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex items-center justify-between gap-4"
+          className="p-3.5 rounded-xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3 flex-1">
             <Skeleton className="h-4 w-20" />
@@ -384,7 +384,7 @@ export function TableRowsSkeleton({ rows = 4 }: { rows?: number }) {
  */
 export function ResourceCardSkeleton() {
   return (
-    <div className="p-5 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex flex-col justify-between gap-4">
+    <div className="p-5 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex flex-col justify-between gap-4">
       <div className="space-y-2.5">
         <div className="flex items-center justify-between gap-2">
           <Skeleton className="h-5 w-24" />
@@ -394,7 +394,7 @@ export function ResourceCardSkeleton() {
         <Skeleton className="h-3.5 w-full" />
         <Skeleton className="h-3.5 w-4/5" />
       </div>
-      <div className="pt-2 flex items-center justify-between border-t border-[#E2E2DC]/60 dark:border-[#2C3038]/60">
+      <div className="pt-2 flex items-center justify-between border-t border-[#E2E2DC]/60 dark:border-[#1F2024]/60">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-8 w-24" />
       </div>

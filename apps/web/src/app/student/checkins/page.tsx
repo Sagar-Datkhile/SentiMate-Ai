@@ -85,7 +85,7 @@ export default function StudentCheckinsPage() {
     <StudentShell>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Voluntary Wellbeing Check-in
@@ -142,8 +142,8 @@ export default function StudentCheckinsPage() {
                     onClick={() => setMood(val)}
                     className={`py-3 rounded-lg border text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
                       mood === val
-                        ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115] border-[#0D766E]'
-                        : 'bg-[#F4F4F1] dark:bg-[#1F2228] border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] hover:bg-[#EAEAE5]'
+                        ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000] border-[#0D766E]'
+                        : 'bg-[#F4F4F1] dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] hover:bg-[#EAEAE5] dark:hover:bg-[#222327]'
                     }`}
                   >
                     {val === 1 ? '1 😔' : val === 2 ? '2 😕' : val === 3 ? '3 😐' : val === 4 ? '4 🙂' : '5 😃'}
@@ -179,7 +179,7 @@ export default function StudentCheckinsPage() {
                   value={sleepHours}
                   onChange={(e) => setSleepHours(e.target.value)}
                   placeholder="e.g. 7.5"
-                  className="w-32 px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px]"
+                  className="w-32 px-3 py-2 text-sm rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px]"
                 />
                 <span className="text-xs text-[#71757E]">hours</span>
               </div>
@@ -212,7 +212,7 @@ export default function StudentCheckinsPage() {
                     className={`py-3 rounded-lg border text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
                       stress === val
                         ? 'bg-[#B45309] text-white border-[#B45309]'
-                        : 'bg-[#F4F4F1] dark:bg-[#1F2228] border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] hover:bg-[#EAEAE5]'
+                        : 'bg-[#F4F4F1] dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] hover:bg-[#EAEAE5] dark:hover:bg-[#222327]'
                     }`}
                   >
                     Level {val}
@@ -254,7 +254,7 @@ export default function StudentCheckinsPage() {
         )}
 
         {/* Section: Personal Check-in Trends */}
-        <div className="space-y-4 pt-6 border-t border-[#E2E2DC] dark:border-[#2C3038]">
+        <div className="space-y-4 pt-6 border-t border-[#E2E2DC] dark:border-[#1F2024]">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
             <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
@@ -282,7 +282,7 @@ export default function StudentCheckinsPage() {
               history.map((item) => (
                 <div
                   key={item.id}
-                  className="p-3.5 rounded-xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex items-center justify-between flex-wrap gap-3 text-xs"
+                  className="p-3.5 rounded-xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex items-center justify-between flex-wrap gap-3 text-xs"
                 >
                   <div>
                     <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6]">{item.date}</span>

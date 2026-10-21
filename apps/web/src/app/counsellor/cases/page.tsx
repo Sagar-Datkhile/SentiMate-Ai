@@ -106,7 +106,7 @@ export default function CounsellorCasesPage() {
     <CounsellorShell>
       <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Longitudinal Case Management
@@ -145,7 +145,7 @@ export default function CounsellorCasesPage() {
           ) : (
             cases.map((c) => (
             <Card key={c.id} className="p-5 space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E2DC]/60 dark:border-[#2C3038]/60 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E2DC]/60 dark:border-[#1F2024]/60 pb-3">
                 <div className="flex items-center gap-3">
                   <span className="font-bold text-base text-[#18191B] dark:text-[#F3F4F6]">
                     {c.studentName}
@@ -191,7 +191,7 @@ export default function CounsellorCasesPage() {
 
               {/* Confidential Notes Accordion / List */}
               {c.notes.length > 0 && (
-                <div className="space-y-2 pt-2 border-t border-[#E2E2DC]/40 dark:border-[#2C3038]/40">
+                <div className="space-y-2 pt-2 border-t border-[#E2E2DC]/40 dark:border-[#1F2024]/40">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-[#71757E] flex items-center gap-1">
                     <Lock className="w-3 h-3 text-[#0D766E] dark:text-[#14B8A6]" />
                     Confidential Session Notes
@@ -199,7 +199,7 @@ export default function CounsellorCasesPage() {
                   {c.notes.map((note) => (
                     <div
                       key={note.id}
-                      className="p-3 rounded-lg bg-[#F4F4F1] dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038] space-y-1 text-xs"
+                      className="p-3 rounded-lg bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] space-y-1 text-xs"
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6]">
@@ -252,7 +252,7 @@ export default function CounsellorCasesPage() {
               value={noteTitle}
               onChange={(e) => setNoteTitle(e.target.value)}
               placeholder="e.g. Session 2 Observations & Coping Plan"
-              className="w-full rounded-lg px-3 py-2 text-xs bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E] min-h-[40px]"
+              className="w-full rounded-lg px-3 py-2 text-xs bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E] min-h-[40px]"
             />
           </div>
 
@@ -265,7 +265,7 @@ export default function CounsellorCasesPage() {
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               placeholder="Record intervention strategies, student affect, and action steps..."
-              className="w-full rounded-lg p-2.5 text-xs bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E]"
+              className="w-full rounded-lg p-2.5 text-xs bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E]"
             />
           </div>
 
@@ -276,7 +276,7 @@ export default function CounsellorCasesPage() {
             <select
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full rounded-lg px-3 py-2 text-xs bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] min-h-[40px]"
+              className="w-full rounded-lg px-3 py-2 text-xs bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[40px]"
             >
               <option value="acknowledged">Acknowledged</option>
               <option value="in_progress">In Progress</option>

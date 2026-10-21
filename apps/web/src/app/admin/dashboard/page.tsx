@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
     <AdminShell>
       <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               System Overview & Governance Health
@@ -187,7 +187,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Differential Privacy & Protection Policy */}
-        <Card className="p-5 space-y-2 bg-[#F4F4F1] dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038]">
+        <Card className="p-5 space-y-2 bg-[#F4F4F1] dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024]">
           <div className="flex items-center gap-2 text-xs font-semibold text-[#18191B] dark:text-[#F3F4F6]">
             <Lock className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
             <span>Differential Privacy & Re-identification Suppression Rules</span>

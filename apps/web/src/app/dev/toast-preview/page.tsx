@@ -116,10 +116,10 @@ export default function ToastPreviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBFBFA] dark:bg-[#0F1115] text-[#18191B] dark:text-[#F3F4F6] p-4 sm:p-8 transition-colors">
+    <div className="min-h-screen bg-[#FBFBFA] dark:bg-[#000000] text-[#18191B] dark:text-[#F3F4F6] p-4 sm:p-8 transition-colors">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-[#0D766E] dark:text-[#14B8A6]" />
@@ -265,7 +265,7 @@ export default function ToastPreviewPage() {
         </div>
 
         {/* Technical Specification Summary Card */}
-        <Card className="p-5 space-y-3 text-xs leading-relaxed text-[#71757E] border-[#E2E2DC] dark:border-[#2C3038]">
+        <Card className="p-5 space-y-3 text-xs leading-relaxed text-[#71757E] border-[#E2E2DC] dark:border-[#1F2024]">
           <h4 className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">
             Architectural Guarantees
           </h4>

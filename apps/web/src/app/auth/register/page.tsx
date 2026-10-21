@@ -105,7 +105,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-[#FBFBFA] dark:bg-[#0F1115] text-[#18191B] dark:text-[#F3F4F6] transition-colors relative">
+    <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12 bg-[#FBFBFA] dark:bg-[#000000] text-[#18191B] dark:text-[#F3F4F6] transition-colors relative">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
@@ -114,7 +114,7 @@ export default function RegisterPage() {
         {/* Brand */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#0F1115] shadow-md">
+            <div className="w-10 h-10 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000] shadow-md">
               <HeartHandshake className="w-5 h-5" />
             </div>
             <span className="font-bold text-2xl tracking-tight">SentiMate</span>
@@ -168,7 +168,7 @@ export default function RegisterPage() {
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading || isLoading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#1A1D24] hover:bg-[#F4F4F0] dark:hover:bg-[#232730] text-[#18191B] dark:text-[#F3F4F6] text-sm font-semibold transition-colors shadow-xs min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] hover:bg-[#F4F4F0] dark:hover:bg-[#222327] text-[#18191B] dark:text-[#F3F4F6] text-sm font-semibold transition-colors shadow-xs min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isGoogleLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin text-[#0D766E] dark:text-[#14B8A6]" />
@@ -180,8 +180,8 @@ export default function RegisterPage() {
 
             {/* Divider */}
             <div className="relative flex items-center justify-center">
-              <div className="border-t border-[#E2E2DC] dark:border-[#2C3038] w-full" />
-              <span className="bg-white dark:bg-[#14171F] px-3 text-[11px] font-semibold text-[#8C909B] uppercase tracking-wider shrink-0">
+              <div className="border-t border-[#E2E2DC] dark:border-[#1F2024] w-full" />
+              <span className="bg-white dark:bg-[#0D0E11] px-3 text-[11px] font-semibold text-[#8C909B] uppercase tracking-wider shrink-0">
                 or register with email
               </span>
             </div>

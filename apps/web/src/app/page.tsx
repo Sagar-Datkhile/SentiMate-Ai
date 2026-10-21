@@ -53,7 +53,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBFBFA] dark:bg-[#0F1115] text-[#18191B] dark:text-[#F3F4F6] transition-colors selection:bg-[#CCFBF1] selection:text-[#0D766E]">
+    <div className="min-h-screen flex flex-col bg-[#FBFBFA] dark:bg-[#000000] text-[#18191B] dark:text-[#F3F4F6] transition-colors selection:bg-[#CCFBF1] selection:text-[#0D766E]">
       <LandingNavbar />
 
       <main className="flex-1">
@@ -115,7 +115,7 @@ export default function LandingPage() {
         </section>
 
         {/* 3. HOW SENTIMATE HELPS */}
-        <section className="py-20 border-t border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E] transition-colors">
+        <section className="py-20 border-t border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
               <Badge variant="teal" size="sm">
@@ -173,7 +173,7 @@ export default function LandingPage() {
         </section>
 
         {/* 4. PRIVACY & CONTROL */}
-        <section id="privacy" className="py-20 border-t border-[#E2E2DC] dark:border-[#2C3038] bg-[#FBFBFA] dark:bg-[#0F1115] transition-colors">
+        <section id="privacy" className="py-20 border-t border-[#E2E2DC] dark:border-[#1F2024] bg-[#FBFBFA] dark:bg-[#000000] transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
@@ -218,24 +218,24 @@ export default function LandingPage() {
               </div>
 
               {/* Privacy Breakdown Card */}
-              <div className="p-6 rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] shadow-lg space-y-4">
+              <div className="p-6 rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] shadow-lg space-y-4">
                 <h3 className="font-semibold text-base text-[#18191B] dark:text-[#F3F4F6]">
                   Data Access Boundaries at a Glance
                 </h3>
                 <div className="space-y-3 text-xs">
-                  <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] flex justify-between items-center">
+                  <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] flex justify-between items-center">
                     <span className="font-medium text-[#18191B] dark:text-[#F3F4F6]">Private Student Chat</span>
                     <Badge variant="teal" size="sm">Only Student</Badge>
                   </div>
-                  <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] flex justify-between items-center">
+                  <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] flex justify-between items-center">
                     <span className="font-medium text-[#18191B] dark:text-[#F3F4F6]">Voluntary Check-in Trends</span>
                     <Badge variant="neutral" size="sm">Student + Consented Counsellor</Badge>
                   </div>
-                  <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] flex justify-between items-center">
+                  <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] flex justify-between items-center">
                     <span className="font-medium text-[#18191B] dark:text-[#F3F4F6]">Confidential Case Notes</span>
                     <Badge variant="amber" size="sm">Assigned Counsellor Only</Badge>
                   </div>
-                  <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] flex justify-between items-center">
+                  <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] flex justify-between items-center">
                     <span className="font-medium text-[#18191B] dark:text-[#F3F4F6]">System Audit Logs</span>
                     <Badge variant="neutral" size="sm">Content-Free Metadata Only</Badge>
                   </div>
@@ -246,7 +246,7 @@ export default function LandingPage() {
         </section>
 
         {/* 5. HUMAN SUPPORT & SERVICE HOURS */}
-        <section id="support" className="py-20 border-t border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E] transition-colors">
+        <section id="support" className="py-20 border-t border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] transition-colors">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl space-y-6">
             <Badge variant="teal" size="sm">
               Real Humans in the Loop
@@ -259,7 +259,7 @@ export default function LandingPage() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pt-4">
-              <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#FBFBFA] dark:bg-[#0F1115]">
+              <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#FBFBFA] dark:bg-[#000000]">
                 <Clock className="w-5 h-5 text-[#0D766E] dark:text-[#14B8A6] mb-2" />
                 <h4 className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">Official Service Hours</h4>
                 <p className="text-xs text-[#71757E] mt-1">
@@ -267,7 +267,7 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#FBFBFA] dark:bg-[#0F1115]">
+              <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#FBFBFA] dark:bg-[#000000]">
                 <HeartHandshake className="w-5 h-5 text-[#0D766E] dark:text-[#14B8A6] mb-2" />
                 <h4 className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">No Waiting for a Model Score</h4>
                 <p className="text-xs text-[#71757E] mt-1">
@@ -279,7 +279,7 @@ export default function LandingPage() {
         </section>
 
         {/* 6. FAQ SECTION */}
-        <section id="faq" className="py-20 border-t border-[#E2E2DC] dark:border-[#2C3038] bg-[#FBFBFA] dark:bg-[#0F1115] transition-colors">
+        <section id="faq" className="py-20 border-t border-[#E2E2DC] dark:border-[#1F2024] bg-[#FBFBFA] dark:bg-[#000000] transition-colors">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12 space-y-2">
               <Badge variant="teal" size="sm">
@@ -294,7 +294,7 @@ export default function LandingPage() {
               {faqs.map((faq, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E] overflow-hidden transition-all"
+                  className="rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] overflow-hidden transition-all"
                 >
                   <button
                     onClick={() => toggleFaq(idx)}
@@ -309,7 +309,7 @@ export default function LandingPage() {
                     />
                   </button>
                   {openFaq === idx && (
-                    <div className="px-5 pb-5 text-xs sm:text-sm text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed border-t border-[#E2E2DC]/50 dark:border-[#2C3038]/50 pt-3">
+                    <div className="px-5 pb-5 text-xs sm:text-sm text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed border-t border-[#E2E2DC]/50 dark:border-[#1F2024]/50 pt-3">
                       {faq.a}
                     </div>
                   )}
@@ -320,7 +320,7 @@ export default function LandingPage() {
         </section>
 
         {/* 7. FINAL CALL TO ACTION */}
-        <section className="py-20 border-t border-[#E2E2DC] dark:border-[#2C3038] bg-[#0D766E] dark:bg-[#115E59] text-white text-center">
+        <section className="py-20 border-t border-[#E2E2DC] dark:border-[#1F2024] bg-[#0D766E] dark:bg-[#115E59] text-white text-center">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
               Take the first step toward clearer support today.

@@ -20,7 +20,7 @@ export function Badge({ className = '', variant = 'neutral', size = 'md', childr
     red:
       'bg-[#FEF2F2] dark:bg-[rgba(239,68,68,0.15)] text-[#B91C1C] dark:text-[#F87171] border border-[#FECACA] dark:border-[rgba(239,68,68,0.3)]',
     neutral:
-      'bg-[#F4F4F1] dark:bg-[#1F2228] text-[#4A4D54] dark:text-[#9CA3AF] border border-[#E2E2DC] dark:border-[#2C3038]',
+      'bg-[#F4F4F1] dark:bg-[#18191C] text-[#4A4D54] dark:text-[#9CA3AF] border border-[#E2E2DC] dark:border-[#1F2024]',
   };
 
   return (

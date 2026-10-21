@@ -113,9 +113,9 @@ export default function ResourcesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#FBFBFA] dark:bg-[#0F1115] text-[#18191B] dark:text-[#F3F4F6] transition-colors pb-16">
+    <div className="min-h-screen bg-[#FBFBFA] dark:bg-[#000000] text-[#18191B] dark:text-[#F3F4F6] transition-colors pb-16">
       {/* Top Header */}
-      <header className="border-b border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E] px-4 sm:px-6 lg:px-8 py-4">
+      <header className="border-b border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link
             href="/student/chat"
@@ -163,7 +163,7 @@ export default function ResourcesPage() {
                 placeholder="Search resources, helplines, or services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E] min-h-[44px]"
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E] min-h-[44px]"
               />
             </div>
 
@@ -181,8 +181,8 @@ export default function ResourcesPage() {
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
                     selectedCategory === cat.id
-                      ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115]'
-                      : 'bg-[#F4F4F1] dark:bg-[#1F2228] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5]'
+                      ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
+                      : 'bg-[#F4F4F1] dark:bg-[#18191C] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#222327]'
                   }`}
                 >
                   {cat.label}
@@ -220,7 +220,7 @@ export default function ResourcesPage() {
                   className={`space-y-3.5 border ${
                     res.isEmergency
                       ? 'border-red-200 dark:border-red-900/40 bg-red-50/20 dark:bg-red-950/10'
-                      : 'border-[#E2E2DC] dark:border-[#2C3038]'
+                      : 'border-[#E2E2DC] dark:border-[#1F2024]'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -236,7 +236,7 @@ export default function ResourcesPage() {
                     {res.description}
                   </p>
 
-                  <div className="pt-2 border-t border-[#E2E2DC]/60 dark:border-[#2C3038]/60 space-y-2 text-xs">
+                  <div className="pt-2 border-t border-[#E2E2DC]/60 dark:border-[#1F2024]/60 space-y-2 text-xs">
                     {res.phone && (
                       <div className="flex items-center gap-2">
                         <PhoneCall className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />

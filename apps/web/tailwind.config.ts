@@ -13,30 +13,30 @@ const config: Config = {
       colors: {
         canvas: {
           light: '#FBFBFA',
-          dark: '#0F1115',
+          dark: '#000000',
         },
         surface: {
           1: {
             light: '#FFFFFF',
-            dark: '#17191E',
+            dark: '#0D0E11',
           },
           2: {
             light: '#F4F4F1',
-            dark: '#1F2228',
+            dark: '#18191C',
           },
           3: {
             light: '#EAEAE5',
-            dark: '#282C34',
+            dark: '#222327',
           },
         },
         borderNeutral: {
           subtle: {
             light: '#E2E2DC',
-            dark: '#2C3038',
+            dark: '#1F2024',
           },
           strong: {
             light: '#C8C8C0',
-            dark: '#3E434E',
+            dark: '#2E3036',
           },
         },
         brand: {

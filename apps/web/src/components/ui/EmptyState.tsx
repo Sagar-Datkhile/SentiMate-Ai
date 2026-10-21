@@ -30,9 +30,9 @@ export function EmptyState({
 
   return (
     <div
-      className={`rounded-2xl border border-dashed border-[#E2E2DC] dark:border-[#2C3038] bg-white/60 dark:bg-[#17191E]/60 p-8 sm:p-10 text-center flex flex-col items-center justify-center space-y-3 ${className}`}
+      className={`rounded-2xl border border-dashed border-[#E2E2DC] dark:border-[#1F2024] bg-white/60 dark:bg-[#0D0E11]/60 p-8 sm:p-10 text-center flex flex-col items-center justify-center space-y-3 ${className}`}
     >
-      <div className="w-12 h-12 rounded-full bg-[#F4F4F1] dark:bg-[#1F2228] text-[#71757E] flex items-center justify-center">
+      <div className="w-12 h-12 rounded-full bg-[#F4F4F1] dark:bg-[#18191C] text-[#71757E] flex items-center justify-center">
         <Icon className="w-6 h-6" aria-hidden="true" />
       </div>
       <div className="space-y-1 max-w-sm">

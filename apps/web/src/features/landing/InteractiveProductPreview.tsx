@@ -20,9 +20,9 @@ export function InteractiveProductPreview() {
   const [activeTab, setActiveTab] = useState<PreviewTab>('chat');
 
   return (
-    <div className="w-full rounded-2xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] shadow-xl overflow-hidden transition-all">
+    <div className="w-full rounded-2xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] shadow-xl overflow-hidden transition-all">
       {/* Top Banner / Mode Switcher */}
-      <div className="border-b border-[#E2E2DC] dark:border-[#2C3038] bg-[#F4F4F1] dark:bg-[#1F2228] px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] bg-[#F4F4F1] dark:bg-[#18191C] px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Badge variant="teal" size="sm">
             Interactive Product Demo
@@ -31,12 +31,12 @@ export function InteractiveProductPreview() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1 bg-white dark:bg-[#17191E] p-1 rounded-lg border border-[#E2E2DC] dark:border-[#2C3038]">
+        <div className="flex items-center gap-1 bg-white dark:bg-[#0D0E11] p-1 rounded-lg border border-[#E2E2DC] dark:border-[#1F2024]">
           <button
             onClick={() => setActiveTab('chat')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === 'chat'
-                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115]'
+                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
                 : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
             }`}
           >
@@ -46,7 +46,7 @@ export function InteractiveProductPreview() {
             onClick={() => setActiveTab('checkin')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === 'checkin'
-                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115]'
+                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
                 : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
             }`}
           >
@@ -56,7 +56,7 @@ export function InteractiveProductPreview() {
             onClick={() => setActiveTab('indicators')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === 'indicators'
-                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115]'
+                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
                 : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
             }`}
           >
@@ -66,7 +66,7 @@ export function InteractiveProductPreview() {
             onClick={() => setActiveTab('counsellor')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === 'counsellor'
-                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115]'
+                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
                 : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
             }`}
           >
@@ -80,28 +80,28 @@ export function InteractiveProductPreview() {
         {activeTab === 'chat' && (
           <div className="max-w-2xl mx-auto space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#0F1115] flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#000000] flex items-center justify-center text-xs font-bold shrink-0">
                 AI
               </div>
-              <div className="bg-[#F4F4F1] dark:bg-[#1F2228] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] max-w-[85%] leading-relaxed border border-[#E2E2DC] dark:border-[#2C3038]">
+              <div className="bg-[#F4F4F1] dark:bg-[#18191C] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] max-w-[85%] leading-relaxed border border-[#E2E2DC] dark:border-[#1F2024]">
                 Hello Alex. Midterms are approaching next week for your semester. How have you been feeling balancing study and sleep lately?
               </div>
             </div>
 
             <div className="flex items-start justify-end gap-3">
-              <div className="bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#0F1115] rounded-2xl rounded-tr-sm p-4 text-xs sm:text-sm max-w-[85%] leading-relaxed">
+              <div className="bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000] rounded-2xl rounded-tr-sm p-4 text-xs sm:text-sm max-w-[85%] leading-relaxed">
                 Honestly, pretty overwhelmed with algorithms and lab reports. I haven't slept more than 4 hours in three nights.
               </div>
-              <div className="w-8 h-8 rounded-full bg-[#E2E2DC] dark:bg-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] flex items-center justify-center text-xs font-semibold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#E2E2DC] dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] flex items-center justify-center text-xs font-semibold shrink-0">
                 You
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#0F1115] flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#000000] flex items-center justify-center text-xs font-bold shrink-0">
                 AI
               </div>
-              <div className="bg-[#F4F4F1] dark:bg-[#1F2228] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] max-w-[85%] leading-relaxed border border-[#E2E2DC] dark:border-[#2C3038] space-y-3">
+              <div className="bg-[#F4F4F1] dark:bg-[#18191C] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] max-w-[85%] leading-relaxed border border-[#E2E2DC] dark:border-[#1F2024] space-y-3">
                 <p>
                   That sounds like a heavy strain, especially when prolonged lack of sleep compounds the pressure. Would you like to explore a quick practical pacing technique, or would you prefer to connect with Dr. Adams from campus counselling?
                 </p>
@@ -109,7 +109,7 @@ export function InteractiveProductPreview() {
                   <span className="inline-flex items-center text-xs font-medium text-[#0D766E] dark:text-[#2DD4BF] bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.15)] px-3 py-1.5 rounded-lg border border-[#CCFBF1] dark:border-[rgba(20,184,166,0.25)]">
                     Request Human Support
                   </span>
-                  <span className="inline-flex items-center text-xs font-medium text-[#4A4D54] dark:text-[#9CA3AF] bg-white dark:bg-[#17191E] px-3 py-1.5 rounded-lg border border-[#E2E2DC] dark:border-[#2C3038]">
+                  <span className="inline-flex items-center text-xs font-medium text-[#4A4D54] dark:text-[#9CA3AF] bg-white dark:bg-[#0D0E11] px-3 py-1.5 rounded-lg border border-[#E2E2DC] dark:border-[#1F2024]">
                     Try Sleep Hygiene Guide
                   </span>
                 </div>
@@ -130,7 +130,7 @@ export function InteractiveProductPreview() {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#F4F4F1] dark:bg-[#1F2228]">
+              <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#F4F4F1] dark:bg-[#18191C]">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                     How was your sleep over the past 3 days?
@@ -139,12 +139,12 @@ export function InteractiveProductPreview() {
                     4.5 hrs/night
                   </Badge>
                 </div>
-                <div className="w-full bg-[#E2E2DC] dark:bg-[#2C3038] h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[#E2E2DC] dark:bg-[#18191C] h-2 rounded-full overflow-hidden">
                   <div className="bg-[#B45309] h-full rounded-full" style={{ width: '35%' }} />
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#F4F4F1] dark:bg-[#1F2228]">
+              <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#F4F4F1] dark:bg-[#18191C]">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                     Current Academic Stress Level
@@ -153,12 +153,12 @@ export function InteractiveProductPreview() {
                     Elevated (4 / 5)
                   </Badge>
                 </div>
-                <div className="w-full bg-[#E2E2DC] dark:bg-[#2C3038] h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[#E2E2DC] dark:bg-[#18191C] h-2 rounded-full overflow-hidden">
                   <div className="bg-[#B45309] h-full rounded-full" style={{ width: '80%' }} />
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-white dark:bg-[#17191E] rounded-lg border border-[#E2E2DC] dark:border-[#2C3038] text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
+              <div className="flex items-center gap-2 p-3 bg-white dark:bg-[#0D0E11] rounded-lg border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
                 <Shield className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
                 <span>Sharing preference: Consented for assigned counsellor review during appointments.</span>
               </div>
@@ -183,7 +183,7 @@ export function InteractiveProductPreview() {
             </div>
 
             <div className="space-y-3">
-              <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#F4F4F1] dark:bg-[#1F2228] flex items-center justify-between">
+              <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#F4F4F1] dark:bg-[#18191C] flex items-center justify-between">
                 <div>
                   <div className="text-xs font-semibold text-[#18191B] dark:text-[#F3F4F6]">
                     Consecutive Low Sleep (&lt; 5 hrs)
@@ -197,7 +197,7 @@ export function InteractiveProductPreview() {
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#F4F4F1] dark:bg-[#1F2228] flex items-center justify-between">
+              <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#F4F4F1] dark:bg-[#18191C] flex items-center justify-between">
                 <div>
                   <div className="text-xs font-semibold text-[#18191B] dark:text-[#F3F4F6]">
                     DistilBERT Stress Valence in Conversational Text
@@ -211,7 +211,7 @@ export function InteractiveProductPreview() {
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-[#F4F4F1] dark:bg-[#1F2228] flex items-center justify-between">
+              <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#F4F4F1] dark:bg-[#18191C] flex items-center justify-between">
                 <div>
                   <div className="text-xs font-semibold text-[#18191B] dark:text-[#F3F4F6]">
                     Academic History & Continuity (Semester 4 SGPA)
@@ -226,7 +226,7 @@ export function InteractiveProductPreview() {
               </div>
             </div>
 
-            <div className="text-[11px] text-[#71757E] bg-white dark:bg-[#17191E] p-3 rounded-lg border border-[#E2E2DC] dark:border-[#2C3038]">
+            <div className="text-[11px] text-[#71757E] bg-white dark:bg-[#0D0E11] p-3 rounded-lg border border-[#E2E2DC] dark:border-[#1F2024]">
               💡 <strong>Decision Support Boundary:</strong> These factors reflect algorithmic model weights and do not constitute clinical pathology or diagnosis.
             </div>
           </div>
@@ -247,7 +247,7 @@ export function InteractiveProductPreview() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038]">
+              <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024]">
                 <div className="font-semibold text-[#18191B] dark:text-[#F3F4F6] mb-1">Permitted Evidence</div>
                 <ul className="text-[#4A4D54] dark:text-[#9CA3AF] space-y-1">
                   <li>• Consented weekly sleep & stress trends</li>
@@ -256,7 +256,7 @@ export function InteractiveProductPreview() {
                 </ul>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038]">
+              <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024]">
                 <div className="font-semibold text-[#18191B] dark:text-[#F3F4F6] mb-1">Upcoming Appointment</div>
                 <p className="text-[#4A4D54] dark:text-[#9CA3AF]">
                   Thursday, Oct 22 at 2:00 PM • Wellness Center Room 302
@@ -267,7 +267,7 @@ export function InteractiveProductPreview() {
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E]">
+            <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11]">
               <div className="text-xs font-semibold text-[#18191B] dark:text-[#F3F4F6] mb-1">
                 Confidential Counsellor Assessment (Private to Dr. Adams)
               </div>

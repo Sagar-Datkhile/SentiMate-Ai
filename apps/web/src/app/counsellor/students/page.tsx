@@ -65,7 +65,7 @@ export default function CounsellorStudentsPage() {
     <CounsellorShell>
       <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Assigned Students Directory
@@ -91,7 +91,7 @@ export default function CounsellorStudentsPage() {
             placeholder="Search by student name, PRN, or department..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E] min-h-[44px]"
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E] min-h-[44px]"
           />
         </div>
 
@@ -194,7 +194,7 @@ export default function CounsellorStudentsPage() {
       >
         <div className="space-y-4 text-xs sm:text-sm">
           {/* Privacy Scope Notice */}
-          <div className="p-3 bg-[#F4F4F1] dark:bg-[#1F2228] rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] space-y-1 text-xs">
+          <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] space-y-1 text-xs">
             <div className="font-semibold text-[#18191B] dark:text-[#F3F4F6] flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
               Strict Confidentiality & Privacy Enforcement
@@ -205,24 +205,24 @@ export default function CounsellorStudentsPage() {
           </div>
 
           {selectedStudent?.sharingScope.checkins && selectedStudent.recentCheckin ? (
-            <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#2C3038] space-y-2">
+            <div className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] space-y-2">
               <span className="font-semibold text-xs uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                 Most Recent Consented Check-in
               </span>
               <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="p-2 rounded bg-[#F4F4F1] dark:bg-[#1F2228]">
+                <div className="p-2 rounded bg-[#F4F4F1] dark:bg-[#141518]">
                   <div className="text-[10px] text-[#71757E]">Mood Score</div>
                   <div className="text-base font-bold text-[#18191B] dark:text-[#F3F4F6]">
                     {selectedStudent.recentCheckin.mood} / 5
                   </div>
                 </div>
-                <div className="p-2 rounded bg-[#F4F4F1] dark:bg-[#1F2228]">
+                <div className="p-2 rounded bg-[#F4F4F1] dark:bg-[#141518]">
                   <div className="text-[10px] text-[#71757E]">Sleep Hours</div>
                   <div className="text-base font-bold text-[#B45309] dark:text-[#FBBF24]">
                     {selectedStudent.recentCheckin.sleep} hrs
                   </div>
                 </div>
-                <div className="p-2 rounded bg-[#F4F4F1] dark:bg-[#1F2228]">
+                <div className="p-2 rounded bg-[#F4F4F1] dark:bg-[#141518]">
                   <div className="text-[10px] text-[#71757E]">Stress Level</div>
                   <div className="text-base font-bold text-[#B45309] dark:text-[#FBBF24]">
                     {selectedStudent.recentCheckin.stress} / 5

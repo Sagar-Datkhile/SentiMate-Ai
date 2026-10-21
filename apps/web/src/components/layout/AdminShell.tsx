@@ -75,9 +75,9 @@ export function AdminShell({ children }: AdminShellProps) {
   ];
 
   const sidebar = (
-    <div className="flex flex-col h-full bg-[#111318] text-[#F3F4F6] border-r border-[#242832] select-none">
+    <div className="flex flex-col h-full bg-[#0D0E11] text-[#F3F4F6] border-r border-[#1F2024] select-none">
       {/* Brand */}
-      <div className="p-4 flex items-center justify-between border-b border-[#242832]">
+      <div className="p-4 flex items-center justify-between border-b border-[#1F2024]">
         <Link href="/admin/dashboard" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-amber-600 flex items-center justify-center text-white shadow-sm">
             <ShieldCheck className="w-4 h-4" />
@@ -90,7 +90,7 @@ export function AdminShell({ children }: AdminShellProps) {
         {mobileDrawerOpen && (
           <button
             onClick={() => setMobileDrawerOpen(false)}
-            className="p-1.5 rounded-lg text-slate-400 hover:bg-[#1E222B] md:hidden"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-[#18191C] md:hidden"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -113,8 +113,8 @@ export function AdminShell({ children }: AdminShellProps) {
               onClick={() => setMobileDrawerOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
                 isCurrent
-                  ? 'bg-[#1E222B] text-amber-300 font-semibold border-l-2 border-amber-500'
-                  : 'text-slate-300 hover:bg-[#1E222B] hover:text-white'
+                  ? 'bg-[#18191C] text-amber-300 font-semibold border-l-2 border-amber-500'
+                  : 'text-slate-300 hover:bg-[#18191C] hover:text-white'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -123,8 +123,8 @@ export function AdminShell({ children }: AdminShellProps) {
           );
         })}
 
-        <div className="pt-4 border-t border-[#242832] px-3 space-y-2">
-          <div className="p-3 bg-[#1A1E26] rounded-xl text-[11px] text-slate-400 leading-relaxed border border-[#242832]">
+        <div className="pt-4 border-t border-[#1F2024] px-3 space-y-2">
+          <div className="p-3 bg-[#18191C] rounded-xl text-[11px] text-slate-400 leading-relaxed border border-[#1F2024]">
             <Lock className="w-3.5 h-3.5 text-amber-400 mb-1" />
             <strong className="text-white block">Strict Privacy Invariant:</strong>
             Administrative access does not authorize reading private student conversations or confidential case notes.
@@ -133,7 +133,7 @@ export function AdminShell({ children }: AdminShellProps) {
       </nav>
 
       {/* Account Footer */}
-      <div className="p-3 border-t border-[#242832] flex items-center justify-between">
+      <div className="p-3 border-t border-[#1F2024] flex items-center justify-between">
         {isLoadingUser ? (
           <div className="flex items-center gap-2 overflow-hidden flex-1">
             <Skeleton variant="circular" className="w-7 h-7" />
@@ -157,7 +157,7 @@ export function AdminShell({ children }: AdminShellProps) {
           <ThemeToggle />
           <button
             onClick={handleSignOut}
-            className="p-1.5 rounded-lg text-slate-400 hover:bg-[#1E222B] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-[#18191C] transition-colors cursor-pointer"
             title="Sign out"
             aria-label="Sign out"
           >
@@ -169,7 +169,7 @@ export function AdminShell({ children }: AdminShellProps) {
   );
 
   return (
-    <div className="flex h-screen bg-[#FBFBFA] dark:bg-[#0F1115] overflow-hidden">
+    <div className="flex h-screen bg-[#FBFBFA] dark:bg-[#000000] overflow-hidden">
       {/* Desktop Sidebar */}
       <aside className="hidden md:block w-64 shrink-0 h-full">{sidebar}</aside>
 
@@ -186,10 +186,10 @@ export function AdminShell({ children }: AdminShellProps) {
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-        <header className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E] shrink-0">
+        <header className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] shrink-0">
           <button
             onClick={() => setMobileDrawerOpen(true)}
-            className="p-1.5 rounded-lg text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#1F2228] min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-1.5 rounded-lg text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Open sidebar"
           >
             <Menu className="w-6 h-6" />

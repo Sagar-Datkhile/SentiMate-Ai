@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#FBFBFA] dark:bg-[#0F1115] text-[#18191B] dark:text-[#F3F4F6] flex flex-col items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-[#FBFBFA] dark:bg-[#000000] text-[#18191B] dark:text-[#F3F4F6] flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md w-full space-y-6">
         <div className="w-14 h-14 mx-auto rounded-2xl bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.12)] text-[#0D766E] dark:text-[#14B8A6] flex items-center justify-center shadow-sm">
           <Compass className="w-8 h-8" />

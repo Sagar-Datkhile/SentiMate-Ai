@@ -93,7 +93,7 @@ export default function AdminCounsellorsPage() {
     <AdminShell>
       <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Counsellor Provisioning & Management
@@ -227,7 +227,7 @@ export default function AdminCounsellorsPage() {
             placeholder="(555) 234-5678"
           />
 
-          <div className="p-3 bg-[#F4F4F1] dark:bg-[#1F2228] rounded-xl text-xs text-[#71757E] leading-relaxed">
+          <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl text-xs text-[#71757E] leading-relaxed">
             🛡️ <strong>Security Protocol:</strong> A cryptographic single-use invitation token will be generated. The clinician sets their own password upon first activation.
           </div>
 

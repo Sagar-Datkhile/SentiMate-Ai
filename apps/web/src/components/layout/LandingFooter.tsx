@@ -4,7 +4,7 @@ import { HeartHandshake, ShieldCheck, PhoneCall, AlertCircle } from 'lucide-reac
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-[#E2E2DC] dark:border-[#2C3038] bg-white dark:bg-[#17191E] text-sm">
+    <footer className="border-t border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] text-sm">
       {/* Emergency Notice Banner */}
       <div className="bg-[#FEF2F2] dark:bg-[rgba(239,68,68,0.12)] border-b border-[#FECACA] dark:border-[rgba(239,68,68,0.25)] py-3 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3 text-xs text-[#B91C1C] dark:text-[#F87171]">
@@ -28,7 +28,7 @@ export function LandingFooter() {
           {/* Brand & mission */}
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#0F1115]">
+              <div className="w-8 h-8 rounded-lg bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000]">
                 <HeartHandshake className="w-4 h-4" />
               </div>
               <span className="font-semibold text-lg text-[#18191B] dark:text-[#F3F4F6]">SentiMate</span>
@@ -87,7 +87,7 @@ export function LandingFooter() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-[#E2E2DC] dark:border-[#2C3038] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71757E]">
+        <div className="pt-8 border-t border-[#E2E2DC] dark:border-[#1F2024] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71757E]">
           <p>© {new Date().getFullYear()} SentiMate. All rights reserved. University Wellbeing Support Platform.</p>
           <p>Decision-support only. Not a medical or clinical diagnosis system.</p>
         </div>

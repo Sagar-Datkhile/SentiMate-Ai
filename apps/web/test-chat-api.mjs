@@ -52,10 +52,19 @@ async function runTests() {
     console.log('✓ PASS (Live NVIDIA streaming verified!)\n');
   } else {
     const data3 = await res3.json();
-    console.log(`Status: ${res3.status} (Provider unconfigured)`);
-    console.assert(res3.status === 503, 'Test 3 Failed: Expected status 503');
-    console.assert(data3.code === 'PROVIDER_NOT_CONFIGURED', 'Expected code PROVIDER_NOT_CONFIGURED');
-    console.log('✓ PASS (Honest unconfigured 503 verified)\n');
+    console.log(`Status: ${res3.status} (Provider unavailable / unconfigured)`);
+    console.log('Error payload:', data3);
+    console.assert(res3.status === 503 || res3.status === 502, 'Test 3 Failed: Expected status 503 or 502');
+    console.assert(
+      data3.code === 'PROVIDER_NOT_CONFIGURED' ||
+      data3.code === 'UPSTREAM_ACCOUNT_ACCESS_ERROR' ||
+      data3.code === 'UPSTREAM_PROVIDER_ERROR',
+      `Unexpected error code: ${data3.code}`
+    );
+    console.assert(!data3.error.includes('ac74040f'), 'Error message must not leak upstream function UUID');
+    console.assert(!data3.error.includes('Z8Zdw2a'), 'Error message must not leak upstream account ID');
+    console.assert(!data3.error.startsWith('404 {'), 'Error message must not be raw unparsed JSON');
+    console.log('✓ PASS (Sanitized provider 503 verified)\n');
   }
 
   // Test 4: Unauthenticated request rejection

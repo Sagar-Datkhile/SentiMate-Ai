@@ -60,7 +60,29 @@
   - Moved navigation into the account popup in verified sequence: Identity Header, My Profile, Conversations, Wellbeing, Appointments, Resources, Human Support Referral, Settings (with inline Light/Dark/System theme selector), Divider, and Log out.
   - Built `AccountTrigger` supporting both full bottom row layout (with avatar, real display name, handle, and `ChevronsUpDown`) and collapsed icon-only avatar layout with interactive `Tooltip`.
   - Maintained keyboard focus management, Arrow navigation, Escape key dismissal returning focus to trigger, and outside-click dismissal.
-  - Verified with test suite `test-sidebar.ts` and Next.js production build (`npm run build`, 24 routes, exit code 0).
+- **Default Institution & Department Dropdown Configuration** — ✅ Complete:
+  - Created migration `20261019000002_default_institution_and_departments.sql` idempotently seeding default institution `"Pune Vidyarthi Griha's College of Engineering & S.S. Dhamankar Institute of Management, Nashik"` (`PVGCOE_NASHIK`) and 5 verified departments (`COMP`, `IT`, `AIDS`, `MECH`, `ENTC`).
+  - Relaxed `contact_email` and `emergency_contact` on `institutions` to nullable, avoiding invented details while documenting that official campus administration contacts are pending configuration.
+  - Implemented backfill migration updating profiles where `institution_id IS NULL` to the default institution while strictly preserving any existing non-null institution assignments.
+  - Hardened `handle_new_user()` registration trigger to attach the default institution automatically while strictly enforcing the `'student'` role.
+  - Added RLS SELECT policies on `institutions` and `departments` for authenticated users.
+  - Created reusable accessible `<Select>` component with keyboard navigation, aria attributes, focus states, and mobile picker support.
+  - Updated `My Profile` (`/student/profile`):
+    - Institution rendered as read-only field with clean text-wrapping (`break-words whitespace-normal`) on small screens.
+    - Department rendered as single-select dropdown with placeholder `"Select your department"`; optional selection never blocks chatbot access.
+    - Reference data loaded and cached on mount; opening dropdown or rerendering avoids duplicate network requests.
+    - Preserved existing legacy department assignments with informative review banner rather than silently replacing them.
+    - Server-side validation enforcing that the department belongs to the student's assigned institution; client cannot tamper with `institution_id`.
+  - Created verification test suite `test-institution-departments.ts` passing all 26 assertions; verified `test:bloom`, `test:sidebar`, and production build (`npm run build`, 24 routes, exit code 0).
+- **Chat Provider Error Sanitization & In-Place Retry UX** — ✅ Complete:
+  - Built `parseUpstreamError()` in `NvidiaChatAdapter` (`src/server/integrations/nvidiaChatAdapter.ts`) intercepting upstream provider failures (such as NVIDIA NIM transient 404 Function not found, 429 rate limit, 502/503 service unavailable).
+  - Sanitized provider errors to prevent raw JSON, function UUIDs, and account hashes from leaking to clients.
+  - Corrected HTTP status mapping: Upstream provider routing errors now return truthful 502/503 Service Unavailable rather than 404 Not Found.
+  - Hardened `/api/chat/route.ts` with sanitized error responses.
+  - Redesigned student chat error presentation: Failed messages no longer render raw JSON in red assistant speech bubbles; instead, an accessible amber status alert card is shown with "Unable to generate response", empathetic subtext, and an inline "Try again" action.
+  - Implemented in-place retry `handleRetryMessage()`: Retrying updates the failed assistant response card in-place without duplicating the user's message in chat history.
+  - Integrated glassmorphic toast notification (`toast.error()`) and dismissible bottom retry banner.
+  - Added unit test assertions to `test-adapter.ts` and verified `test-chat-api.mjs`, `test:bloom`, and `npm run build` (24 routes, code 0).
 
 ---
 
@@ -74,4 +96,6 @@
 - **No Pre-Save Check Anti-Pattern**: Profile updates commit in one atomic write; concurrent claim collisions are detected authoritatively via the unique index error code `23505` and surfaced as a clear HTTP 409 Conflict.
 - **Zero Value & Real Data Invariants**: Telemetry metrics, queue lengths, caseload counts, and semester SGPAs can legitimately be `0`. UI conditions strictly on boolean `isLoading` and `records.length === 0`, never falsiness (`!value`). Production views never substitute dummy records after an API failure.
 - **Accessible Loading Invariant**: Decorative placeholders default to `aria-hidden="true"`. Container regions use `aria-busy={isLoading}` with exactly one polite screen-reader announcement (`sr-only`) per region. Skeletons immediately halt when requests succeed, fail, or are cancelled.
+- **Institutional Integrity & Immutability**: Students cannot mutate `institution_id` through unrestricted profile updates. Department selections are validated server-side to ensure institutional scope match. Existing department and institution assignments are preserved across migrations and backfills; incompatible legacy entries are flagged for academic counsellor review rather than silently wiped.
+- **Zero Fabricated Institutional Details**: Required institutional contact columns (`contact_email`, `emergency_contact`) are relaxed to nullable rather than populated with placeholder or invented addresses. Official campus configuration is documented as pending university administration input.
 

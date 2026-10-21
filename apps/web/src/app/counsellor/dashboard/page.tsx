@@ -135,7 +135,7 @@ export default function CounsellorDashboardPage() {
     <CounsellorShell>
       <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8 w-full">
         {/* Top Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Clinical Dashboard & Review Queue
@@ -226,7 +226,7 @@ export default function CounsellorDashboardPage() {
               <div className="space-y-3">
                 {queue.map((item) => (
                   <Card key={item.id} className="p-5 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E2DC]/60 dark:border-[#2C3038]/60 pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E2DC]/60 dark:border-[#1F2024]/60 pb-3">
                       <div className="flex items-center gap-3">
                         <span className="font-bold text-base text-[#18191B] dark:text-[#F3F4F6]">
                           {item.studentName}
@@ -261,7 +261,7 @@ export default function CounsellorDashboardPage() {
                     </div>
 
                     {/* Model Explainability Breakdown */}
-                    <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#1F2228] border border-[#E2E2DC] dark:border-[#2C3038] space-y-2 text-xs">
+                    <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] space-y-2 text-xs">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] flex items-center gap-1.5">
                           <Activity className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
@@ -326,7 +326,7 @@ export default function CounsellorDashboardPage() {
         description="Record your professional assessment separately from automated model outputs."
       >
         <div className="space-y-4 text-xs sm:text-sm">
-          <div className="p-3 bg-[#F4F4F1] dark:bg-[#1F2228] rounded-xl text-xs space-y-1">
+          <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl text-xs space-y-1">
             <div className="font-semibold text-[#18191B] dark:text-[#F3F4F6]">Student Referral Summary:</div>
             <p className="text-[#4A4D54] dark:text-[#9CA3AF]">"{selectedCase?.reason}"</p>
           </div>
@@ -340,7 +340,7 @@ export default function CounsellorDashboardPage() {
               onChange={(e) => setAssessmentNote(e.target.value)}
               placeholder="Record your clinical observations, recommended workload adjustments, or therapy goals..."
               rows={4}
-              className="w-full rounded-lg p-2.5 bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-xs text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E]"
+              className="w-full rounded-lg p-2.5 bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E]"
             />
           </div>
 

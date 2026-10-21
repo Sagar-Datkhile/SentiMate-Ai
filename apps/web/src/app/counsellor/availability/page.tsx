@@ -83,7 +83,7 @@ export default function CounsellorAvailabilityPage() {
     <CounsellorShell>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Manage Availability & Appointment Slots
@@ -101,7 +101,7 @@ export default function CounsellorAvailabilityPage() {
 
         {/* Create Slot Form */}
         <Card className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#2C3038] pb-3">
+          <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
             <Plus className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
             <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
               Add New Available Slot
@@ -117,7 +117,7 @@ export default function CounsellorAvailabilityPage() {
                 type="date"
                 value={newDate}
                 onChange={(e) => setNewDate(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px]"
+                className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px]"
                 required
               />
             </div>
@@ -130,7 +130,7 @@ export default function CounsellorAvailabilityPage() {
                 type="time"
                 value={newStart}
                 onChange={(e) => setNewStart(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px]"
+                className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px]"
                 required
               />
             </div>
@@ -143,7 +143,7 @@ export default function CounsellorAvailabilityPage() {
                 type="time"
                 value={newEnd}
                 onChange={(e) => setNewEnd(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px]"
+                className="w-full px-3 py-2 text-xs rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px]"
                 required
               />
             </div>
@@ -181,10 +181,10 @@ export default function CounsellorAvailabilityPage() {
                 {slots.map((slot) => (
                   <div
                     key={slot.id}
-                    className="p-4 rounded-xl bg-white dark:bg-[#17191E] border border-[#E2E2DC] dark:border-[#2C3038] flex items-center justify-between flex-wrap gap-3 text-xs"
+                    className="p-4 rounded-xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex items-center justify-between flex-wrap gap-3 text-xs"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-[#F4F4F1] dark:bg-[#1F2228] text-[#0D766E] dark:text-[#14B8A6]">
+                      <div className="p-2 rounded-lg bg-[#F4F4F1] dark:bg-[#18191C] text-[#0D766E] dark:text-[#14B8A6]">
                         <Clock className="w-4 h-4" />
                       </div>
                       <div>
