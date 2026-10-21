@@ -51,8 +51,8 @@ export function AccountTrigger({
           aria-haspopup="menu"
           aria-expanded={isOpen}
           aria-label={`Account menu for ${userProfile.displayName}`}
-          className={`w-9 h-9 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#000000] font-bold text-xs flex items-center justify-center shrink-0 transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E] dark:focus-visible:ring-[#14B8A6] cursor-pointer shadow-xs ${
-            isOpen ? 'ring-2 ring-[#0D766E] dark:ring-[#14B8A6]' : ''
+          className={`w-9 h-9 rounded-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] font-bold text-xs flex items-center justify-center shrink-0 transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] cursor-pointer shadow-xs ${
+            isOpen ? 'ring-2 ring-[#4F648C] dark:ring-[#91A7D0]' : ''
           }`}
         >
           {initialLetter}
@@ -70,11 +70,11 @@ export function AccountTrigger({
       aria-haspopup="menu"
       aria-expanded={isOpen}
       aria-label={`Account menu for ${userProfile.displayName}`}
-      className={`w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-[#EAEAE5] dark:hover:bg-[#18191C] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E] dark:focus-visible:ring-[#14B8A6] cursor-pointer text-left select-none ${
+      className={`w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-[#EAEAE5] dark:hover:bg-[#18191C] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] cursor-pointer text-left select-none ${
         isOpen ? 'bg-[#EAEAE5] dark:bg-[#18191C]' : ''
       }`}
     >
-      <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#000000] font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+      <div className="w-8 h-8 rounded-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
         {initialLetter}
       </div>
       <div className="min-w-0 flex-1">

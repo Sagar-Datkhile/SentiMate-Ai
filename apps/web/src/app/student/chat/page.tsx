@@ -7,7 +7,6 @@ import {
   RotateCcw,
   Sparkles,
   HeartHandshake,
-  Shield,
   LifeBuoy,
   AlertCircle,
   Clock,
@@ -443,25 +442,6 @@ export default function StudentChatPage() {
       onDeleteSession={handleDeleteSession}
     >
       <div className="flex flex-col h-full bg-[#FBFBFA] dark:bg-[#000000] relative">
-        {/* Workspace Sub-header */}
-        <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] bg-white/70 dark:bg-[#0D0E11]/70 backdrop-blur-xs px-4 py-2.5 flex items-center justify-between text-xs shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6]">
-              {sessions.find((s) => s.id === activeSessionId)?.title || 'Active Conversation'}
-            </span>
-            <Badge variant="neutral" size="sm">
-              Private Student Session
-            </Badge>
-          </div>
-
-          <button
-            onClick={() => setConsentModalOpen(true)}
-            className="flex items-center gap-1.5 text-[#0D766E] dark:text-[#2DD4BF] hover:underline"
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span>Consent & Privacy Settings</span>
-          </button>
-        </div>
 
         {/* Message Thread Area */}
         <LoadingRegion
@@ -474,7 +454,7 @@ export default function StudentChatPage() {
               <ChatMessageSkeleton />
             ) : messages.length === 0 ? (
               <div className="h-full min-h-[50vh] flex flex-col items-center justify-center text-center px-4 select-none">
-                <div className="w-12 h-12 rounded-2xl bg-[#0D766E]/10 dark:bg-[#14B8A6]/10 text-[#0D766E] dark:text-[#14B8A6] flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center mb-4">
                   <HeartHandshake className="w-6 h-6" />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#18191B] dark:text-[#F3F4F6] mb-2">
@@ -497,7 +477,7 @@ export default function StudentChatPage() {
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 shadow-xs ${
                           m.status === 'failed'
                             ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800'
-                            : 'bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#000000]'
+                            : 'bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26]'
                         }`}
                         title={m.status === 'failed' ? 'Service Notification' : 'AI Companion'}
                       >
@@ -537,15 +517,15 @@ export default function StudentChatPage() {
                         <div
                           className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
                             isUser
-                              ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000] border-transparent rounded-tr-xs'
+                              ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] border-transparent rounded-tr-xs'
                               : 'bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] border-[#E2E2DC] dark:border-[#1F2024] rounded-tl-xs shadow-xs'
                           }`}
                         >
                           {m.status === 'streaming' && !m.content ? (
                             <div className="flex items-center gap-1.5 py-1 px-0.5" aria-label="Assistant is thinking">
-                              <span className="w-2 h-2 rounded-full bg-[#0D766E]/70 dark:bg-[#14B8A6]/70 animate-pulse" />
-                              <span className="w-2 h-2 rounded-full bg-[#0D766E]/70 dark:bg-[#14B8A6]/70 animate-pulse [animation-delay:200ms]" />
-                              <span className="w-2 h-2 rounded-full bg-[#0D766E]/70 dark:bg-[#14B8A6]/70 animate-pulse [animation-delay:400ms]" />
+                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#91A7D0]/70 animate-pulse" />
+                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#91A7D0]/70 animate-pulse [animation-delay:200ms]" />
+                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#91A7D0]/70 animate-pulse [animation-delay:400ms]" />
                               <span className="sr-only">Preparing response...</span>
                             </div>
                           ) : (
@@ -610,14 +590,15 @@ export default function StudentChatPage() {
         )}
 
         {/* Bottom Multiline Composer with Pill Input and Circular Up Arrow Send Button */}
-        <div className="border-t border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#000000] p-3 sm:p-4 shrink-0">
+        <div className="border-t border-[#E2E2DC] dark:border-[#1F2024] bg-[#FBFBFA] dark:bg-[#000000] p-3 sm:p-4 shrink-0">
           <div className="max-w-3xl mx-auto">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="relative flex items-end gap-2 bg-[#F4F4F1] dark:bg-[#1E1F22] border border-[#E2E2DC] dark:border-[#2C2D32] rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 focus-within:border-[#2563EB] dark:focus-within:border-[#3B82F6] transition-all shadow-xs"
+              style={{ backgroundColor: 'transparent' }}
+              className="relative flex items-end gap-2 !bg-transparent border border-[#E2E2DC] dark:border-[#2C2D32] rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 focus-within:border-[#4F648C] dark:focus-within:border-[#91A7D0] transition-all"
             >
               <textarea
                 ref={textareaRef}
@@ -630,8 +611,9 @@ export default function StudentChatPage() {
                   }
                 }}
                 rows={1}
-                placeholder="Talk about what is on your mind..."
-                className="w-full bg-transparent border-0 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] dark:placeholder-[#8C9099] focus:outline-none resize-none max-h-32 min-h-[38px] py-1.5 px-3"
+                placeholder="How are you feeling today?"
+                style={{ backgroundColor: 'transparent' }}
+                className="w-full !bg-transparent !border-0 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] dark:placeholder-[#8C9099] focus:outline-none resize-none max-h-32 min-h-[38px] py-1.5 px-3"
               />
 
               <div className="flex items-center gap-1 shrink-0 pb-0.5">
@@ -649,9 +631,9 @@ export default function StudentChatPage() {
                   <button
                     type="submit"
                     disabled={!inputValue.trim()}
-                    className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] ${
+                    className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full flex items-center justify-center transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] ${
                       inputValue.trim()
-                        ? 'bg-[#2563EB] hover:bg-[#1D4ED8] text-white shadow-sm cursor-pointer'
+                        ? 'bg-[#4F648C] hover:bg-[#405374] dark:bg-[#91A7D0] dark:hover:bg-[#A6B9DC] text-white dark:text-[#151B26] shadow-sm cursor-pointer'
                         : 'bg-[#E2E2DC] dark:bg-[#2A2B30] text-[#8C9099] dark:text-[#636773] cursor-not-allowed opacity-60'
                     }`}
                     title="Send message"

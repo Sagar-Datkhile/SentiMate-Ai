@@ -36,7 +36,7 @@ export function InteractiveProductPreview() {
             onClick={() => setActiveTab('chat')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === 'chat'
-                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
+                ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26]'
                 : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
             }`}
           >
@@ -46,7 +46,7 @@ export function InteractiveProductPreview() {
             onClick={() => setActiveTab('checkin')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === 'checkin'
-                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
+                ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26]'
                 : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
             }`}
           >
@@ -56,7 +56,7 @@ export function InteractiveProductPreview() {
             onClick={() => setActiveTab('indicators')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === 'indicators'
-                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
+                ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26]'
                 : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
             }`}
           >
@@ -66,7 +66,7 @@ export function InteractiveProductPreview() {
             onClick={() => setActiveTab('counsellor')}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               activeTab === 'counsellor'
-                ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
+                ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26]'
                 : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
             }`}
           >
@@ -80,7 +80,7 @@ export function InteractiveProductPreview() {
         {activeTab === 'chat' && (
           <div className="max-w-2xl mx-auto space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#000000] flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] flex items-center justify-center text-xs font-bold shrink-0">
                 AI
               </div>
               <div className="bg-[#F4F4F1] dark:bg-[#18191C] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] max-w-[85%] leading-relaxed border border-[#E2E2DC] dark:border-[#1F2024]">
@@ -89,7 +89,7 @@ export function InteractiveProductPreview() {
             </div>
 
             <div className="flex items-start justify-end gap-3">
-              <div className="bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000] rounded-2xl rounded-tr-sm p-4 text-xs sm:text-sm max-w-[85%] leading-relaxed">
+              <div className="bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] rounded-2xl rounded-tr-sm p-4 text-xs sm:text-sm max-w-[85%] leading-relaxed">
                 Honestly, pretty overwhelmed with algorithms and lab reports. I haven't slept more than 4 hours in three nights.
               </div>
               <div className="w-8 h-8 rounded-full bg-[#E2E2DC] dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] flex items-center justify-center text-xs font-semibold shrink-0">
@@ -98,7 +98,7 @@ export function InteractiveProductPreview() {
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#0D766E] dark:bg-[#14B8A6] text-white dark:text-[#000000] flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] flex items-center justify-center text-xs font-bold shrink-0">
                 AI
               </div>
               <div className="bg-[#F4F4F1] dark:bg-[#18191C] rounded-2xl rounded-tl-sm p-4 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] max-w-[85%] leading-relaxed border border-[#E2E2DC] dark:border-[#1F2024] space-y-3">
@@ -106,7 +106,7 @@ export function InteractiveProductPreview() {
                   That sounds like a heavy strain, especially when prolonged lack of sleep compounds the pressure. Would you like to explore a quick practical pacing technique, or would you prefer to connect with Dr. Adams from campus counselling?
                 </p>
                 <div className="flex flex-wrap gap-2 pt-1">
-                  <span className="inline-flex items-center text-xs font-medium text-[#0D766E] dark:text-[#2DD4BF] bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.15)] px-3 py-1.5 rounded-lg border border-[#CCFBF1] dark:border-[rgba(20,184,166,0.25)]">
+                  <span className="inline-flex items-center text-xs font-medium text-[#4F648C] dark:text-[#91A7D0] bg-[#EEF2F8] dark:bg-[#242E40] px-3 py-1.5 rounded-lg border border-[#D6E0EE] dark:border-[#91A7D0]/20">
                     Request Human Support
                   </span>
                   <span className="inline-flex items-center text-xs font-medium text-[#4A4D54] dark:text-[#9CA3AF] bg-white dark:bg-[#0D0E11] px-3 py-1.5 rounded-lg border border-[#E2E2DC] dark:border-[#1F2024]">
@@ -159,7 +159,7 @@ export function InteractiveProductPreview() {
               </div>
 
               <div className="flex items-center gap-2 p-3 bg-white dark:bg-[#0D0E11] rounded-lg border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
-                <Shield className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                <Shield className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                 <span>Sharing preference: Consented for assigned counsellor review during appointments.</span>
               </div>
             </div>
@@ -252,7 +252,7 @@ export function InteractiveProductPreview() {
                 <ul className="text-[#4A4D54] dark:text-[#9CA3AF] space-y-1">
                   <li>• Consented weekly sleep & stress trends</li>
                   <li>• Self-reported referral note</li>
-                  <li>• Raw chat transcripts: <strong className="text-[#0D766E] dark:text-[#14B8A6]">Hidden (Not Consented)</strong></li>
+                  <li>• Raw chat transcripts: <strong className="text-[#4F648C] dark:text-[#91A7D0]">Hidden (Not Consented)</strong></li>
                 </ul>
               </div>
 
@@ -261,7 +261,7 @@ export function InteractiveProductPreview() {
                 <p className="text-[#4A4D54] dark:text-[#9CA3AF]">
                   Thursday, Oct 22 at 2:00 PM • Wellness Center Room 302
                 </p>
-                <div className="mt-2 text-[#0D766E] dark:text-[#14B8A6] font-medium">
+                <div className="mt-2 text-[#4F648C] dark:text-[#91A7D0] font-medium">
                   Confirmed (Transactional slot reserved)
                 </div>
               </div>

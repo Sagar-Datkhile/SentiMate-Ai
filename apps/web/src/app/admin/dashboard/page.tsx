@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
               <Card className="p-4 space-y-1">
                 <div className="text-[11px] font-semibold text-[#71757E] uppercase">Total Active Students</div>
                 <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">{metrics.activeStudents}</div>
-                <div className="text-[10px] text-[#0D766E] dark:text-[#2DD4BF]">Enrolled this semester</div>
+                <div className="text-[10px] text-[#4F648C] dark:text-[#91A7D0]">Enrolled this semester</div>
               </Card>
 
               <Card className="p-4 space-y-1">
@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
               <Card className="p-4 space-y-1">
                 <div className="text-[11px] font-semibold text-[#71757E] uppercase">Voluntary Check-ins</div>
                 <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">{metrics.voluntaryCheckins}</div>
-                <div className="text-[10px] text-[#0D766E] dark:text-[#2DD4BF]">Anonymized reflections</div>
+                <div className="text-[10px] text-[#4F648C] dark:text-[#91A7D0]">Anonymized reflections</div>
               </Card>
             </div>
           )}
@@ -136,7 +136,7 @@ export default function AdminDashboardPage() {
             <Card className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Server className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <Server className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span className="font-semibold text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6]">
                     Supabase PostgreSQL & Auth
                   </span>
@@ -153,7 +153,7 @@ export default function AdminDashboardPage() {
             <Card className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <Zap className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span className="font-semibold text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6]">
                     NVIDIA Nemotron SSE Chat
                   </span>
@@ -170,7 +170,7 @@ export default function AdminDashboardPage() {
             <Card className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <Activity className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span className="font-semibold text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6]">
                     FastAPI ML Microservice
                   </span>
@@ -189,7 +189,7 @@ export default function AdminDashboardPage() {
         {/* Differential Privacy & Protection Policy */}
         <Card className="p-5 space-y-2 bg-[#F4F4F1] dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024]">
           <div className="flex items-center gap-2 text-xs font-semibold text-[#18191B] dark:text-[#F3F4F6]">
-            <Lock className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+            <Lock className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
             <span>Differential Privacy & Re-identification Suppression Rules</span>
           </div>
           <p className="text-xs text-[#71757E] leading-relaxed">

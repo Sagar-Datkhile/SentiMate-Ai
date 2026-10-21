@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'teal' | 'emerald' | 'amber' | 'red' | 'neutral';
+  variant?: 'teal' | 'brand' | 'emerald' | 'amber' | 'red' | 'neutral';
   size?: 'sm' | 'md';
 }
 
@@ -12,7 +12,10 @@ export function Badge({ className = '', variant = 'neutral', size = 'md', childr
   };
 
   const variantStyles = {
-    teal: 'bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.15)] text-[#0D766E] dark:text-[#2DD4BF] border border-[#CCFBF1] dark:border-[rgba(20,184,166,0.3)]',
+    brand:
+      'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] border border-[#D5DFEE] dark:border-[rgba(145,167,208,0.25)]',
+    teal:
+      'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] border border-[#D5DFEE] dark:border-[rgba(145,167,208,0.25)]',
     emerald:
       'bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.15)] text-[#047857] dark:text-[#34D399] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.3)]',
     amber:

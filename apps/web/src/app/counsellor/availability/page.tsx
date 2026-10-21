@@ -102,7 +102,7 @@ export default function CounsellorAvailabilityPage() {
         {/* Create Slot Form */}
         <Card className="space-y-4">
           <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
-            <Plus className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+            <Plus className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
             <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
               Add New Available Slot
             </h2>
@@ -184,7 +184,7 @@ export default function CounsellorAvailabilityPage() {
                     className="p-4 rounded-xl bg-white dark:bg-[#0D0E11] border border-[#E2E2DC] dark:border-[#1F2024] flex items-center justify-between flex-wrap gap-3 text-xs"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-[#F4F4F1] dark:bg-[#18191C] text-[#0D766E] dark:text-[#14B8A6]">
+                      <div className="p-2 rounded-lg bg-[#F4F4F1] dark:bg-[#18191C] text-[#4F648C] dark:text-[#91A7D0]">
                         <Clock className="w-4 h-4" />
                       </div>
                       <div>

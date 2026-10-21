@@ -184,9 +184,9 @@ export function StudentShell({
                 onClick={handleToggleCollapse}
                 role="button"
                 aria-label="Expand sidebar"
-                className="w-9 h-9 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000] shadow-xs shrink-0 cursor-pointer transition-opacity duration-150 group-hover:opacity-0 select-none"
+                className="w-9 h-9 flex items-center justify-center bg-transparent shrink-0 cursor-pointer transition-opacity duration-150 group-hover:opacity-0 select-none"
               >
-                <HeartHandshake className="w-4 h-4" aria-hidden="true" />
+                <HeartHandshake className="w-5 h-5 text-[#18191B] dark:text-white" aria-hidden="true" />
               </div>
               {/* Expand toggle icon (revealed on hover) */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
@@ -200,8 +200,8 @@ export function StudentShell({
           ) : (
             <>
               <Link href="/student/chat" className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000] shadow-xs shrink-0">
-                  <HeartHandshake className="w-4 h-4" />
+                <div className="w-8 h-8 flex items-center justify-center bg-transparent shrink-0">
+                  <HeartHandshake className="w-5 h-5 text-[#18191B] dark:text-white" />
                 </div>
                 <div className="min-w-0">
                   <span className="font-semibold text-xs sm:text-sm tracking-tight truncate block leading-tight">
@@ -229,7 +229,7 @@ export function StudentShell({
                 type="button"
                 onClick={handleNewChatAction}
                 aria-label="New conversation"
-                className="w-10 h-10 rounded-xl bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-[#0D766E] dark:text-[#14B8A6] flex items-center justify-center transition-colors shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E]"
+                className="w-10 h-10 rounded-xl bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#91A7D0] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center transition-colors shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C]"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -238,9 +238,9 @@ export function StudentShell({
             <Button
               onClick={handleNewChatAction}
               variant="outline"
-              className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-xs font-semibold shadow-xs"
+              className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#91A7D0] text-xs font-semibold shadow-xs"
             >
-              <Plus className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+              <Plus className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
               <span>New conversation</span>
             </Button>
           )}
@@ -275,7 +275,7 @@ export function StudentShell({
                     key={s.id}
                     className={`group relative flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-white dark:bg-[#18191C] font-medium text-[#0D766E] dark:text-[#2DD4BF] shadow-xs'
+                        ? 'bg-white dark:bg-[#18191C] font-medium text-[#4F648C] dark:text-[#91A7D0] shadow-xs'
                         : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
                     }`}
                     onClick={() => {
@@ -291,7 +291,7 @@ export function StudentShell({
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleSaveRename(s.id)}
-                          className="w-full px-1.5 py-0.5 rounded bg-white dark:bg-[#121316] border border-[#0D766E] text-xs"
+                          className="w-full px-1.5 py-0.5 rounded bg-white dark:bg-[#121316] border border-[#4F648C] dark:border-[#91A7D0] text-xs"
                           autoFocus
                         />
                         <button
@@ -370,8 +370,8 @@ export function StudentShell({
                 className="flex items-center gap-2.5 min-w-0"
                 onClick={() => setMobileDrawerOpen(false)}
               >
-                <div className="w-8 h-8 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000] shadow-xs">
-                  <HeartHandshake className="w-4 h-4" />
+                <div className="w-8 h-8 flex items-center justify-center bg-transparent shrink-0">
+                  <HeartHandshake className="w-5 h-5 text-[#18191B] dark:text-white" />
                 </div>
                 <div>
                   <span className="font-semibold text-sm tracking-tight">SentiMate</span>
@@ -393,9 +393,9 @@ export function StudentShell({
               <Button
                 onClick={handleNewChatAction}
                 variant="outline"
-                className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#0D766E] dark:hover:border-[#14B8A6] text-xs font-semibold shadow-xs"
+                className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#91A7D0] text-xs font-semibold shadow-xs"
               >
-                <Plus className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                <Plus className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                 <span>New conversation</span>
               </Button>
             </div>
@@ -415,7 +415,7 @@ export function StudentShell({
                       key={s.id}
                       className={`flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-colors cursor-pointer ${
                         isActive
-                          ? 'bg-white dark:bg-[#18191C] font-medium text-[#0D766E] dark:text-[#2DD4BF] shadow-xs'
+                          ? 'bg-white dark:bg-[#18191C] font-medium text-[#4F648C] dark:text-[#91A7D0] shadow-xs'
                           : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
                       }`}
                       onClick={() => {
@@ -467,7 +467,7 @@ export function StudentShell({
             <Menu className="w-6 h-6" />
           </button>
           <div className="flex items-center gap-2">
-            <HeartHandshake className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+            <HeartHandshake className="w-4 h-4 text-[#18191B] dark:text-white" />
             <span className="font-semibold text-sm">SentiMate</span>
           </div>
           <div className="w-10" />

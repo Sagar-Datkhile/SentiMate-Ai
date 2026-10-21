@@ -15,8 +15,8 @@ export function LandingNavbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 text-[#18191B] dark:text-[#F3F4F6] group">
-            <div className="w-9 h-9 rounded-xl bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000] shadow-sm">
-              <HeartHandshake className="w-5 h-5" />
+            <div className="w-9 h-9 flex items-center justify-center bg-transparent shrink-0">
+              <HeartHandshake className="w-6 h-6 text-[#18191B] dark:text-white" />
             </div>
             <div className="flex flex-col">
               <span className="font-semibold text-lg tracking-tight">SentiMate</span>

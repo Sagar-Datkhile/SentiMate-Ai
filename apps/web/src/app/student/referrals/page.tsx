@@ -51,7 +51,7 @@ export default function StudentReferralsPage() {
         {/* Header */}
         <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div className="flex items-center gap-2">
-            <HeartHandshake className="w-5 h-5 text-[#0D766E] dark:text-[#14B8A6]" />
+            <HeartHandshake className="w-5 h-5 text-[#4F648C] dark:text-[#91A7D0]" />
             <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
               Request Campus Counsellor Referral
             </h1>
@@ -101,7 +101,7 @@ export default function StudentReferralsPage() {
                       onClick={() => setPriority(p)}
                       className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition-colors min-h-[44px] ${
                         priority === p
-                          ? 'border-[#0D766E] dark:border-[#14B8A6] bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.15)] text-[#0D766E] dark:text-[#2DD4BF]'
+                          ? 'border-[#4F648C] dark:border-[#91A7D0] bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0]'
                           : 'border-[#E2E2DC] dark:border-[#1F2024] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C]'
                       }`}
                     >
@@ -122,7 +122,7 @@ export default function StudentReferralsPage() {
                     type="checkbox"
                     checked={shareCheckins}
                     onChange={(e) => setShareCheckins(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#0D766E] focus:ring-[#0D766E]"
+                    className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C] dark:focus:ring-[#91A7D0]"
                   />
                   <div className="text-xs">
                     <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] block">
@@ -139,7 +139,7 @@ export default function StudentReferralsPage() {
                     type="checkbox"
                     checked={shareAcademics}
                     onChange={(e) => setShareAcademics(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#0D766E] focus:ring-[#0D766E]"
+                    className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C] dark:focus:ring-[#91A7D0]"
                   />
                   <div className="text-xs">
                     <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] block">
@@ -153,7 +153,7 @@ export default function StudentReferralsPage() {
               </div>
 
               <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl flex items-center gap-2 text-xs text-[#71757E]">
-                <Clock className="w-4 h-4 shrink-0 text-[#0D766E] dark:text-[#14B8A6]" />
+                <Clock className="w-4 h-4 shrink-0 text-[#4F648C] dark:text-[#91A7D0]" />
                 <span>Counsellor review occurs during campus business hours (Mon–Fri 8:30 AM – 5:00 PM).</span>
               </div>
             </Card>

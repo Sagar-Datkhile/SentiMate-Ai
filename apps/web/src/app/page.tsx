@@ -53,7 +53,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBFBFA] dark:bg-[#000000] text-[#18191B] dark:text-[#F3F4F6] transition-colors selection:bg-[#CCFBF1] selection:text-[#0D766E]">
+    <div className="min-h-screen flex flex-col bg-[#FBFBFA] dark:bg-[#000000] text-[#18191B] dark:text-[#F3F4F6] transition-colors selection:bg-[#EEF2F8] selection:text-[#4F648C] dark:selection:bg-[#242E40] dark:selection:text-[#91A7D0]">
       <LandingNavbar />
 
       <main className="flex-1">
@@ -61,14 +61,14 @@ export default function LandingPage() {
         <section className="relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-3xl mx-auto space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.12)] border border-[#CCFBF1] dark:border-[rgba(20,184,166,0.25)] text-[#0D766E] dark:text-[#2DD4BF] text-xs font-semibold tracking-wide">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EEF2F8] dark:bg-[#242E40] border border-[#D6E0EE] dark:border-[#91A7D0]/20 text-[#4F648C] dark:text-[#91A7D0] text-xs font-semibold tracking-wide">
                 <HeartHandshake className="w-4 h-4" />
                 <span>Student Wellbeing & Professional Counsellor Support</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6] leading-[1.15]">
                 A little space to talk.{' '}
-                <span className="text-[#0D766E] dark:text-[#14B8A6]">A clearer path to support.</span>
+                <span className="text-[#4F648C] dark:text-[#91A7D0]">A clearer path to support.</span>
               </h1>
 
               <p className="text-base sm:text-lg text-[#4A4D54] dark:text-[#9CA3AF] max-w-2xl mx-auto leading-relaxed">
@@ -93,15 +93,15 @@ export default function LandingPage() {
               {/* Trust Indicators */}
               <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-[#71757E]">
                 <div className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <ShieldCheck className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span>Student-only registration guard</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Lock className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <Lock className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span>Row-Level Security on all chats</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <UserCheck className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <UserCheck className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span>Human-in-the-loop counselling</span>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Feature 1 */}
               <Card className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.12)] text-[#0D766E] dark:text-[#14B8A6] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center">
                   <MessageSquare className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-semibold text-[#18191B] dark:text-[#F3F4F6]">
@@ -145,7 +145,7 @@ export default function LandingPage() {
 
               {/* Feature 2 */}
               <Card className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.12)] text-[#0D766E] dark:text-[#14B8A6] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center">
                   <Compass className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-semibold text-[#18191B] dark:text-[#F3F4F6]">
@@ -158,7 +158,7 @@ export default function LandingPage() {
 
               {/* Feature 3 */}
               <Card className="space-y-4">
-                <div className="w-12 h-12 rounded-xl bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.12)] text-[#0D766E] dark:text-[#14B8A6] flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center">
                   <Calendar className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-semibold text-[#18191B] dark:text-[#F3F4F6]">
@@ -260,7 +260,7 @@ export default function LandingPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left pt-4">
               <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#FBFBFA] dark:bg-[#000000]">
-                <Clock className="w-5 h-5 text-[#0D766E] dark:text-[#14B8A6] mb-2" />
+                <Clock className="w-5 h-5 text-[#4F648C] dark:text-[#91A7D0] mb-2" />
                 <h4 className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">Official Service Hours</h4>
                 <p className="text-xs text-[#71757E] mt-1">
                   Counsellors respond to referrals and conduct appointments during campus operating hours (Monday–Friday, 9:00 AM – 5:00 PM).
@@ -268,7 +268,7 @@ export default function LandingPage() {
               </div>
 
               <div className="p-4 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#FBFBFA] dark:bg-[#000000]">
-                <HeartHandshake className="w-5 h-5 text-[#0D766E] dark:text-[#14B8A6] mb-2" />
+                <HeartHandshake className="w-5 h-5 text-[#4F648C] dark:text-[#91A7D0] mb-2" />
                 <h4 className="font-semibold text-sm text-[#18191B] dark:text-[#F3F4F6]">No Waiting for a Model Score</h4>
                 <p className="text-xs text-[#71757E] mt-1">
                   You can request a counselling appointment at any time regardless of automated scores or whether you completed a check-in.
@@ -298,13 +298,13 @@ export default function LandingPage() {
                 >
                   <button
                     onClick={() => toggleFaq(idx)}
-                    className="w-full px-5 py-4 text-left flex items-center justify-between text-sm sm:text-base font-semibold text-[#18191B] dark:text-[#F3F4F6] min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D766E]"
+                    className="w-full px-5 py-4 text-left flex items-center justify-between text-sm sm:text-base font-semibold text-[#18191B] dark:text-[#F3F4F6] min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0]"
                     aria-expanded={openFaq === idx}
                   >
                     <span>{faq.q}</span>
                     <ChevronDown
                       className={`w-5 h-5 text-[#71757E] transition-transform duration-200 shrink-0 ml-2 ${
-                        openFaq === idx ? 'rotate-180 text-[#0D766E] dark:text-[#14B8A6]' : ''
+                        openFaq === idx ? 'rotate-180 text-[#4F648C] dark:text-[#91A7D0]' : ''
                       }`}
                     />
                   </button>
@@ -320,19 +320,19 @@ export default function LandingPage() {
         </section>
 
         {/* 7. FINAL CALL TO ACTION */}
-        <section className="py-20 border-t border-[#E2E2DC] dark:border-[#1F2024] bg-[#0D766E] dark:bg-[#115E59] text-white text-center">
+        <section className="py-20 border-t border-[#E2E2DC] dark:border-[#1F2024] bg-[#4F648C] dark:bg-[#242E40] text-white text-center">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
               Take the first step toward clearer support today.
             </h2>
-            <p className="text-teal-100 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+            <p className="text-slate-100 dark:text-slate-200 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
               Create your confidential student account in seconds and enter a calm, private space designed for you.
             </p>
             <div className="pt-2 flex justify-center">
               <Link href="/auth/register">
                 <Button
                   size="lg"
-                  className="bg-white text-[#0D766E] hover:bg-teal-50 dark:bg-white dark:text-[#0D766E] font-semibold text-base shadow-lg"
+                  className="bg-white text-[#4F648C] hover:bg-[#EEF2F8] dark:bg-white dark:text-[#4F648C] font-semibold text-base shadow-lg"
                 >
                   Create Student Account
                 </Button>

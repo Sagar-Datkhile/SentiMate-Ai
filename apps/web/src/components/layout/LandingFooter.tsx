@@ -28,8 +28,8 @@ export function LandingFooter() {
           {/* Brand & mission */}
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#0D766E] dark:bg-[#14B8A6] flex items-center justify-center text-white dark:text-[#000000]">
-                <HeartHandshake className="w-4 h-4" />
+              <div className="w-8 h-8 flex items-center justify-center bg-transparent shrink-0">
+                <HeartHandshake className="w-5 h-5 text-[#18191B] dark:text-white" />
               </div>
               <span className="font-semibold text-lg text-[#18191B] dark:text-[#F3F4F6]">SentiMate</span>
             </div>
@@ -37,7 +37,7 @@ export function LandingFooter() {
               Connecting university students with private conversational wellbeing support, optional check-ins, explainable indicators, and confidential counsellor appointments.
             </p>
             <div className="pt-2 flex items-center gap-2 text-xs text-[#71757E]">
-              <ShieldCheck className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+              <ShieldCheck className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
               <span>Consent-governed data sharing • Strict institutional boundaries</span>
             </div>
           </div>
@@ -49,17 +49,17 @@ export function LandingFooter() {
             </h4>
             <ul className="space-y-2 text-[#4A4D54] dark:text-[#9CA3AF] text-xs sm:text-sm">
               <li>
-                <Link href="/auth/login" className="hover:text-[#0D766E] dark:hover:text-[#14B8A6]">
+                <Link href="/auth/login" className="hover:text-[#4F648C] dark:hover:text-[#91A7D0] transition-colors">
                   Student Chat Space
                 </Link>
               </li>
               <li>
-                <Link href="/auth/login" className="hover:text-[#0D766E] dark:hover:text-[#14B8A6]">
+                <Link href="/auth/login" className="hover:text-[#4F648C] dark:hover:text-[#91A7D0] transition-colors">
                   Counsellor Portal
                 </Link>
               </li>
               <li>
-                <Link href="/resources" className="hover:text-[#0D766E] dark:hover:text-[#14B8A6]">
+                <Link href="/resources" className="hover:text-[#4F648C] dark:hover:text-[#91A7D0] transition-colors">
                   Crisis Resources
                 </Link>
               </li>
@@ -73,7 +73,7 @@ export function LandingFooter() {
             </h4>
             <ul className="space-y-2 text-[#4A4D54] dark:text-[#9CA3AF] text-xs sm:text-sm">
               <li>
-                <a href="#privacy" className="hover:text-[#0D766E] dark:hover:text-[#14B8A6]">
+                <a href="#privacy" className="hover:text-[#4F648C] dark:hover:text-[#91A7D0] transition-colors">
                   Data Sharing Rules
                 </a>
               </li>

@@ -172,7 +172,7 @@ export default function CounsellorDashboardPage() {
               <Card className="p-4 space-y-1">
                 <div className="text-[11px] font-semibold text-[#71757E] uppercase">Assigned Students</div>
                 <div className="text-2xl font-bold text-[#18191B] dark:text-[#F3F4F6]">{stats.assignedCount}</div>
-                <div className="text-[10px] text-[#0D766E] dark:text-[#2DD4BF]">Institutional scope active</div>
+                <div className="text-[10px] text-[#4F648C] dark:text-[#91A7D0]">Institutional scope active</div>
               </Card>
 
               <Card className="p-4 space-y-1">
@@ -183,7 +183,7 @@ export default function CounsellorDashboardPage() {
 
               <Card className="p-4 space-y-1">
                 <div className="text-[11px] font-semibold text-[#71757E] uppercase">Appointment Requests</div>
-                <div className="text-2xl font-bold text-[#0D766E] dark:text-[#14B8A6]">{stats.pendingAppointments}</div>
+                <div className="text-2xl font-bold text-[#4F648C] dark:text-[#91A7D0]">{stats.pendingAppointments}</div>
                 <div className="text-[10px] text-[#71757E]">Pending confirmation</div>
               </Card>
 
@@ -264,7 +264,7 @@ export default function CounsellorDashboardPage() {
                     <div className="p-3.5 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] space-y-2 text-xs">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] flex items-center gap-1.5">
-                          <Activity className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <Activity className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0]" />
                           Explainable Support Indicator (TreeSHAP on XGBoost)
                         </span>
                         <Badge variant={item.modelIndicator.level === 'elevated' ? 'red' : 'neutral'} size="sm">
@@ -276,7 +276,7 @@ export default function CounsellorDashboardPage() {
                         {item.modelIndicator.shapTopFactors.map((fac, idx) => (
                           <div key={idx} className="flex items-center justify-between text-[11px]">
                             <span className="text-[#4A4D54] dark:text-[#9CA3AF]">• {fac.name}</span>
-                            <span className="font-mono font-bold text-[#0D766E] dark:text-[#2DD4BF]">
+                            <span className="font-mono font-bold text-[#4F648C] dark:text-[#91A7D0]">
                               {fac.impact}
                             </span>
                           </div>
@@ -340,7 +340,7 @@ export default function CounsellorDashboardPage() {
               onChange={(e) => setAssessmentNote(e.target.value)}
               placeholder="Record your clinical observations, recommended workload adjustments, or therapy goals..."
               rows={4}
-              className="w-full rounded-lg p-2.5 bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E]"
+              className="w-full rounded-lg p-2.5 bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#91A7D0]"
             />
           </div>
 

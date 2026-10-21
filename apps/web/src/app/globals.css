@@ -12,11 +12,15 @@
   --text-primary: #18191B;
   --text-secondary: #4A4D54;
   --text-tertiary: #71757E;
-  --brand-teal: #0D766E;
-  --brand-teal-hover: #0F766E;
-  --brand-teal-light: #F0FDFA;
-  --brand-teal-border: #CCFBF1;
-  --focus-ring: rgba(13, 118, 110, 0.4);
+  --brand-primary: #4F648C;
+  --brand-primary-hover: #405374;
+  --brand-accent-bg: #EEF2F8;
+  --text-on-primary: #FFFFFF;
+  --brand-teal: #4F648C;
+  --brand-teal-hover: #405374;
+  --brand-teal-light: #EEF2F8;
+  --brand-teal-border: #D5DFEE;
+  --focus-ring: rgba(79, 100, 140, 0.4);
   --skeleton-base: #E8E8E2;
   --skeleton-highlight: #F5F5F2;
   --toast-bg: rgba(255, 255, 255, 0.88);
@@ -24,15 +28,15 @@
   --toast-shadow: 0 12px 32px -4px rgba(24, 25, 27, 0.08), 0 4px 12px -2px rgba(24, 25, 27, 0.04);
   --toast-title: #18191B;
   --toast-desc: #5E626C;
-  --toast-success-accent: #0D766E;
-  --toast-success-bg: rgba(13, 118, 110, 0.08);
+  --toast-success-accent: #059669;
+  --toast-success-bg: rgba(5, 150, 105, 0.08);
   --toast-error-accent: #DC2626;
   --toast-error-bg: rgba(220, 38, 38, 0.08);
   --toast-warning-accent: #D97706;
   --toast-warning-bg: rgba(217, 119, 6, 0.08);
-  --toast-info-accent: #2563EB;
-  --toast-info-bg: rgba(37, 99, 235, 0.08);
-  --toast-loading-accent: #0D766E;
+  --toast-info-accent: #4F648C;
+  --toast-info-bg: rgba(79, 100, 140, 0.08);
+  --toast-loading-accent: #4F648C;
 }
 
 .dark {
@@ -45,11 +49,15 @@
   --text-primary: #F3F4F6;
   --text-secondary: #9CA3AF;
   --text-tertiary: #6B7280;
-  --brand-teal: #14B8A6;
-  --brand-teal-hover: #2DD4BF;
-  --brand-teal-light: rgba(20, 184, 166, 0.12);
-  --brand-teal-border: rgba(20, 184, 166, 0.25);
-  --focus-ring: rgba(20, 184, 166, 0.4);
+  --brand-primary: #91A7D0;
+  --brand-primary-hover: #A6B9DC;
+  --brand-accent-bg: #242E40;
+  --text-on-primary: #151B26;
+  --brand-teal: #91A7D0;
+  --brand-teal-hover: #A6B9DC;
+  --brand-teal-light: #242E40;
+  --brand-teal-border: rgba(145, 167, 208, 0.25);
+  --focus-ring: rgba(145, 167, 208, 0.4);
   --skeleton-base: #141518;
   --skeleton-highlight: #202227;
   --toast-bg: rgba(14, 15, 17, 0.92);
@@ -57,15 +65,15 @@
   --toast-shadow: 0 14px 36px -4px rgba(0, 0, 0, 0.75), 0 4px 16px -2px rgba(0, 0, 0, 0.55);
   --toast-title: #F3F4F6;
   --toast-desc: #9CA3AF;
-  --toast-success-accent: #14B8A6;
-  --toast-success-bg: rgba(20, 184, 166, 0.12);
+  --toast-success-accent: #10B981;
+  --toast-success-bg: rgba(16, 185, 129, 0.12);
   --toast-error-accent: #F87171;
   --toast-error-bg: rgba(248, 113, 113, 0.12);
   --toast-warning-accent: #FBBF24;
   --toast-warning-bg: rgba(251, 191, 36, 0.12);
-  --toast-info-accent: #60A5FA;
-  --toast-info-bg: rgba(96, 165, 250, 0.12);
-  --toast-loading-accent: #14B8A6;
+  --toast-info-accent: #91A7D0;
+  --toast-info-bg: rgba(145, 167, 208, 0.12);
+  --toast-loading-accent: #91A7D0;
 }
 
 body {
@@ -120,9 +128,9 @@ body {
 }
 
 /* Ensure native inputs, selects, textareas inherit the consistent dark palette */
-.dark input:not([type="checkbox"]):not([type="radio"]),
-.dark textarea,
-.dark select {
+.dark input:not([type="checkbox"]):not([type="radio"]):not([class*="bg-transparent"]):not([class*="!bg-transparent"]),
+.dark textarea:not([class*="bg-transparent"]):not([class*="!bg-transparent"]),
+.dark select:not([class*="bg-transparent"]):not([class*="!bg-transparent"]) {
   background-color: #18191C;
   border-color: #1F2024;
   color: #F3F4F6;
@@ -169,7 +177,7 @@ body {
 
 /* Focus styles */
 :focus-visible {
-  outline: 2px solid var(--brand-teal);
+  outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
 

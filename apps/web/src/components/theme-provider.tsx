@@ -2,64 +2,70 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: Theme;
-  resolvedTheme: 'light' | 'dark';
+  resolvedTheme: Theme;
   setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system');
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setThemeState] = useState<Theme>('dark');
 
   useEffect(() => {
-    const stored = localStorage.getItem('sentimate-theme') as Theme | null;
-    if (stored) {
-      setThemeState(stored);
-    }
-  }, []);
-
-  useEffect(() => {
-    const root = document.documentElement;
-
-    const applyTheme = () => {
-      let isDark = false;
-      if (theme === 'system') {
-        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    try {
+      const stored = localStorage.getItem('sentimate-theme');
+      if (stored === 'light') {
+        setThemeState('light');
+        document.documentElement.classList.remove('dark');
       } else {
-        isDark = theme === 'dark';
+        setThemeState('dark');
+        document.documentElement.classList.add('dark');
+        if (stored !== 'dark') {
+          localStorage.setItem('sentimate-theme', 'dark');
+        }
       }
+    } catch {
+      setThemeState('dark');
+      document.documentElement.classList.add('dark');
+    }
 
-      if (isDark) {
-        root.classList.add('dark');
-        setResolvedTheme('dark');
-      } else {
-        root.classList.remove('dark');
-        setResolvedTheme('light');
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'sentimate-theme') {
+        const val = e.newValue;
+        if (val === 'light') {
+          setThemeState('light');
+          document.documentElement.classList.remove('dark');
+        } else {
+          setThemeState('dark');
+          document.documentElement.classList.add('dark');
+        }
       }
     };
 
-    applyTheme();
-
-    if (theme === 'system') {
-      const media = window.matchMedia('(prefers-color-scheme: dark)');
-      const listener = () => applyTheme();
-      media.addEventListener('change', listener);
-      return () => media.removeEventListener('change', listener);
-    }
-  }, [theme]);
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('sentimate-theme', newTheme);
+    try {
+      localStorage.setItem('sentimate-theme', newTheme);
+    } catch {
+      // ignore
+    }
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme: theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -72,3 +78,4 @@ export function useTheme() {
   }
   return context;
 }
+

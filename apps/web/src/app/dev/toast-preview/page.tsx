@@ -122,7 +122,7 @@ export default function ToastPreviewPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div>
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#0D766E] dark:text-[#14B8A6]" />
+              <Sparkles className="w-5 h-5 text-[#4F648C] dark:text-[#91A7D0]" />
               <h1 className="text-2xl font-bold tracking-tight">
                 Glassmorphic Toast Verification Playground
               </h1>
@@ -240,7 +240,7 @@ export default function ToastPreviewPage() {
               variant="outline"
               className="gap-2 justify-start"
             >
-              <Shield className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+              <Shield className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
               <span>Deduplicated ID Toast</span>
             </Button>
 

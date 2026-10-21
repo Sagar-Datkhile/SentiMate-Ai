@@ -119,7 +119,7 @@ export default function ResourcesPage() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link
             href="/student/chat"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-[#0D766E] dark:text-[#14B8A6] hover:underline min-h-[44px]"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-[#4F648C] dark:text-[#91A7D0] hover:underline min-h-[44px]"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Workspace</span>
@@ -163,7 +163,7 @@ export default function ResourcesPage() {
                 placeholder="Search resources, helplines, or services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E] min-h-[44px]"
+                className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#91A7D0] min-h-[44px]"
               />
             </div>
 
@@ -181,7 +181,7 @@ export default function ResourcesPage() {
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors min-h-[44px] ${
                     selectedCategory === cat.id
-                      ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000]'
+                      ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26]'
                       : 'bg-[#F4F4F1] dark:bg-[#18191C] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#222327]'
                   }`}
                 >
@@ -239,10 +239,10 @@ export default function ResourcesPage() {
                   <div className="pt-2 border-t border-[#E2E2DC]/60 dark:border-[#1F2024]/60 space-y-2 text-xs">
                     {res.phone && (
                       <div className="flex items-center gap-2">
-                        <PhoneCall className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                        <PhoneCall className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0]" />
                         <a
                           href={`tel:${res.phone.replace(/[^0-9]/g, '')}`}
-                          className="font-bold text-[#0D766E] dark:text-[#2DD4BF] hover:underline"
+                          className="font-bold text-[#4F648C] dark:text-[#91A7D0] hover:underline"
                         >
                           {res.phone}
                         </a>
@@ -263,7 +263,7 @@ export default function ResourcesPage() {
                           href={res.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#0D766E] dark:text-[#2DD4BF] hover:underline truncate"
+                          className="text-[#4F648C] dark:text-[#91A7D0] hover:underline truncate"
                         >
                           Official Website
                         </a>

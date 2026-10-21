@@ -196,11 +196,11 @@ export default function StudentAppointmentsPage() {
                       </div>
                       <div className="flex flex-wrap items-center gap-4 text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <Calendar className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0]" />
                           <span>{apt.date}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <Clock className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0]" />
                           <span>{apt.time}</span>
                         </div>
                         <div className="flex items-center gap-1">
@@ -273,11 +273,11 @@ export default function StudentAppointmentsPage() {
 
                       <div className="space-y-1 text-xs text-[#4A4D54] dark:text-[#9CA3AF]">
                         <div className="flex items-center gap-1.5 font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <Calendar className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0]" />
                           <span>{slot.date}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#0D766E] dark:text-[#14B8A6]" />
+                          <Clock className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0]" />
                           <span>{slot.time}</span>
                         </div>
                         <div className="flex items-center gap-1.5 text-[11px] text-[#71757E]">
@@ -325,11 +325,11 @@ export default function StudentAppointmentsPage() {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Briefly state what you'd like to discuss (e.g., midterm burnout, sleep trouble)..."
               rows={3}
-              className="w-full rounded-lg p-2.5 bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#0D766E]"
+              className="w-full rounded-lg p-2.5 bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#91A7D0]"
             />
           </div>
 
-          <div className="p-3 bg-[#F0FDFA] dark:bg-[rgba(20,184,166,0.12)] rounded-lg border border-[#CCFBF1] dark:border-[rgba(20,184,166,0.25)] text-xs text-[#0D766E] dark:text-[#2DD4BF]">
+          <div className="p-3 bg-[#EEF2F8] dark:bg-[#242E40]/60 rounded-lg border border-[#D6E0EE] dark:border-[#91A7D0]/25 text-xs text-[#4F648C] dark:text-[#91A7D0]">
             🔒 <strong>Transactional Booking:</strong> Once confirmed, this slot is immediately locked in the database, preventing anyone else from claiming the same time.
           </div>
 

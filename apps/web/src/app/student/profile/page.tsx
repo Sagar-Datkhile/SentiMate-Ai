@@ -508,7 +508,7 @@ export default function StudentProfilePage() {
             {/* Section 1: Basic Identity */}
             <Card className="space-y-4">
             <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
-              <User className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+              <User className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
               <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
                 Personal Identity
               </h2>
@@ -534,7 +534,7 @@ export default function StudentProfilePage() {
                 <div className="flex items-center gap-1.5 text-xs px-1 min-h-[20px]">
                   {availabilityState.status === 'checking' && (
                     <span className="flex items-center gap-1 text-[#71757E]">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0D766E] dark:text-[#14B8A6]" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#4F648C] dark:text-[#91A7D0]" />
                       Checking availability...
                     </span>
                   )}
@@ -545,7 +545,7 @@ export default function StudentProfilePage() {
                     </span>
                   )}
                   {availabilityState.status === 'current_user' && (
-                    <span className="flex items-center gap-1 text-[#0D766E] dark:text-[#14B8A6] font-medium">
+                    <span className="flex items-center gap-1 text-[#4F648C] dark:text-[#91A7D0] font-medium">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       {availabilityState.message || 'Currently your username'}
                     </span>
@@ -584,7 +584,7 @@ export default function StudentProfilePage() {
           {/* Section 2: Educational Context */}
           <Card className="space-y-4">
             <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
-              <GraduationCap className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+              <GraduationCap className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
               <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
                 Institutional Details
               </h2>
@@ -603,7 +603,7 @@ export default function StudentProfilePage() {
                   id="institution-display"
                   tabIndex={0}
                   aria-readonly="true"
-                  className="w-full rounded-lg px-3.5 py-2.5 text-sm bg-[#F5F5F3] dark:bg-[#141518] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px] flex items-center leading-relaxed select-text focus:outline-none focus:ring-2 focus:ring-[#0D766E]/20"
+                  className="w-full rounded-lg px-3.5 py-2.5 text-sm bg-[#F5F5F3] dark:bg-[#141518] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px] flex items-center leading-relaxed select-text focus:outline-none focus:ring-2 focus:ring-[#4F648C]/20 dark:focus:ring-[#91A7D0]/20"
                 >
                   <span className="break-words whitespace-normal w-full font-medium">
                     {institution.name || "Pune Vidyarthi Griha's College of Engineering & S.S. Dhamankar Institute of Management, Nashik"}
@@ -693,7 +693,7 @@ export default function StudentProfilePage() {
           <Card className="space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                <Shield className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                 <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
                   Academic Progress (Semesters 1 to 8)
                 </h2>
@@ -718,7 +718,7 @@ export default function StudentProfilePage() {
                       Semester {sem.semester}
                     </span>
                     {parseInt(currentSemester, 10) === sem.semester && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#E6FFFA] text-[#0D766E] dark:bg-[rgba(20,184,166,0.15)] dark:text-[#2DD4BF] font-semibold">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EEF2F8] text-[#4F648C] dark:bg-[#242E40] dark:text-[#91A7D0] font-semibold">
                         Current
                       </span>
                     )}

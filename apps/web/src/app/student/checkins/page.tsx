@@ -120,7 +120,7 @@ export default function StudentCheckinsPage() {
             <Card className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Smile className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <Smile className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                     Overall Mood Today (1 = Very Low, 5 = Great)
                   </span>
@@ -142,7 +142,7 @@ export default function StudentCheckinsPage() {
                     onClick={() => setMood(val)}
                     className={`py-3 rounded-lg border text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
                       mood === val
-                        ? 'bg-[#0D766E] text-white dark:bg-[#14B8A6] dark:text-[#000000] border-[#0D766E]'
+                        ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] border-[#4F648C] dark:border-[#91A7D0]'
                         : 'bg-[#F4F4F1] dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] hover:bg-[#EAEAE5] dark:hover:bg-[#222327]'
                     }`}
                   >
@@ -156,7 +156,7 @@ export default function StudentCheckinsPage() {
             <Card className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Moon className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <Moon className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                     Hours of Sleep Last Night
                   </span>
@@ -189,7 +189,7 @@ export default function StudentCheckinsPage() {
             <Card className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+                  <Zap className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                     Academic & Personal Stress (1 = Very Low, 5 = Extreme)
                   </span>
@@ -237,7 +237,7 @@ export default function StudentCheckinsPage() {
                   type="checkbox"
                   checked={shareWithCounsellor}
                   onChange={(e) => setShareWithCounsellor(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-[#E2E2DC] text-[#0D766E] focus:ring-[#0D766E]"
+                  className="mt-1 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C] dark:focus:ring-[#91A7D0]"
                 />
                 <span className="text-xs text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed">
                   Allow my assigned counsellor to view this check-in during scheduled review appointments.
@@ -256,7 +256,7 @@ export default function StudentCheckinsPage() {
         {/* Section: Personal Check-in Trends */}
         <div className="space-y-4 pt-6 border-t border-[#E2E2DC] dark:border-[#1F2024]">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[#0D766E] dark:text-[#14B8A6]" />
+            <TrendingUp className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
             <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
               Recent Check-in History & Weekly Trends
             </h2>
