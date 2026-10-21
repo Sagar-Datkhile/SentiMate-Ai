@@ -198,11 +198,6 @@ export class NvidiaChatAdapter {
           stream_options: {
             include_usage: true,
           },
-          ...({
-            chat_template_kwargs: {
-              enable_thinking: false,
-            },
-          } as any),
         },
         { signal: currentSignal }
       );
@@ -262,7 +257,9 @@ export class NvidiaChatAdapter {
               };
             }
 
-            const choice = chunk.choices?.[0];
+            // Skip usage-only chunks (choices is empty on the final chunk when include_usage is set)
+            if (!chunk.choices || chunk.choices.length === 0) continue;
+            const choice = chunk.choices[0];
             if (!choice) continue;
 
             // Strict invariant: Never display or persist internal reasoning / thinking fields
@@ -307,6 +304,61 @@ export class NvidiaChatAdapter {
         }
       },
     });
+  }
+
+  /**
+   * Generates a concise contextual title of approximately 3–7 words using the configured model.
+   * Summarizes the topic rather than copying or truncating the first message.
+   * Excludes names, personal identifiers, and sensitive details.
+   */
+  public async generateTitle(conversationSnippet: string): Promise<string | null> {
+    if (!env.nvidiaApiKey) return null;
+
+    try {
+      const client = this.getClient();
+      const response = await client.chat.completions.create({
+        model: env.nvidiaModel || 'nvidia/nemotron-3-super-120b-a12b',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are a title generator for a student wellbeing chat.\n' +
+              'Rules:\n' +
+              '- Generate a concise, contextual title of approximately 3 to 7 words summarizing the core topic or challenge.\n' +
+              '- NEVER include student names, personal identifiers, course codes, or sensitive private information.\n' +
+              '- Output ONLY the plain text title without quotation marks, markdown, or trailing punctuation.\n' +
+              '- Do NOT use generic labels like "New conversation" or "Chat session".',
+          },
+          {
+            role: 'user',
+            content: `Summarize this conversation into a 3-7 word title:\n\n${conversationSnippet.slice(0, 1000)}`,
+          },
+        ],
+        max_tokens: 30,
+        temperature: 0.2,
+      });
+
+      const raw = response.choices?.[0]?.message?.content?.trim();
+      if (!raw) return null;
+
+      // Clean up quotes, markdown, and trailing punctuation
+      const cleaned = raw
+        .replace(/^["'`“]+|["'`”]+$/g, '')
+        .replace(/[.#]+$/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (cleaned.length < 3) return null;
+
+      const words = cleaned.split(' ');
+      if (words.length > 8) {
+        return words.slice(0, 7).join(' ');
+      }
+      return cleaned;
+    } catch (err: any) {
+      console.warn('[NvidiaChatAdapter] Title generation failed:', err?.message || err);
+      return null;
+    }
   }
 }
 

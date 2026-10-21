@@ -489,7 +489,7 @@ export function StudentShell({
                       if (onSelectSession) onSelectSession(s.id);
                     }}
                   >
-                    <span className="truncate flex-1 min-w-0 pr-1.5">{s.title}</span>
+                    <span title={s.title} className="truncate flex-1 min-w-0 pr-1.5">{s.title}</span>
 
                     <div className="shrink-0 w-7 h-7 flex items-center justify-center">
                       <button
@@ -601,7 +601,7 @@ export function StudentShell({
                         setMobileDrawerOpen(false);
                       }}
                     >
-                      <span className="truncate flex-1 min-w-0 pr-1.5">{s.title}</span>
+                      <span title={s.title} className="truncate flex-1 min-w-0 pr-1.5">{s.title}</span>
 
                       <div className="shrink-0 w-7 h-7 flex items-center justify-center">
                         <button

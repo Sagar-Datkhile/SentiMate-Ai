@@ -85,6 +85,37 @@ function isUUID(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
 
+/**
+ * Detect simple greeting-only messages (e.g. 'hi', 'hello', 'hey there')
+ * that lack contextual topic content for generating a meaningful title.
+ */
+function isGreetingOnly(text: string): boolean {
+  if (!text) return true;
+  const clean = text.trim().toLowerCase().replace(/[^\w\s]/g, '');
+  if (clean.length <= 2) return true;
+  const greetingPhrases = new Set([
+    'hi',
+    'hello',
+    'hey',
+    'hiya',
+    'howdy',
+    'yo',
+    'sup',
+    'good morning',
+    'good afternoon',
+    'good evening',
+    'good day',
+    'hi there',
+    'hello there',
+    'hey there',
+    'greetings',
+    'whats up',
+    'how are you',
+    'how r u',
+  ]);
+  return greetingPhrases.has(clean);
+}
+
 /** Map a DB message row to a UI Message */
 function dbRowToMessage(row: any): Message {
   return {
@@ -113,6 +144,16 @@ export default function StudentChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Continuity & Title Generation Refs:
+  // - loadedSessionIdRef: tracks the session whose messages are currently in state to eliminate remount/flicker
+  // - manuallyRenamedSessionIdsRef: tracks sessions renamed by the user so auto-titles never overwrite them
+  // - autoTitleGeneratedSessionIdsRef: guarantees at most one automatic title generation per conversation
+  // - titleJobsInFlightRef: deduplicates in-flight background title requests
+  const loadedSessionIdRef = useRef<string | null>(null);
+  const manuallyRenamedSessionIdsRef = useRef<Set<string>>(new Set());
+  const autoTitleGeneratedSessionIdsRef = useRef<Set<string>>(new Set());
+  const titleJobsInFlightRef = useRef<Set<string>>(new Set());
 
   const latestAssistantMessageId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i--) {
@@ -162,12 +203,19 @@ export default function StudentChatPage() {
 
   useEffect(() => {
     if (!activeSessionId || !isUUID(activeSessionId)) {
-      // null or temp ID → empty state for new chat
+      loadedSessionIdRef.current = null;
       setMessages([]);
       setIsLoadingMessages(false);
       return;
     }
 
+    // Chat continuity invariant: If this session is already loaded in memory (e.g. freshly created
+    // on the first send or actively streaming), do NOT clear or refetch to eliminate visible resets.
+    if (loadedSessionIdRef.current === activeSessionId) {
+      return;
+    }
+
+    loadedSessionIdRef.current = activeSessionId;
     let cancelled = false;
     setIsLoadingMessages(true);
     setMessages([]);
@@ -198,6 +246,62 @@ export default function StudentChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // ── Independent contextual title generation ──────────────────────────────────
+
+  const triggerTitleGeneration = useCallback(
+    async (sessionId: string, currentMessage: string, force: boolean = false) => {
+      if (!sessionId || !isUUID(sessionId)) return;
+      if (!force && manuallyRenamedSessionIdsRef.current.has(sessionId)) return;
+      if (!force && autoTitleGeneratedSessionIdsRef.current.has(sessionId)) return;
+      if (titleJobsInFlightRef.current.has(sessionId)) return;
+
+      titleJobsInFlightRef.current.add(sessionId);
+
+      try {
+        const res = await fetch(`/api/chat/sessions/${sessionId}/title`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: currentMessage, force }),
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json().catch(() => null);
+        const newTitle = data?.title?.trim();
+
+        // Reject null, empty, or placeholder titles — never lock the session in with a non-title
+        if (!newTitle || newTitle.toLowerCase() === 'new conversation') return;
+
+        // Check again: ensure user did not rename while title generation was in flight
+        if (!force && manuallyRenamedSessionIdsRef.current.has(sessionId)) return;
+
+        autoTitleGeneratedSessionIdsRef.current.add(sessionId);
+
+        // Update conversation metadata in place without touching message state
+        setSessions((prev) =>
+          prev.map((s) => (s.id === sessionId ? { ...s, title: newTitle } : s))
+        );
+
+        if (force) {
+          toast.success('Title updated', { description: `"${newTitle}"` });
+        }
+      } catch {
+        // Non-blocking fallback: never disrupt chat or saves on title failure
+      } finally {
+        titleJobsInFlightRef.current.delete(sessionId);
+      }
+    },
+    []
+  );
+
+  const handleRegenerateTitle = useCallback(
+    async (sessionId: string) => {
+      toast.info('Regenerating conversation title…');
+      await triggerTitleGeneration(sessionId, '', true);
+    },
+    [triggerTitleGeneration]
+  );
 
   // ── Send message ─────────────────────────────────────────────────────────────
 
@@ -252,19 +356,27 @@ export default function StudentChatPage() {
       // If server created a new session, capture its ID and add to sidebar
       const serverSessionId = response.headers.get('X-Session-Id');
       const sessionCreated = response.headers.get('X-Session-Created') === '1';
+      const effectiveSessionId = serverSessionId || activeSessionId;
 
       if (serverSessionId && serverSessionId !== activeSessionId) {
+        // Pre-mark loadedSessionIdRef to prevent useEffect from wiping out messages in-flight
+        loadedSessionIdRef.current = serverSessionId;
         setActiveSessionId(serverSessionId);
         if (sessionCreated) {
-          // Add new session to top of list (derive title from user message)
+          // Add new session to top of list with clean initial title
           const newSessionItem: ChatSessionItem = {
             id: serverSessionId,
-            title: text.length <= 50 ? text : text.slice(0, 47) + '…',
+            title: 'New conversation',
             createdAt: new Date().toISOString(),
             lastActivityAt: new Date().toISOString(),
           };
           setSessions((prev) => [newSessionItem, ...prev]);
         }
+      }
+
+      // Run title generation independently alongside reply streaming
+      if (effectiveSessionId && isUUID(effectiveSessionId)) {
+        triggerTitleGeneration(effectiveSessionId, text);
       }
 
       const reader = response.body.getReader();
@@ -457,6 +569,7 @@ export default function StudentChatPage() {
 
   const handleNewSession = () => {
     // Don't create a DB session yet — it will be created lazily on first message
+    loadedSessionIdRef.current = null;
     setActiveSessionId(null);
     setMessages([]);
   };
@@ -467,6 +580,7 @@ export default function StudentChatPage() {
   };
 
   const handleRenameSession = async (id: string, newTitle: string) => {
+    manuallyRenamedSessionIdsRef.current.add(id);
     // Optimistic update
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title: newTitle } : s)));
 
@@ -533,6 +647,7 @@ export default function StudentChatPage() {
       onSelectSession={handleSelectSession}
       onRenameSession={handleRenameSession}
       onDeleteSession={handleDeleteSession}
+      onRegenerateTitle={handleRegenerateTitle}
     >
       {/*
         Main chat area. When `isNewChat` the flex column justifies to center so

@@ -154,8 +154,7 @@ export async function POST(req: NextRequest) {
       }
     } else if (hasStorageConsent && env.isConfigured.supabase) {
       // No valid session yet and storage consent granted — create one on first user message (lazy creation)
-      const title = ChatRepository.deriveTitleFromMessage(message);
-      const newSession = await chatRepository.createSession(authenticatedUserId, title);
+      const newSession = await chatRepository.createSession(authenticatedUserId, 'New conversation');
       if (newSession) {
         resolvedSessionId = newSession.id;
         newSessionCreated = true;
