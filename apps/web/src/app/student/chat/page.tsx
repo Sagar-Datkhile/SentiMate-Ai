@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   ArrowUp,
   Square,
@@ -81,13 +81,30 @@ function sanitizeErrorMessage(rawError: unknown): string {
   return raw;
 }
 
+/** True if s is a real DB UUID (36 chars, 8-4-4-4-12 format) */
+function isUUID(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+}
+
+/** Map a DB message row to a UI Message */
+function dbRowToMessage(row: any): Message {
+  return {
+    id: row.id,
+    senderRole: row.sender_role,
+    content: row.content,
+    timestamp: new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    status: 'completed',
+  };
+}
+
 export default function StudentChatPage() {
   const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(true);
-  const [activeSessionId, setActiveSessionId] = useState<string>('sess-current');
+  // null = "new chat" (no DB session yet); string = DB UUID
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoadingMessages, setIsLoadingMessages] = useState<boolean>(true);
+  const [isLoadingMessages, setIsLoadingMessages] = useState<boolean>(false);
 
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -107,70 +124,119 @@ export default function StudentChatPage() {
     return null;
   }, [messages]);
 
+  // ── Session loading ──────────────────────────────────────────────────────────
+
+  const loadSessions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/chat/sessions');
+      if (!res.ok) {
+        setIsLoadingSessions(false);
+        return;
+      }
+      const { sessions: dbSessions } = await res.json();
+      const items: ChatSessionItem[] = (dbSessions ?? []).map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        createdAt: s.created_at,
+        lastActivityAt: s.last_activity_at ?? s.updated_at ?? s.created_at,
+      }));
+      setSessions(items);
+    } catch {
+      // Network error — keep empty list, no crash
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  }, []);
+
+  // ── Greeting message (for blank new-chat state) ──────────────────────────────
+
+  const buildGreeting = useCallback(async (): Promise<Message> => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const name =
+        user?.user_metadata?.full_name ||
+        user?.user_metadata?.name ||
+        user?.email?.split('@')[0] ||
+        '';
+      const text = name
+        ? `Hello ${name}. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?`
+        : 'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?';
+      return {
+        id: 'm-welcome',
+        senderRole: 'assistant',
+        content: text,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'completed',
+      };
+    } catch {
+      return {
+        id: 'm-welcome',
+        senderRole: 'assistant',
+        content: 'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'completed',
+      };
+    }
+  }, []);
+
+  // ── Initial mount: load sessions ─────────────────────────────────────────────
+
   useEffect(() => {
-    let isMounted = true;
-    const initChat = async () => {
+    let mounted = true;
+    (async () => {
+      await loadSessions();
+      if (!mounted) return;
+      // Show welcome greeting for brand-new users (no sessions yet)
+      const greeting = await buildGreeting();
+      if (!mounted) return;
+      setMessages([greeting]);
+    })();
+    return () => { mounted = false; };
+  }, [loadSessions, buildGreeting]);
+
+  // ── Load messages when active session changes ────────────────────────────────
+
+  useEffect(() => {
+    if (!activeSessionId || !isUUID(activeSessionId)) {
+      // null or temp ID → show greeting for new-chat state
+      buildGreeting().then((g) => setMessages([g]));
+      setIsLoadingMessages(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingMessages(true);
+    setMessages([]);
+
+    (async () => {
       try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        const name =
-          user?.user_metadata?.full_name ||
-          user?.user_metadata?.name ||
-          user?.email?.split('@')[0] ||
-          '';
-
-        const greetingText = name
-          ? `Hello ${name}. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?`
-          : 'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?';
-
-        if (isMounted) {
-          const currentSession: ChatSessionItem = {
-            id: 'sess-current',
-            title: 'Current Session',
-            createdAt: new Date().toISOString(),
-          };
-          setSessions([currentSession]);
-          setActiveSessionId('sess-current');
-
-          setMessages([
-            {
-              id: 'm-welcome',
-              senderRole: 'assistant',
-              content: greetingText,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              status: 'completed',
-            },
-          ]);
+        const res = await fetch(`/api/chat/sessions/${activeSessionId}/messages`);
+        if (!res.ok || cancelled) {
+          if (!cancelled) setIsLoadingMessages(false);
+          return;
         }
+        const { messages: dbMessages } = await res.json();
+        if (cancelled) return;
+        const uiMessages: Message[] = (dbMessages ?? []).map(dbRowToMessage);
+        setMessages(uiMessages);
       } catch {
-        if (isMounted) {
-          setMessages([
-            {
-              id: 'm-welcome',
-              senderRole: 'assistant',
-              content:
-                'Hello. Welcome to your private conversation space. How are you feeling today with your courses, exams, and routines?',
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              status: 'completed',
-            },
-          ]);
+        if (!cancelled) {
+          toast.error('Could not load conversation messages');
         }
       } finally {
-        if (isMounted) {
-          setIsLoadingSessions(false);
-          setIsLoadingMessages(false);
-        }
+        if (!cancelled) setIsLoadingMessages(false);
       }
-    };
-    initChat();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    })();
+
+    return () => { cancelled = true; };
+  }, [activeSessionId, buildGreeting]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // ── Send message ─────────────────────────────────────────────────────────────
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || inputValue).trim();
@@ -203,12 +269,11 @@ export default function StudentChatPage() {
     abortControllerRef.current = abortController;
 
     try {
-      // Call server-side streaming API `/api/chat`
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId: activeSessionId,
+          sessionId: activeSessionId && isUUID(activeSessionId) ? activeSessionId : undefined,
           message: text,
           clientMessageId: userMessageId,
         }),
@@ -219,6 +284,24 @@ export default function StudentChatPage() {
         const errorData = await response.json().catch(() => null);
         const errMsg = sanitizeErrorMessage(errorData?.error || `Chat API error (${response.status})`);
         throw new Error(errMsg);
+      }
+
+      // If server created a new session, capture its ID and add to sidebar
+      const serverSessionId = response.headers.get('X-Session-Id');
+      const sessionCreated = response.headers.get('X-Session-Created') === '1';
+
+      if (serverSessionId && serverSessionId !== activeSessionId) {
+        setActiveSessionId(serverSessionId);
+        if (sessionCreated) {
+          // Add new session to top of list (derive title from user message)
+          const newSessionItem: ChatSessionItem = {
+            id: serverSessionId,
+            title: text.length <= 50 ? text : text.slice(0, 47) + '…',
+            createdAt: new Date().toISOString(),
+            lastActivityAt: new Date().toISOString(),
+          };
+          setSessions((prev) => [newSessionItem, ...prev]);
+        }
       }
 
       const reader = response.body.getReader();
@@ -244,6 +327,22 @@ export default function StudentChatPage() {
           m.id === assistantMessageId ? { ...m, status: 'completed' } : m
         )
       );
+
+      // Move this conversation to the top of the sessions list after successful save
+      if (serverSessionId) {
+        setSessions((prev) => {
+          const now = new Date().toISOString();
+          const updated = prev.map((s) =>
+            s.id === serverSessionId ? { ...s, lastActivityAt: now } : s
+          );
+          // Sort: most recently active first, stable by id
+          return [...updated].sort((a, b) => {
+            const ta = a.lastActivityAt ?? a.createdAt;
+            const tb = b.lastActivityAt ?? b.createdAt;
+            return ta < tb ? 1 : ta > tb ? -1 : a.id < b.id ? 1 : -1;
+          });
+        });
+      }
     } catch (err: any) {
       if (err.name === 'AbortError') {
         setMessages((prev) =>
@@ -284,7 +383,6 @@ export default function StudentChatPage() {
     const failedIndex = messages.findIndex((m) => m.id === failedAssistantId);
     if (failedIndex === -1) return;
 
-    // Find preceding user prompt
     let precedingUserPrompt: Message | null = null;
     for (let i = failedIndex - 1; i >= 0; i--) {
       if (messages[i].senderRole === 'user') {
@@ -313,7 +411,7 @@ export default function StudentChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionId: activeSessionId,
+          sessionId: activeSessionId && isUUID(activeSessionId) ? activeSessionId : undefined,
           message: textToRetry,
           clientMessageId: precedingUserPrompt.id,
         }),
@@ -386,57 +484,84 @@ export default function StudentChatPage() {
   };
 
   const handleRetry = () => {
-    // If a failed assistant message is present, retry it in place
     const lastFailed = [...messages].reverse().find((m) => m.status === 'failed');
     if (lastFailed) {
       handleRetryMessage(lastFailed.id);
     }
   };
 
+  // ── Session management ───────────────────────────────────────────────────────
+
   const handleNewSession = () => {
-    const newId = `sess-${Date.now()}`;
-    const newSession: ChatSessionItem = {
-      id: newId,
-      title: 'New Conversation',
-      createdAt: new Date().toISOString(),
-    };
-    setSessions([newSession, ...sessions]);
-    setActiveSessionId(newId);
-    setMessages([
-      {
-        id: `m-${Date.now()}`,
-        senderRole: 'assistant',
-        content:
-          "Welcome to a new conversation. What would you like to reflect on or talk about today?",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'completed',
-      },
-    ]);
+    // Don't create a DB session yet — it will be created lazily on first message
+    setActiveSessionId(null);
+    buildGreeting().then((g) => setMessages([g]));
   };
 
-  const handleRenameSession = (id: string, newTitle: string) => {
+  const handleSelectSession = (id: string) => {
+    if (id === activeSessionId) return;
+    setActiveSessionId(id);
+  };
+
+  const handleRenameSession = async (id: string, newTitle: string) => {
+    // Optimistic update
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title: newTitle } : s)));
+
+    if (!isUUID(id)) return; // temp ID — not yet in DB
+
+    try {
+      const res = await fetch(`/api/chat/sessions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newTitle }),
+      });
+      if (!res.ok) {
+        // Rollback optimistic update
+        await loadSessions();
+        toast.error('Failed to rename conversation');
+      }
+    } catch {
+      await loadSessions();
+      toast.error('Failed to rename conversation');
+    }
   };
 
-  const handleDeleteSession = (id: string) => {
-    const remaining = sessions.filter((s) => s.id !== id);
-    setSessions(remaining);
+  const handleDeleteSession = async (id: string) => {
+    // Optimistic removal
+    const removed = sessions.find((s) => s.id === id);
+    setSessions((prev) => prev.filter((s) => s.id !== id));
+
     if (activeSessionId === id) {
+      const remaining = sessions.filter((s) => s.id !== id);
       if (remaining.length > 0) {
         setActiveSessionId(remaining[0].id);
       } else {
         handleNewSession();
       }
     }
+
+    if (!isUUID(id)) return; // temp ID — nothing to delete in DB
+
+    try {
+      const res = await fetch(`/api/chat/sessions/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        // Rollback: re-add the session
+        if (removed) setSessions((prev) => [removed, ...prev]);
+        toast.error('Failed to delete conversation');
+      }
+    } catch {
+      if (removed) setSessions((prev) => [removed, ...prev]);
+      toast.error('Failed to delete conversation');
+    }
   };
 
   return (
     <StudentShell
       sessions={sessions}
-      activeSessionId={activeSessionId}
+      activeSessionId={activeSessionId ?? 'new-chat'}
       isLoadingSessions={isLoadingSessions}
       onNewSession={handleNewSession}
-      onSelectSession={(id) => setActiveSessionId(id)}
+      onSelectSession={handleSelectSession}
       onRenameSession={handleRenameSession}
       onDeleteSession={handleDeleteSession}
     >
@@ -544,7 +669,7 @@ export default function StudentChatPage() {
           </div>
         </LoadingRegion>
 
-        {/* Bottom Multiline Composer with Pill Input and Circular Up Arrow Send Button */}
+        {/* Bottom Multiline Composer */}
         <div className="bg-[#FBFBFA] dark:bg-[#000000] shrink-0 w-full px-4 sm:px-6 pt-3.5 pb-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:min-h-[104px] flex flex-col justify-center">
           <div className="max-w-3xl w-full mx-auto">
             <form

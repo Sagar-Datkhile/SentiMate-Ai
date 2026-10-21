@@ -415,5 +415,80 @@ To eliminate visual layout shifts, prevent confusing placeholders, and provide c
   - `npx tsc --noEmit`: 0 TypeScript errors.
   - `npm run build`: Next.js 15 production build succeeded (24 static & dynamic routes, exit code 0).
 
+---
+
+## 10. Chat Persistence with Compressed Storage (Supabase)
+
+To support long-term student conversational continuity while minimizing PostgreSQL storage footprint and network payload overhead, SentiMate employs server-side gzip compression for completed message content, coupled with lazy session creation, activity-driven ordering, and strict consent governance.
+
+### 10.1 Compression Specification & Invariants
+- **Algorithm**: Node.js built-in `zlib.gzipSync` (level: 6) and `zlib.gunzipSync`. Zero external dependencies introduced.
+- **Authoritative Single Representation**: New message writes populate `content_compressed BYTEA`, `encoding_version TEXT`, and `original_byte_length INTEGER`. The legacy `content` column is set to empty string `''` to satisfy PostgreSQL `NOT NULL` constraints without duplicate storage.
+- **Identity Fallback**: If compression increases byte length (common with very short messages, e.g. "Hi" or single emoji), the system stores raw UTF-8 bytes with `encoding_version = 'identity/1'`.
+- **Per-Message Compression**: Each message is compressed independently; reading or appending messages never requires re-compressing or rewriting entire conversations.
+- **Metadata Transparency**: Session titles, ownership (`student_id`), timestamps (`created_at`, `updated_at`, `last_activity_at`), sender roles (`user`, `assistant`), model version, and token counts remain uncompressed and queryable.
+- **Security & Decompression Bounds**:
+  - Decompression is performed server-side only after user authentication and ownership authorization.
+  - Strict input ceiling: 256 KB safety limit on compressed input.
+  - Strict output ceiling: 512 KB safety limit on decompressed output.
+  - Decompression failures fall back gracefully to plaintext without throwing unhandled exceptions or logging sensitive message text.
+  - Transparent to UI: Compression is purely a storage optimization and is never described as encryption.
+
+### 10.2 Database Schema & Additive Migration (`20261022000000`)
+- **Versioned Migration File**: `supabase/migrations/20261022000000_chat_persistence_compressed.sql`.
+- **Additive DDL Modifications**:
+  - `chat_sessions`: Added `last_activity_at TIMESTAMPTZ` (back-filled from `updated_at`, default `timezone('utc'::text, now())`).
+  - `chat_messages`: Added `content_compressed BYTEA`, `encoding_version TEXT CHECK (encoding_version IS NULL OR encoding_version IN ('gzip/1', 'identity/1'))`, and `original_byte_length INTEGER CHECK (original_byte_length IS NULL OR original_byte_length >= 0)`.
+  - Coherence Constraint: `chk_compressed_encoding_coherence` enforces that `content_compressed`, `encoding_version`, and `original_byte_length` are either all NULL (legacy rows) or all NOT NULL (compressed rows).
+- **Indexing**:
+  - `idx_chat_sessions_student_activity`: `(student_id, last_activity_at DESC NULLS LAST, id DESC)` for fast recent-first session list retrieval.
+  - `idx_chat_messages_session_chrono`: `(session_id, created_at ASC)` for chronological message pagination within conversations.
+  - `idx_chat_messages_compressed_session`: Partial index on `(session_id, created_at) WHERE content_compressed IS NOT NULL`.
+
+### 10.3 Backend Architecture & Route Handlers
+- **Repository (`ChatRepository` in `src/server/repositories/chat.repository.ts`)**:
+  - `compressContent(text)`: Compresses text via `gzipSync`, evaluates size, and returns buffer with encoding tag.
+  - `decompressContent(hexStr, encoding, fallback)`: Decompresses PostgREST `\x<hex>` strings via `gunzipSync` or identity UTF-8 parsing.
+  - `getRecentMessages(sessionId, limit)`: Decompresses recent messages to supply the model context window with actual text instead of empty strings.
+  - `saveUserMessage(sessionId, content, messageId)`: Idempotently upserts compressed user message and updates `chat_sessions.last_activity_at` atomically.
+  - `saveAssistantMessage(sessionId, content, modelVersion, tokenCount, messageId)`: Idempotently upserts compressed assistant response once generation completes.
+  - `hasStorageConsent(studentId)`: Checks `consent_events` for `ai_chat_processing`; returns false if consent is revoked or absent.
+  - `deriveTitleFromMessage(message)`: Fast local text truncation (max 50 chars at word boundary); zero LLM calls or network latency.
+- **API Endpoints**:
+  - `GET /api/chat/sessions`: Lists student sessions ordered by `last_activity_at DESC NULLS LAST, id DESC`. Metadata only (no message bodies).
+  - `POST /api/chat/sessions`: Explicit session creation endpoint.
+  - `PATCH /api/chat/sessions/[sessionId]`: Renames session without altering `last_activity_at`.
+  - `DELETE /api/chat/sessions/[sessionId]`: Soft-archives session (`is_archived = true`).
+  - `GET /api/chat/sessions/[sessionId]/messages`: Decompresses messages server-side with ownership and student role guards.
+  - `POST /api/chat`:
+    - Enforces student role, active account status, and conversation ownership.
+    - Lazy session creation: creates database session on first user message send.
+    - Echoes `X-Session-Id` and `X-Session-Created: 1` headers back to client.
+    - Persists user message before streaming response; persists assistant response once upon stream completion.
+    - Respects storage consent: suppresses persistence if consent is absent or revoked while maintaining real-time streaming response.
+
+### 10.4 Frontend Experience & State Coordination (`/student/chat`)
+- **Lazy Session Initialization**: Clicking "New Chat" resets `activeSessionId` to `null` without writing empty placeholder rows to Supabase.
+- **Optimistic Recent-First Re-sorting**: When a message is sent, the client reads the `X-Session-Id` header, adopts the UUID, moves the session to the top of the sidebar with `lastActivityAt = now()`, and sorts cleanly without refetching the entire list.
+- **Decompressed Chat Hydration**: Selecting an existing session fetches `/api/chat/sessions/[id]/messages`, populating decompressed chat bubbles.
+- **In-Place Retry & Honest Status**: Stream errors render accessible status cards with retry buttons; retrying updates the assistant bubble in-place without duplicating the user's message.
+- **Zero Dummy Data**: Renders skeletons during fetch and clean empty states when no conversations exist.
+
+### 10.5 Verification Summary
+- **Test Suites**:
+  - `scratch/test-full-chat-verification.mjs`:
+    - Unicode diacritics round-trip: PASS
+    - Marathi script round-trip: PASS (`gzip/1`, raw 169b -> stored 122b)
+    - Emoji & symbol preservation: PASS (`identity/1`)
+    - Multiline formatting preservation: PASS
+    - Identity fallback for short text: PASS (`identity/1`, raw 2b -> stored 2b)
+    - Legacy uncompressed row fallback: PASS
+    - Malformed compressed content safe error recovery: PASS
+    - Live Supabase session creation and bytea insert/select/decompress: PASS
+    - Idempotent upsert & duplicate-send protection: PASS (count = 1)
+    - Recent-first session ordering after activity bump: PASS
+  - `apps/web/test-chat-api.mjs`: All 7 security and validation tests passed (empty message 400, max length 400, live NVIDIA streaming 200, unauthenticated 401, non-student role 403, inactive account 403, cross-user session 403).
+  - TypeScript Compilation: `npx tsc --noEmit` exited with code 0 (0 errors).
+
 
 

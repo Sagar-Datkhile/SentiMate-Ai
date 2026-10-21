@@ -28,6 +28,7 @@ export interface ChatSessionItem {
   id: string;
   title: string;
   createdAt: string;
+  lastActivityAt?: string;
 }
 
 interface StudentShellProps {

@@ -152,7 +152,8 @@ CREATE TABLE chat_sessions (
     title TEXT NOT NULL DEFAULT 'New Conversation',
     is_archived BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    last_activity_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 
 CREATE TABLE chat_messages (
@@ -160,10 +161,28 @@ CREATE TABLE chat_messages (
     session_id UUID NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
     sender_role TEXT NOT NULL CHECK (sender_role IN ('user', 'assistant', 'system')),
     content TEXT NOT NULL,
+    content_compressed BYTEA,
+    encoding_version TEXT CHECK (encoding_version IS NULL OR encoding_version IN ('gzip/1', 'identity/1')),
+    original_byte_length INTEGER CHECK (original_byte_length IS NULL OR original_byte_length >= 0),
     model_version TEXT,
     token_count INTEGER,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT chk_compressed_encoding_coherence CHECK (
+        (content_compressed IS NULL AND encoding_version IS NULL AND original_byte_length IS NULL)
+        OR
+        (content_compressed IS NOT NULL AND encoding_version IS NOT NULL AND original_byte_length IS NOT NULL)
+    )
 );
+
+CREATE INDEX IF NOT EXISTS idx_chat_sessions_student_activity
+    ON chat_sessions (student_id, last_activity_at DESC NULLS LAST, id DESC);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_session_chrono
+    ON chat_messages (session_id, created_at ASC);
+
+CREATE INDEX IF NOT EXISTS idx_chat_messages_compressed_session
+    ON chat_messages (session_id, created_at)
+    WHERE content_compressed IS NOT NULL;
 
 -- ----------------------------------------------------------------------------
 -- 5. WELLBEING CHECK-INS

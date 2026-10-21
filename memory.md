@@ -83,6 +83,16 @@
   - Implemented in-place retry `handleRetryMessage()`: Retrying updates the failed assistant response card in-place without duplicating the user's message in chat history.
   - Integrated glassmorphic toast notification (`toast.error()`) and dismissible bottom retry banner.
   - Added unit test assertions to `test-adapter.ts` and verified `test-chat-api.mjs`, `test:bloom`, and `npm run build` (24 routes, code 0).
+- **Chat Persistence with Compressed Storage (Supabase)** — ✅ Complete:
+  - Server-side gzip compression using Node.js built-in `zlib` (level 6) with automatic `identity/1` fallback when compression expands byte size.
+  - Single authoritative representation in PostgreSQL `content_compressed BYTEA` column via `\x<hex>` literal, with `encoding_version` and `original_byte_length`.
+  - Additive migration `20261022000000_chat_persistence_compressed.sql` adding `last_activity_at` to `chat_sessions`, compressed columns and coherence constraint to `chat_messages`, and supporting B-tree indexes.
+  - Lazy session creation: conversations are created in the database on first user message send rather than on "New Chat" click.
+  - Ordered by `last_activity_at DESC NULLS LAST, id DESC` for recent-first sidebar display; renaming sessions does not alter activity timestamp.
+  - Server-side decompression only after student authentication and ownership verification, bounded by strict size ceilings (256 KB compressed input, 512 KB decompressed output) and zero sensitive text logging on error.
+  - Recent message history decompressed for model context; ML pipeline and UI consume decompressed messages transparently.
+  - Storage consent governance: skips message persistence when `ai_chat_processing` consent is absent or revoked.
+  - Verified compression round-trip for Unicode, Marathi script, emoji, multiline text, and legacy plaintext rows. Verified all 7 chat security tests and 0 TypeScript compilation errors.
 
 ---
 
@@ -98,4 +108,8 @@
 - **Accessible Loading Invariant**: Decorative placeholders default to `aria-hidden="true"`. Container regions use `aria-busy={isLoading}` with exactly one polite screen-reader announcement (`sr-only`) per region. Skeletons immediately halt when requests succeed, fail, or are cancelled.
 - **Institutional Integrity & Immutability**: Students cannot mutate `institution_id` through unrestricted profile updates. Department selections are validated server-side to ensure institutional scope match. Existing department and institution assignments are preserved across migrations and backfills; incompatible legacy entries are flagged for academic counsellor review rather than silently wiped.
 - **Zero Fabricated Institutional Details**: Required institutional contact columns (`contact_email`, `emergency_contact`) are relaxed to nullable rather than populated with placeholder or invented addresses. Official campus configuration is documented as pending university administration input.
+- **Transparent Storage Compression**: Message content is compressed server-side via Node.js built-in `zlib` for storage efficiency and is never described as encryption. Authoritative content lives in `content_compressed` without storing duplicate plaintext copies.
+- **Lazy Conversation Creation**: Database session rows are created only upon sending the first user message, eliminating empty abandoned sessions in storage.
+- **Activity-Preserving Session Ordering**: Conversations are ordered strictly by recent activity (`last_activity_at DESC`), moving to the top when a new message is saved and never reordering merely because a conversation was opened, read, or renamed.
+- **Consent-Gated Storage**: Conversation persistence is strictly conditional on student consent for chat processing; when consent is revoked or absent, content persistence is suppressed without interrupting conversational streaming.
 

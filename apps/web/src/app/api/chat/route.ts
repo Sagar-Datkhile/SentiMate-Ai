@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 import { nvidiaChatAdapter, NvidiaChatServiceError } from '@/server/integrations/nvidiaChatAdapter';
-import { chatRepository } from '@/server/repositories/chat.repository';
+import { chatRepository, ChatRepository } from '@/server/repositories/chat.repository';
 import { authRepository } from '@/server/repositories/auth.repository';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+
+/** A UUID looks like 8-4-4-4-12 hex characters separated by dashes. */
+function isUUID(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -116,23 +121,44 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Conversation ownership enforcement
-    if (sessionId) {
-      if (mockSessionStudentId && mockSessionStudentId !== authenticatedUserId) {
-        return NextResponse.json(
-          { error: 'Access denied: You do not have permission to view or message in this conversation session.', code: 'CONVERSATION_FORBIDDEN' },
-          { status: 403 }
-        );
-      }
+    // Cross-user session access rejection guard (enforces ownership in both test and live contexts)
+    if (mockSessionStudentId && mockSessionStudentId !== authenticatedUserId) {
+      return NextResponse.json(
+        { error: 'Access denied: You do not have permission to view or message in this conversation session.', code: 'CONVERSATION_FORBIDDEN' },
+        { status: 403 }
+      );
+    }
 
-      if (env.isConfigured.supabase && sessionId.length === 36) {
-        const sessionRecord = await chatRepository.getSession(sessionId, authenticatedUserId);
+    // Storage consent check: respect existing consent, do not save conversation content when absent or revoked
+    const mockConsent = req.headers.get('x-chat-storage-consent');
+    let hasStorageConsent = true;
+    if (mockConsent !== null) {
+      hasStorageConsent = mockConsent === 'granted' || mockConsent === 'true';
+    } else if (authenticatedUserId) {
+      hasStorageConsent = await chatRepository.hasStorageConsent(authenticatedUserId);
+    }
+
+    // Conversation ownership enforcement + lazy session creation
+    let resolvedSessionId: string | null = sessionId && isUUID(sessionId) ? sessionId : null;
+    let newSessionCreated = false;
+
+    if (resolvedSessionId) {
+      if (env.isConfigured.supabase) {
+        const sessionRecord = await chatRepository.getSession(resolvedSessionId, authenticatedUserId);
         if (!sessionRecord) {
           return NextResponse.json(
             { error: 'Access denied: Conversation session not found or owned by another user.', code: 'CONVERSATION_FORBIDDEN' },
             { status: 403 }
           );
         }
+      }
+    } else if (hasStorageConsent && env.isConfigured.supabase) {
+      // No valid session yet and storage consent granted — create one on first user message (lazy creation)
+      const title = ChatRepository.deriveTitleFromMessage(message);
+      const newSession = await chatRepository.createSession(authenticatedUserId, title);
+      if (newSession) {
+        resolvedSessionId = newSession.id;
+        newSessionCreated = true;
       }
     }
 
@@ -149,13 +175,14 @@ export async function POST(req: NextRequest) {
 
     // 4. Retrieve bounded recent conversation history
     let history: Array<{ role: 'user' | 'assistant'; content: string }> = [];
-    if (sessionId && sessionId.length === 36) {
-      history = await chatRepository.getRecentMessages(sessionId, 8);
+    if (resolvedSessionId) {
+      history = await chatRepository.getRecentMessages(resolvedSessionId, 8);
     }
 
-    // 5. Idempotent persistence of user message
-    if (sessionId) {
-      await chatRepository.saveUserMessage(sessionId, message, clientMessageId);
+    // 5. Idempotent persistence of user message (before requesting model response)
+    // Only persist if storage consent is granted
+    if (resolvedSessionId && hasStorageConsent) {
+      await chatRepository.saveUserMessage(resolvedSessionId, message, clientMessageId);
     }
 
     // 6. Connect to NVIDIA Nemotron streaming adapter
@@ -164,9 +191,9 @@ export async function POST(req: NextRequest) {
       history,
       signal: req.signal,
       onComplete: async (fullText, tokenUsage) => {
-        if (sessionId && fullText.trim()) {
+        if (resolvedSessionId && hasStorageConsent && fullText.trim()) {
           await chatRepository.saveAssistantMessage(
-            sessionId,
+            resolvedSessionId,
             fullText,
             env.nvidiaModel || 'nvidia/nemotron-3-super-120b-a12b',
             tokenUsage?.totalTokens
@@ -178,13 +205,23 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
-        'X-Content-Type-Options': 'nosniff',
-      },
-    });
+    const responseHeaders: Record<string, string> = {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'X-Content-Type-Options': 'nosniff',
+    };
+
+    // Echo the resolved session ID back to the client so it can update its
+    // local state without an extra round-trip. On new session creation the
+    // client replaces its temp placeholder ID with the real DB UUID.
+    if (resolvedSessionId) {
+      responseHeaders['X-Session-Id'] = resolvedSessionId;
+    }
+    if (newSessionCreated) {
+      responseHeaders['X-Session-Created'] = '1';
+    }
+
+    return new Response(stream, { headers: responseHeaders });
   } catch (error: any) {
     if (error instanceof NvidiaChatServiceError) {
       return NextResponse.json(
