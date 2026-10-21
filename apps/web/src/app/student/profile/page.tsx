@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
-import { Badge } from '@/components/ui/Badge';
 import {
   User,
   CheckCircle2,
@@ -655,20 +654,16 @@ export default function StudentProfilePage() {
     <StudentShell studentName={fullName} avatarUrl={displayPhotoUrl || undefined}>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Page Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
-              Student Profile & Academics
-            </h1>
-            <p className="text-xs sm:text-sm text-[#71757E] mt-1">
-              Manage your identity, academic details, and semester records. Profile completion is optional and never blocks chat access.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="teal" size="md">
-              Student Account
-            </Badge>
-          </div>
+        <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
+          <h1
+            className="text-3xl sm:text-4xl font-serif text-[#18191B] dark:text-[#F3F4F6] tracking-tight"
+            style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+          >
+            My Profile
+          </h1>
+          <p className="text-xs sm:text-sm text-[#71757E] mt-1">
+            Manage your personal and academic details
+          </p>
         </div>
 
         {/* Feedback alerts */}
