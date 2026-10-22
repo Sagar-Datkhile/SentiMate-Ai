@@ -37,6 +37,19 @@ export default function StudentReferralsPage() {
     } catch {
       // Storage fallback
     } finally {
+      // Trigger authenticated server notification event
+      fetch('/api/student/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType: 'referral_submitted',
+          details: {
+            priority,
+            referralId: `ref-${Date.now()}`,
+          },
+        }),
+      }).catch(() => {});
+
       setLoading(false);
       setSubmitted(true);
       toast.success('Support referral submitted.', {

@@ -107,6 +107,21 @@ export default function StudentAppointmentsPage() {
       // Ignore storage errors
     }
 
+    // Trigger authenticated server notification event
+    fetch('/api/student/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType: 'appointment_booked',
+        details: {
+          counsellorName: bookingSlot.counsellorName,
+          date: bookingSlot.date,
+          time: bookingSlot.time,
+          slotId: bookingSlot.id,
+        },
+      }),
+    }).catch(() => {});
+
     toast.success('Appointment request submitted.', {
       description: `Reserved with ${bookingSlot.counsellorName} for ${bookingSlot.date} at ${bookingSlot.time}.`,
     });
@@ -126,6 +141,22 @@ export default function StudentAppointmentsPage() {
     } catch {
       // Ignore
     }
+
+    // Trigger authenticated server notification event
+    fetch('/api/student/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        eventType: 'appointment_cancelled',
+        details: {
+          counsellorName: apt?.counsellorName,
+          date: apt?.date,
+          time: apt?.time,
+          appointmentId: id,
+        },
+      }),
+    }).catch(() => {});
+
     toast.info('Appointment cancelled.', {
       description: apt ? `Session on ${apt.date} at ${apt.time} has been cancelled.` : undefined,
     });
