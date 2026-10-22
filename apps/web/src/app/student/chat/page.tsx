@@ -223,13 +223,20 @@ export default function StudentChatPage() {
     }
   }, []);
 
-  // ── Initial mount: load sessions ─────────────────────────────────────────────
+  // ── Initial mount: load sessions & check URL session param ───────────────────
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       await loadSessions();
       if (!mounted) return;
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const sessionParam = params.get('session');
+        if (sessionParam && isUUID(sessionParam)) {
+          setActiveSessionId(sessionParam);
+        }
+      }
     })();
     return () => { mounted = false; };
   }, [loadSessions]);

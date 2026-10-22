@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { StudentShell } from '@/components/layout/StudentShell';
+import { StudentShell, ChatSessionItem } from '@/components/layout/StudentShell';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,6 +18,10 @@ import {
   Shield,
   Loader2,
   Info,
+  MessageSquare,
+  Clock,
+  ArrowRight,
+  Plus,
 } from 'lucide-react';
 import { ProfileSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
@@ -73,6 +78,44 @@ const LOCAL_DEPARTMENT_OPTIONS = [
   'Electronics and Telecommunication Engineering',
 ] as const;
 
+const FORM_LABEL_CLASS = 'block text-[13px] sm:text-sm font-medium text-[#18191B] dark:text-[#F3F4F6] mb-1.5';
+const FORM_FIELD_CLASS = '!h-12 !min-h-[48px] !rounded-xl border-[#E2E2DC] dark:border-[#222428] text-sm';
+
+/**
+ * Automatically calculates the student's current semester based on their admission year,
+ * expected passing year, and current academic calendar (July start).
+ * - July to December: Odd semesters (1, 3, 5, 7)
+ * - January to June: Even semesters (2, 4, 6, 8)
+ * - Clamped within [1, min(8, degreeSemesters)].
+ */
+function calculateCurrentSemester(
+  admissionYearStr: string,
+  expectedPassingYearStr?: string
+): number | null {
+  const admYear = parseInt(admissionYearStr, 10);
+  if (isNaN(admYear) || admYear < 1990 || admYear > 2100) {
+    return null;
+  }
+
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const curMonth = now.getMonth(); // 0 = Jan, 6 = July
+
+  const semFromAdmission =
+    curMonth >= 6
+      ? (curYear - admYear) * 2 + 1
+      : (curYear - admYear) * 2;
+
+  let maxSem = 8;
+  const passYear = parseInt(expectedPassingYearStr || '', 10);
+  if (!isNaN(passYear) && passYear >= admYear) {
+    const degreeSemesters = Math.max(1, (passYear - admYear) * 2);
+    maxSem = Math.min(8, degreeSemesters);
+  }
+
+  return Math.max(1, Math.min(maxSem, semFromAdmission));
+}
+
 interface SemesterSGPA {
   semester: number;
   sgpa: string;
@@ -107,6 +150,9 @@ interface AvailabilityState {
 }
 
 export default function StudentProfilePage() {
+  const router = useRouter();
+  const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
+  const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(true);
   const [fullName, setFullName] = useState('');
   const [currentUsername, setCurrentUsername] = useState('');
   const [username, setUsername] = useState('');
@@ -127,6 +173,7 @@ export default function StudentProfilePage() {
     flaggedForReview: boolean;
   } | null>(null);
   const [admissionYear, setAdmissionYear] = useState('');
+  const [expectedPassingYear, setExpectedPassingYear] = useState('');
   const [currentSemester, setCurrentSemester] = useState('');
   const [about, setAbout] = useState('');
 
@@ -234,6 +281,15 @@ export default function StudentProfilePage() {
       if (data.currentSemester !== undefined && data.currentSemester !== null) {
         setCurrentSemester(String(data.currentSemester));
       }
+      if (typeof data.about === 'string') {
+        setAbout(data.about);
+      }
+      if (typeof window !== 'undefined') {
+        const cachedExp = localStorage.getItem('sentimate_expected_passing_year');
+        if (cachedExp) {
+          setExpectedPassingYear(cachedExp);
+        }
+      }
       // Resolve saved photo and Google OAuth photo
       let loadedSavedPhoto: string | null = data.avatarUrl || null;
       let googlePhoto: string | null = null;
@@ -304,10 +360,34 @@ export default function StudentProfilePage() {
     }
   };
 
-  // Load real profile data on mount
+  const loadSessions = useCallback(async () => {
+    try {
+      setIsLoadingSessions(true);
+      const res = await fetch('/api/chat/sessions');
+      if (!res.ok) {
+        setIsLoadingSessions(false);
+        return;
+      }
+      const { sessions: dbSessions } = await res.json();
+      const items: ChatSessionItem[] = (dbSessions ?? []).map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        createdAt: s.created_at,
+        lastActivityAt: s.last_activity_at ?? s.updated_at ?? s.created_at,
+      }));
+      setSessions(items);
+    } catch {
+      // Graceful fallback
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  }, []);
+
+  // Load real profile data and chat sessions on mount
   useEffect(() => {
     loadProfile();
-  }, []);
+    loadSessions();
+  }, [loadSessions]);
 
   const handleSemesterChange = (semesterNum: number, value: string) => {
     setSemesters((prev) =>
@@ -560,6 +640,17 @@ export default function StudentProfilePage() {
       }
     }
 
+    // Validate expected passing year is not earlier than admission year when both are provided
+    if (expectedPassingYear && admissionYear) {
+      const expYr = parseInt(expectedPassingYear, 10);
+      const admYr = parseInt(admissionYear, 10);
+      if (!isNaN(expYr) && !isNaN(admYr) && expYr < admYr) {
+        setErrorMessage('Expected passing year cannot be earlier than admission year.');
+        setSaving(false);
+        return;
+      }
+    }
+
     const newAvatarUrl = trimmedPhotoUrl || null;
 
     try {
@@ -573,7 +664,7 @@ export default function StudentProfilePage() {
           prn: prn.trim(),
           departmentId: departmentId || null,
           admissionYear: admissionYear ? parseInt(admissionYear, 10) : undefined,
-          currentSemester: currentSemester ? parseInt(currentSemester, 10) : undefined,
+          currentSemester: activeCurrentSemester ?? (currentSemester ? parseInt(currentSemester, 10) : undefined),
           about,
           semesters,
         }),
@@ -650,8 +741,52 @@ export default function StudentProfilePage() {
     }
   };
 
+  const autoCurrentSemester = useMemo(() => {
+    return calculateCurrentSemester(admissionYear, expectedPassingYear);
+  }, [admissionYear, expectedPassingYear]);
+
+  const activeCurrentSemester = autoCurrentSemester ?? (currentSemester ? parseInt(currentSemester, 10) : null);
+
+  useEffect(() => {
+    if (autoCurrentSemester !== null) {
+      setCurrentSemester(String(autoCurrentSemester));
+    }
+  }, [autoCurrentSemester]);
+
+  const expectedPassingYearError =
+    expectedPassingYear && admissionYear && parseInt(expectedPassingYear, 10) < parseInt(admissionYear, 10)
+      ? 'Expected passing year cannot be earlier than admission year.'
+      : undefined;
+
   return (
-    <StudentShell studentName={fullName} avatarUrl={displayPhotoUrl || undefined}>
+    <StudentShell
+      studentName={fullName}
+      avatarUrl={displayPhotoUrl || undefined}
+      sessions={sessions}
+      isLoadingSessions={isLoadingSessions}
+      onNewSession={() => router.push('/student/chat')}
+      onSelectSession={(id) => router.push(`/student/chat?session=${id}`)}
+      onDeleteSession={async (id) => {
+        try {
+          await fetch(`/api/chat/sessions/${id}`, { method: 'DELETE' });
+          setSessions((prev) => prev.filter((s) => s.id !== id));
+        } catch {
+          // ignore
+        }
+      }}
+      onRenameSession={async (id, newTitle) => {
+        try {
+          setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title: newTitle } : s)));
+          await fetch(`/api/chat/sessions/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: newTitle }),
+          });
+        } catch {
+          loadSessions();
+        }
+      }}
+    >
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Page Title */}
         <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
@@ -690,8 +825,8 @@ export default function StudentProfilePage() {
             <Card className="space-y-4">
             <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
               <User className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
-              <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
-                Personal Identity
+              <h2 className="text-[18px] font-semibold text-[#18191B] dark:text-[#F3F4F6]">
+                Personal identity
               </h2>
             </div>
 
@@ -841,20 +976,20 @@ export default function StudentProfilePage() {
           </Card>
 
           {/* Section 2: Educational Context */}
-          <Card className="space-y-4">
+          <Card className="space-y-5">
             <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
               <GraduationCap className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
-              <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
-                Institutional Details
+              <h2 className="text-[18px] font-semibold text-[#18191B] dark:text-[#F3F4F6]">
+                Institution details
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Institution (Read-Only) */}
+            <div className="space-y-4">
+              {/* Institution (Read-Only) across full card width allowing natural wrapping */}
               <div className="w-full">
                 <label
                   htmlFor="institution-display"
-                  className="block text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5"
+                  className={FORM_LABEL_CLASS}
                 >
                   Institution
                 </label>
@@ -862,135 +997,276 @@ export default function StudentProfilePage() {
                   id="institution-display"
                   tabIndex={0}
                   aria-readonly="true"
-                  className="w-full rounded-lg px-3.5 py-2.5 text-sm bg-[#F5F5F3] dark:bg-[#141518] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[44px] flex items-center leading-relaxed select-text focus:outline-none focus:ring-2 focus:ring-[#4F648C]/20 dark:focus:ring-[#91A7D0]/20"
+                  className="w-full !min-h-[48px] !rounded-xl px-3.5 py-3 text-sm bg-[#F5F5F3] dark:bg-[#141518] border border-[#E2E2DC] dark:border-[#222428] text-[#18191B] dark:text-[#F3F4F6] flex items-center leading-relaxed select-text focus:outline-none focus:ring-2 focus:ring-[#4F648C]/20 dark:focus:ring-[#91A7D0]/20"
                 >
                   <span className="break-words whitespace-normal w-full font-medium">
                     {institution.name || "Pune Vidyarthi Griha's College of Engineering & S.S. Dhamankar Institute of Management, Nashik"}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-[#71757E]">
+                <p className="mt-1 text-xs text-[#5A5E67] dark:text-[#9CA3AF]">
                   Default institutional affiliation (read-only).
                 </p>
               </div>
 
-              {/* Department (Accessible Single-Select Dropdown) */}
-              <div className="w-full">
-                {availableDepartments.length > 0 ? (
-                  /* API-backed mode: value is a UUID sent to the backend */
-                  <Select
-                    id="department-select"
-                    label="Department"
-                    placeholder="Select your department"
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    options={availableDepartments.map((d) => ({
-                      value: d.id,
-                      label: d.name,
-                    }))}
-                    helperText="Optional academic department (does not restrict chatbot access)."
-                  />
-                ) : (
-                  /* Local-only mode: options defined client-side; selection is display-only and not persisted */
-                  <>
+              {/* Department and PRN in a two-column row (stacked on mobile) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="w-full">
+                  {availableDepartments.length > 0 ? (
                     <Select
                       id="department-select"
                       label="Department"
+                      labelClassName={FORM_LABEL_CLASS}
                       placeholder="Select your department"
-                      value={localDepartmentLabel}
-                      onChange={(e) => setLocalDepartmentLabel(e.target.value)}
-                      options={LOCAL_DEPARTMENT_OPTIONS.map((name) => ({
-                        value: name,
-                        label: name,
+                      value={departmentId}
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                      options={availableDepartments.map((d) => ({
+                        value: d.id,
+                        label: d.name,
                       }))}
-                      helperText="Optional academic department (does not restrict chatbot access)."
+                      className={FORM_FIELD_CLASS}
                     />
-                    {localDepartmentLabel && (
-                      <p className="mt-1 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                        <Info className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                        Department selection is display-only until department data loads from the server.
-                      </p>
-                    )}
-                  </>
-                )}
-                {incompatibleDepartment && (
-                  <div className="mt-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2">
-                    <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                    <div className="leading-relaxed">
-                      <span className="font-semibold">Review Flag:</span> Existing assignment (<span className="font-medium underline">{incompatibleDepartment.name}</span>) is outside verified departments and has been preserved. You may select an active department above or leave it preserved.
+                  ) : (
+                    <>
+                      <Select
+                        id="department-select"
+                        label="Department"
+                        labelClassName={FORM_LABEL_CLASS}
+                        placeholder="Select your department"
+                        value={localDepartmentLabel}
+                        onChange={(e) => setLocalDepartmentLabel(e.target.value)}
+                        options={LOCAL_DEPARTMENT_OPTIONS.map((name) => ({
+                          value: name,
+                          label: name,
+                        }))}
+                        className={FORM_FIELD_CLASS}
+                      />
+                      {localDepartmentLabel && (
+                        <p className="mt-1 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                          <Info className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                          Department selection is display-only until department data loads from the server.
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {incompatibleDepartment && (
+                    <div className="mt-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200 flex items-start gap-2">
+                      <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                      <div className="leading-relaxed">
+                        <span className="font-semibold">Review Flag:</span> Existing assignment (<span className="font-medium underline">{incompatibleDepartment.name}</span>) is outside verified departments and has been preserved. You may select an active department above or leave it preserved.
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                <div className="w-full">
+                  <Input
+                    id="prn-input"
+                    label="PRN"
+                    labelClassName={FORM_LABEL_CLASS}
+                    value={prn}
+                    onChange={(e) => setPrn(e.target.value)}
+                    className={FORM_FIELD_CLASS}
+                    required
+                  />
+                </div>
               </div>
-              <Input
-                label="PRN (Permanent Registration Number)"
-                value={prn}
-                onChange={(e) => setPrn(e.target.value)}
-                required
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Admission Year"
-                  type="number"
-                  value={admissionYear}
-                  onChange={(e) => setAdmissionYear(e.target.value)}
-                  required
-                />
-                <Input
-                  label="Current Semester"
-                  type="number"
-                  min="1"
-                  max="8"
-                  value={currentSemester}
-                  onChange={(e) => setCurrentSemester(e.target.value)}
-                  required
-                />
+
+              {/* Admission year and Expected passing year in a two-column row (stacked on mobile) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="w-full">
+                  <Input
+                    id="admission-year-input"
+                    label="Admission year"
+                    labelClassName={FORM_LABEL_CLASS}
+                    type="number"
+                    placeholder="e.g. 2023"
+                    value={admissionYear}
+                    onChange={(e) => setAdmissionYear(e.target.value)}
+                    className={FORM_FIELD_CLASS}
+                    required
+                  />
+                </div>
+                <div className="w-full">
+                  <Input
+                    id="expected-passing-year-input"
+                    label="Expected passing year"
+                    labelClassName={FORM_LABEL_CLASS}
+                    type="number"
+                    placeholder="e.g. 2027"
+                    value={expectedPassingYear}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setExpectedPassingYear(val);
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('sentimate_expected_passing_year', val);
+                      }
+                    }}
+                    className={FORM_FIELD_CLASS}
+                    error={expectedPassingYearError}
+                  />
+                </div>
               </div>
             </div>
           </Card>
 
           {/* Section 3: 8 Semesters Academic Records */}
           <Card className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3 gap-2">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
-                <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
-                  Academic Progress (Semesters 1 to 8)
+                <h2 className="text-[18px] font-semibold text-[#18191B] dark:text-[#F3F4F6]">
+                  Academic progress
                 </h2>
               </div>
-              <span className="text-xs text-[#71757E]">
-                Scale: 0.00 - 10.00 • Future terms left blank
+              <span className="text-xs font-medium text-[#4A4D54] dark:text-[#9CA3AF] bg-[#F4F4F1] dark:bg-[#18191C] px-2.5 py-1 rounded-md self-start sm:self-auto border border-[#E2E2DC]/60 dark:border-[#222428]">
+                SGPA · 0–10
               </span>
             </div>
 
-            <p className="text-xs text-[#71757E] leading-relaxed">
-              Academic history helps counsellors contextualize exam stress when you consent to referral sharing. Uncompleted future semesters remain empty.
+            <p className="text-xs text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed">
+              Add available semester results. Leave unfinished semesters blank. Academic history helps counsellors contextualize exam stress when you consent to referral sharing.
             </p>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
               {semesters.map((sem) => (
                 <div
                   key={sem.semester}
-                  className="p-3 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-[#FAFAF8] dark:bg-[#18191C] space-y-1.5"
+                  className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#222428] bg-white dark:bg-[#141518] space-y-2 transition-colors"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between min-h-[22px]">
                     <span className="text-xs font-medium text-[#18191B] dark:text-[#F3F4F6]">
                       Semester {sem.semester}
                     </span>
-                    {parseInt(currentSemester, 10) === sem.semester && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EEF2F8] text-[#4F648C] dark:bg-[#242E40] dark:text-[#91A7D0] font-semibold">
+                    {activeCurrentSemester === sem.semester && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EEF2F8] text-[#4F648C] dark:bg-[#242E40] dark:text-[#91A7D0] font-semibold">
                         Current
                       </span>
                     )}
                   </div>
-                  <Input
-                    placeholder="SGPA (e.g. 8.5)"
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="Enter SGPA"
                     value={sem.sgpa}
                     onChange={(e) => handleSemesterChange(sem.semester, e.target.value)}
-                    className="h-8 text-xs font-mono"
+                    className="w-full h-10 px-3 rounded-lg text-xs sm:text-sm font-mono bg-[#FAFAF8] dark:bg-[#18191C] border border-[#E2E2DC]/80 dark:border-[#2A2B30] text-[#18191B] dark:text-[#F3F4F6] placeholder-[#8C9099] dark:placeholder-[#6B7280] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#91A7D0] focus:ring-2 focus:ring-[#4F648C]/20 dark:focus:ring-[#91A7D0]/20 transition-all"
                   />
                 </div>
               ))}
             </div>
+          </Card>
+
+          {/* Section 4: Recent Conversations */}
+          <Card className="space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                <h2 className="text-[18px] font-semibold text-[#18191B] dark:text-[#F3F4F6]">
+                  Recent conversations
+                </h2>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/student/chat')}
+                className="gap-1.5 text-xs text-[#4F648C] dark:text-[#91A7D0] hover:bg-[#EEF2F8] dark:hover:bg-[#242E40]"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>New chat</span>
+              </Button>
+            </div>
+
+            <p className="text-xs text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed">
+              Your conversational history with SentiMate AI. All chats are private and encrypted.
+            </p>
+
+            {isLoadingSessions ? (
+              <div className="space-y-2.5 py-1">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="p-3.5 rounded-xl border border-[#E2E2DC]/60 dark:border-[#222428] bg-white dark:bg-[#141518] flex items-center justify-between animate-pulse"
+                  >
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-[#E2E2DC] dark:bg-[#222428] rounded w-1/3" />
+                      <div className="h-3 bg-[#EAEAE5] dark:bg-[#1A1B1F] rounded w-1/5" />
+                    </div>
+                    <div className="h-8 w-20 bg-[#E2E2DC] dark:bg-[#222428] rounded-lg" />
+                  </div>
+                ))}
+              </div>
+            ) : sessions.length === 0 ? (
+              <div className="text-center py-6 px-4 rounded-xl border border-dashed border-[#E2E2DC] dark:border-[#222428] bg-[#FAFAF8] dark:bg-[#141518]/50">
+                <MessageSquare className="w-8 h-8 mx-auto text-[#8C9099] dark:text-[#636773] mb-2 opacity-60" />
+                <p className="text-sm font-medium text-[#18191B] dark:text-[#F3F4F6]">No previous chats yet</p>
+                <p className="text-xs text-[#5A5E67] dark:text-[#9CA3AF] mt-1 mb-4">Start a conversation to get empathetic reflections and support.</p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => router.push('/student/chat')}
+                  className="gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Start a conversation</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {sessions.slice(0, 5).map((session) => (
+                  <div
+                    key={session.id}
+                    className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#222428] bg-white dark:bg-[#141518] hover:border-[#4F648C]/40 dark:hover:border-[#91A7D0]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <MessageSquare className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0] shrink-0" />
+                        <h3 className="text-sm font-medium text-[#18191B] dark:text-[#F3F4F6] truncate">
+                          {session.title || 'Untitled conversation'}
+                        </h3>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] text-[#5A5E67] dark:text-[#9CA3AF]">
+                        <Clock className="w-3 h-3 shrink-0" />
+                        <span>
+                          {session.lastActivityAt
+                            ? new Date(session.lastActivityAt).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })
+                            : 'Recently'}
+                        </span>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => router.push(`/student/chat?session=${session.id}`)}
+                      className="shrink-0 gap-1.5 text-xs text-[#4F648C] dark:text-[#91A7D0] hover:bg-[#EEF2F8] dark:hover:bg-[#242E40]"
+                    >
+                      <span>Continue</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
+                {sessions.length > 5 && (
+                  <div className="text-center pt-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => router.push('/student/chat')}
+                      className="text-xs text-[#4F648C] dark:text-[#91A7D0]"
+                    >
+                      <span>View all {sessions.length} conversations in chat</span>
+                      <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
 
           {/* Submit Action */}
