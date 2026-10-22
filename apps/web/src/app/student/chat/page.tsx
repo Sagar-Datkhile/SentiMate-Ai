@@ -157,6 +157,35 @@ function ChatContent() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // ── Auto-resize composer textarea smoothly ──────────────────────────────────
+  const adjustTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // Temporarily reset height to auto so scrollHeight can shrink when removing text
+    textarea.style.height = 'auto';
+
+    const maxHeight = 160; // ~6-7 lines
+    const scrollHeight = textarea.scrollHeight;
+
+    if (scrollHeight > maxHeight) {
+      textarea.style.height = `${maxHeight}px`;
+      textarea.style.overflowY = 'auto';
+    } else {
+      textarea.style.height = `${Math.max(36, scrollHeight)}px`;
+      textarea.style.overflowY = 'hidden';
+    }
+  }, []);
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [inputValue, adjustTextareaHeight]);
+
+  useEffect(() => {
+    window.addEventListener('resize', adjustTextareaHeight);
+    return () => window.removeEventListener('resize', adjustTextareaHeight);
+  }, [adjustTextareaHeight]);
+
   // Continuity & Title Generation Refs:
   // - loadedSessionIdRef: tracks the session whose messages are currently in state to eliminate remount/flicker
   // - manuallyRenamedSessionIdsRef: tracks sessions renamed by the user so auto-titles never overwrite them
@@ -801,12 +830,15 @@ function ChatContent() {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="relative flex items-center gap-2 bg-white/70 dark:bg-[#121316]/65 backdrop-blur-md border border-[#E2E2DC]/80 dark:border-white/[0.08] rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] focus-within:border-[#4F648C] dark:focus-within:border-[#91A7D0] focus-within:ring-2 focus-within:ring-[#4F648C]/15 dark:focus-within:ring-[#91A7D0]/20 transition-all"
+              className="relative flex items-end gap-2 bg-white/70 dark:bg-[#121316]/65 backdrop-blur-md border border-[#E2E2DC]/80 dark:border-white/[0.08] rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] focus-within:border-[#4F648C] dark:focus-within:border-[#91A7D0] focus-within:ring-2 focus-within:ring-[#4F648C]/15 dark:focus-within:ring-[#91A7D0]/20 transition-all"
             >
               <textarea
                 ref={textareaRef}
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  adjustTextareaHeight();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
@@ -815,7 +847,7 @@ function ChatContent() {
                 }}
                 rows={1}
                 placeholder="How are you feeling today?"
-                className="w-full min-w-0 bg-transparent border-0 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] dark:placeholder-[#8C9099] focus:outline-none resize-none max-h-32 min-h-[36px] py-2 px-3 leading-5"
+                className="w-full min-w-0 bg-transparent border-0 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] dark:placeholder-[#8C9099] focus:outline-none resize-none min-h-[36px] max-h-40 py-2 px-3 leading-5 overflow-hidden [scrollbar-width:thin] [scrollbar-color:#71757E_transparent] dark:[scrollbar-color:#4A4D54_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-black/15 dark:[&::-webkit-scrollbar-thumb]:bg-white/15 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-black/25 dark:hover:[&::-webkit-scrollbar-thumb]:bg-white/25 [&::-webkit-scrollbar-button]:hidden [&::-webkit-scrollbar-button]:w-0 [&::-webkit-scrollbar-button]:h-0"
               />
 
               <div className="flex items-center shrink-0">
