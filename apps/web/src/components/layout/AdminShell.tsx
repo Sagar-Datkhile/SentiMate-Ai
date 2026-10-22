@@ -16,6 +16,7 @@ import {
   HeartHandshake,
   Database,
   Lock,
+  Bug,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { Badge } from '../ui/Badge';
@@ -70,6 +71,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
   const navLinks = [
     { href: '/admin/dashboard', label: 'Overview & System Health', icon: Activity },
+    { href: '/admin/bugs', label: 'Bug Reports & Triage', icon: Bug },
     { href: '/admin/counsellors', label: 'Counsellor Provisioning', icon: UserPlus },
     { href: '/admin/audit', label: 'Audit Logs & Privacy Ops', icon: FileCheck2 },
   ];

@@ -146,10 +146,13 @@ export default function StudentSettingsPage() {
   const [isRevokingOtherSessions, setIsRevokingOtherSessions] = useState(false);
 
   // Help & Support form state
-  const [supportTab, setSupportTab] = useState<'contact' | 'problem'>('contact');
+  const [supportCategoryType, setSupportCategoryType] = useState<'support' | 'enquiry' | 'feedback' | 'bug'>('support');
   const [supportCategory, setSupportCategory] = useState('general');
   const [supportSubject, setSupportSubject] = useState('');
   const [supportMessage, setSupportMessage] = useState('');
+  const [bugReproductionSteps, setBugReproductionSteps] = useState('');
+  const [bugExpectedBehavior, setBugExpectedBehavior] = useState('');
+  const [bugActualBehavior, setBugActualBehavior] = useState('');
   const [includeDiagnosticContext, setIncludeDiagnosticContext] = useState(false);
   const [isSubmittingSupport, setIsSubmittingSupport] = useState(false);
 
@@ -593,6 +596,21 @@ export default function StudentSettingsPage() {
     e.preventDefault();
     if (!supportSubject.trim() || !supportMessage.trim()) return;
 
+    if (supportSubject.trim().length < 3 || supportSubject.trim().length > 120) {
+      toast.error('Invalid subject length.', {
+        description: 'Subject must be between 3 and 120 characters.',
+      });
+      return;
+    }
+
+    if (supportMessage.trim().length < 10 || supportMessage.trim().length > 4000) {
+      toast.error('Invalid message length.', {
+        description: 'Message must be between 10 and 4,000 characters.',
+      });
+      return;
+    }
+
+    if (isSubmittingSupport) return;
     setIsSubmittingSupport(true);
 
     try {
@@ -605,16 +623,22 @@ export default function StudentSettingsPage() {
           }
         : undefined;
 
+      const idempotencyKey = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `idemp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
       const res = await fetch('/api/student/support', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inquiryType: supportTab === 'problem' ? 'report_problem' : 'contact_support',
+          inquiryType: supportCategoryType === 'bug' ? 'report_problem' : 'contact_support',
+          category: supportCategoryType,
           subject: supportSubject.trim(),
           message: supportMessage.trim(),
-          category: supportCategory,
+          reproductionSteps: supportCategoryType === 'bug' && bugReproductionSteps.trim() ? bugReproductionSteps.trim() : undefined,
+          expectedBehavior: supportCategoryType === 'bug' && bugExpectedBehavior.trim() ? bugExpectedBehavior.trim() : undefined,
+          actualBehavior: supportCategoryType === 'bug' && bugActualBehavior.trim() ? bugActualBehavior.trim() : undefined,
           includeDiagnosticContext,
           diagnosticContext: diagnosticData,
+          idempotencyKey,
         }),
       });
 
@@ -625,14 +649,17 @@ export default function StudentSettingsPage() {
 
       const data = await res.json();
       toast.success(
-        supportTab === 'problem' ? 'Problem report submitted.' : 'Support inquiry dispatched.',
+        `Request received [${data.referenceId || 'Saved'}]`,
         {
-          description: data.message || 'Campus support has received your request.',
+          description: data.message || 'Your submission has been safely recorded by SentiMate.',
         }
       );
 
       setSupportSubject('');
       setSupportMessage('');
+      setBugReproductionSteps('');
+      setBugExpectedBehavior('');
+      setBugActualBehavior('');
       setIncludeDiagnosticContext(false);
     } catch (err: any) {
       toast.error('Submission failed.', {
@@ -1410,95 +1437,130 @@ export default function StudentSettingsPage() {
                   </div>
 
                   {/* Form Type Switcher */}
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl max-w-md">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl max-w-xl">
                     <button
                       type="button"
-                      onClick={() => setSupportTab('contact')}
+                      onClick={() => setSupportCategoryType('support')}
                       className={`py-2 px-3 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
-                        supportTab === 'contact'
-                          ? 'bg-white dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] shadow-xs'
+                        supportCategoryType === 'support'
+                          ? 'bg-white dark:bg-[#242E40] text-[#2C67C5] dark:text-[#5B8DEF] shadow-xs'
                           : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
                       }`}
                     >
-                      Contact Support
+                      Support
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSupportTab('problem')}
+                      onClick={() => setSupportCategoryType('enquiry')}
                       className={`py-2 px-3 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
-                        supportTab === 'problem'
-                          ? 'bg-white dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] shadow-xs'
+                        supportCategoryType === 'enquiry'
+                          ? 'bg-white dark:bg-[#242E40] text-[#2C67C5] dark:text-[#5B8DEF] shadow-xs'
                           : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
                       }`}
                     >
-                      Report a Problem
+                      Enquiry
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSupportCategoryType('feedback')}
+                      className={`py-2 px-3 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                        supportCategoryType === 'feedback'
+                          ? 'bg-white dark:bg-[#242E40] text-[#2C67C5] dark:text-[#5B8DEF] shadow-xs'
+                          : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
+                      }`}
+                    >
+                      Feedback
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSupportCategoryType('bug')}
+                      className={`py-2 px-3 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                        supportCategoryType === 'bug'
+                          ? 'bg-white dark:bg-[#242E40] text-[#2C67C5] dark:text-[#5B8DEF] shadow-xs'
+                          : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
+                      }`}
+                    >
+                      Bug Report
                     </button>
                   </div>
 
                   <form onSubmit={handleSubmitSupport} className="space-y-4">
-                    <div>
-                      <Select
-                        label="Category"
-                        labelClassName="block text-xs font-semibold text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5 normal-case"
-                        value={supportCategory}
-                        onChange={(e) => setSupportCategory(e.target.value)}
-                        options={
-                          supportTab === 'contact'
-                            ? [
-                                { value: 'general', label: 'General Support Inquiry' },
-                                { value: 'counsellor', label: 'Counselling Services Question' },
-                                { value: 'account', label: 'Account Access & PRN Verification' },
-                                { value: 'privacy', label: 'Privacy & Data Governance' },
-                              ]
-                            : [
-                                { value: 'chat_bug', label: 'AI Companion Response Issue' },
-                                { value: 'appointments_bug', label: 'Appointment Scheduling Glitch' },
-                                { value: 'appearance_bug', label: 'Visual or Theme Rendering Bug' },
-                                { value: 'performance_bug', label: 'Slow Loading or Disconnection' },
-                              ]
-                        }
-                      />
-                    </div>
-
                     <Input
                       label="Subject"
                       type="text"
                       value={supportSubject}
                       onChange={(e) => setSupportSubject(e.target.value)}
-                      placeholder={supportTab === 'problem' ? 'Brief summary of the issue' : 'How can we help you?'}
+                      placeholder={
+                        supportCategoryType === 'bug'
+                          ? 'Brief summary of the issue (e.g. Chat session disconnection)'
+                          : supportCategoryType === 'feedback'
+                          ? 'What would you like to see improved in SentiMate?'
+                          : supportCategoryType === 'enquiry'
+                          ? 'Subject of your campus enquiry'
+                          : 'How can our support team help you?'
+                      }
                       required
                     />
 
                     <Textarea
-                      label="Details"
+                      label="Message / Description"
                       value={supportMessage}
                       onChange={(e) => setSupportMessage(e.target.value)}
                       placeholder={
-                        supportTab === 'problem'
-                          ? 'Describe what happened, steps to reproduce the problem, and any error message you saw...'
-                          : 'Provide details about your question or inquiry...'
+                        supportCategoryType === 'bug'
+                          ? 'Describe the problem in detail...'
+                          : supportCategoryType === 'feedback'
+                          ? 'Share your detailed feedback or thoughts...'
+                          : 'Provide all relevant details...'
                       }
                       rows={4}
                       required
                     />
 
-                    {supportTab === 'problem' && (
-                      <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
-                        <input
-                          type="checkbox"
-                          checked={includeDiagnosticContext}
-                          onChange={(e) => setIncludeDiagnosticContext(e.target.checked)}
-                          className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#5B8DEF] focus:ring-[#4F648C]"
+                    {supportCategoryType === 'bug' && (
+                      <div className="space-y-4 pt-2 border-t border-[#E2E2DC] dark:border-[#1F2024]">
+                        <Textarea
+                          label="Steps to Reproduce (optional)"
+                          value={bugReproductionSteps}
+                          onChange={(e) => setBugReproductionSteps(e.target.value)}
+                          placeholder="1. Open chat tab&#10;2. Type greeting message&#10;3. Click send button..."
+                          rows={3}
                         />
-                        <div className="text-xs">
-                          <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] block">
-                            Include non-sensitive browser & device diagnostic context
-                          </span>
-                          <span className="text-[#71757E]">
-                            Attaches your browser version, screen dimensions, and submission timestamp. Conversation messages and private reflection content are NEVER attached.
-                          </span>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input
+                            label="Expected Behavior (optional)"
+                            type="text"
+                            value={bugExpectedBehavior}
+                            onChange={(e) => setBugExpectedBehavior(e.target.value)}
+                            placeholder="What did you expect to happen?"
+                          />
+                          <Input
+                            label="Actual Behavior (optional)"
+                            type="text"
+                            value={bugActualBehavior}
+                            onChange={(e) => setBugActualBehavior(e.target.value)}
+                            placeholder="What actually occurred?"
+                          />
                         </div>
-                      </label>
+
+                        <label className="flex items-start gap-2.5 cursor-pointer select-none pt-1">
+                          <input
+                            type="checkbox"
+                            checked={includeDiagnosticContext}
+                            onChange={(e) => setIncludeDiagnosticContext(e.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#2C67C5] dark:text-[#5B8DEF] focus:ring-[#2C67C5]"
+                          />
+                          <div className="text-xs">
+                            <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] block">
+                              Include non-sensitive browser & device diagnostic context
+                            </span>
+                            <span className="text-[#71757E]">
+                              Attaches your browser version, screen dimensions, and submission timestamp. Private chat messages, reflection content, and cookies are NEVER attached.
+                            </span>
+                          </div>
+                        </label>
+                      </div>
                     )}
 
                     <div className="flex justify-end pt-2">
@@ -1511,7 +1573,15 @@ export default function StudentSettingsPage() {
                         className="gap-2 shadow-sm font-semibold"
                       >
                         <Send className="w-3.5 h-3.5" />
-                        <span>{supportTab === 'problem' ? 'Submit Bug Report' : 'Dispatch Inquiry'}</span>
+                        <span>
+                          {supportCategoryType === 'bug'
+                            ? 'Submit Bug Report'
+                            : supportCategoryType === 'feedback'
+                            ? 'Send Feedback'
+                            : supportCategoryType === 'enquiry'
+                            ? 'Submit Enquiry'
+                            : 'Submit Support Request'}
+                        </span>
                       </Button>
                     </div>
                   </form>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { authRepository } from '@/server/repositories/auth.repository';
+import { supportRepository } from '@/server/repositories/support.repository';
 import { SupportInquiryRequestSchema } from '@sentimate/contracts';
 import { env } from '@/lib/env';
 
@@ -30,6 +30,8 @@ export async function POST(req: NextRequest) {
 
     let studentId = mockUserId || 's-demo-1';
     let userRole = mockRole || 'student';
+    let submitterEmail: string | null = req.headers.get('x-user-email') || 'student@university.edu';
+    let submitterName: string | null = 'Student User';
 
     if (!mockUserId && env.isConfigured.supabase) {
       const supabase = await createServerSupabaseClient();
@@ -49,6 +51,8 @@ export async function POST(req: NextRequest) {
 
       studentId = profile.id;
       userRole = profile.role;
+      submitterEmail = profile.email || user.email || null;
+      submitterName = profile.full_name || null;
     }
 
     if (userRole !== 'student') {
@@ -81,63 +85,50 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const {
-      inquiryType,
-      subject,
-      message,
-      category,
-      includeDiagnosticContext,
-      diagnosticContext,
-    } = validation.data;
+    const data = validation.data;
 
-    let ticketId = `ticket-${Date.now()}`;
-
-    if (env.isConfigured.supabase) {
-      const supabase = env.supabaseServiceKey ? createAdminClient() : await createServerSupabaseClient();
-      
-      const insertPayload: Record<string, any> = {
-        user_id: studentId,
-        inquiry_type: inquiryType,
-        subject: subject.trim(),
-        message: message.trim(),
-        category,
-        include_diagnostic_context: includeDiagnosticContext,
-        diagnostic_context: includeDiagnosticContext ? (diagnosticContext || {}) : null,
-        status: 'open',
-      };
-
-      const { data, error } = await supabase
-        .from('support_inquiries')
-        .insert(insertPayload)
-        .select('id')
-        .single();
-
-      if (error) {
-        console.error('[Support API] Failed to insert inquiry:', error.message);
-        return NextResponse.json(
-          { error: 'Failed to record support inquiry in database', code: 'DB_ERROR' },
-          { status: 500 }
-        );
-      }
-
-      if (data?.id) {
-        ticketId = data.id;
-      }
+    // Normalize category into canonical categories: feedback, enquiry, support, bug
+    let category = data.category || (data.inquiryType === 'report_problem' ? 'bug' : 'support');
+    if (['chat_bug', 'appointments_bug', 'appearance_bug', 'performance_bug'].includes(category)) {
+      category = 'bug';
+    } else if (['general', 'privacy'].includes(category)) {
+      category = 'enquiry';
+    } else if (['counsellor', 'account'].includes(category)) {
+      category = 'support';
+    } else if (!['feedback', 'enquiry', 'support', 'bug'].includes(category)) {
+      category = data.inquiryType === 'report_problem' ? 'bug' : 'support';
     }
+
+    const result = await supportRepository.submitInquiry({
+      userId: studentId,
+      submitterEmail,
+      submitterName,
+      inquiryType: data.inquiryType || (category === 'bug' ? 'report_problem' : 'contact_support'),
+      category,
+      subject: data.subject.trim(),
+      message: data.message.trim(),
+      reproductionSteps: data.reproductionSteps?.trim(),
+      expectedBehavior: data.expectedBehavior?.trim(),
+      actualBehavior: data.actualBehavior?.trim(),
+      includeDiagnosticContext: data.includeDiagnosticContext,
+      diagnosticContext: data.diagnosticContext,
+      idempotencyKey: data.idempotencyKey,
+    });
 
     return NextResponse.json({
       ok: true,
-      ticketId,
-      message:
-        inquiryType === 'report_problem'
-          ? 'Thank you for reporting this issue. Our campus platform engineering team has received your ticket.'
-          : 'Your inquiry has been submitted to SentiMate campus support. A member of our support team will respond to your university email.',
+      ticketId: result.inquiryId,
+      referenceId: result.referenceId,
+      emailDeliveryStatus: result.emailDeliveryStatus,
+      isDuplicate: result.isDuplicate,
+      message: result.message,
     });
   } catch (error: any) {
     console.error('[POST /api/student/support] Error:', error);
     return NextResponse.json(
-      { error: 'An unexpected error occurred while submitting inquiry', code: 'INTERNAL_ERROR' },
+      { error: error?.message || 'An unexpected error occurred while submitting inquiry', details: String(error?.stack || error), code: 'INTERNAL_ERROR' },
       { status: 500 }
     );
   }
 }
+
