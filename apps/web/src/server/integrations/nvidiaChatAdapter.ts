@@ -12,6 +12,8 @@ export interface StreamChatParams {
   signal?: AbortSignal;
   maxTokens?: number;
   format?: 'sse' | 'raw';
+  responseLanguage?: string;
+  responseLength?: 'concise' | 'balanced' | 'detailed';
   onToken?: (token: string) => void;
   onComplete?: (
     fullText: string,
@@ -176,10 +178,22 @@ export class NvidiaChatAdapter {
     // Bounded to last 8 messages to prevent unbounded token usage while maintaining coherent multi-turn context
     const recentHistory = (params.history || []).slice(-8);
 
+    let systemContent = SENTIMATE_SYSTEM_PROMPT;
+
+    if (params.responseLanguage && params.responseLanguage !== 'auto') {
+      systemContent += `\nResponse Language: The student has preferred responses in "${params.responseLanguage}". Formulate your empathetic response in ${params.responseLanguage} while adhering strictly to all safety and non-diagnostic boundaries.`;
+    }
+
+    if (params.responseLength === 'concise') {
+      systemContent += `\nResponse Length: Keep your response concise, succinct, and to the point (one to two short paragraphs).`;
+    } else if (params.responseLength === 'detailed') {
+      systemContent += `\nResponse Length: Provide a comprehensive and thorough response with supportive exploration, structured insight, and helpful context.`;
+    }
+
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       {
         role: 'system',
-        content: SENTIMATE_SYSTEM_PROMPT,
+        content: systemContent,
       },
       ...recentHistory.map((m) => ({
         role: m.role as 'user' | 'assistant',

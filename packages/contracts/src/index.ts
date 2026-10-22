@@ -352,3 +352,73 @@ export const MlAnalyzeResponseSchema = z.object({
   notice: z.string().optional()
 });
 export type MlAnalyzeResponse = z.infer<typeof MlAnalyzeResponseSchema>;
+
+// ============================================================================
+// STUDENT SETTINGS & USER PREFERENCES CONTRACTS
+// ============================================================================
+export const ThemePreferenceSchema = z.enum(['light', 'dark']);
+export type ThemePreference = z.infer<typeof ThemePreferenceSchema>;
+
+export const TextSizePreferenceSchema = z.enum(['small', 'default', 'large']);
+export type TextSizePreference = z.infer<typeof TextSizePreferenceSchema>;
+
+export const ResponseLengthPreferenceSchema = z.enum(['concise', 'balanced', 'detailed']);
+export type ResponseLengthPreference = z.infer<typeof ResponseLengthPreferenceSchema>;
+
+export const UserPreferencesSchema = z.object({
+  theme: ThemePreferenceSchema.default('dark'),
+  textSize: TextSizePreferenceSchema.default('default'),
+  reducedAnimations: z.boolean().default(false),
+  enterToSend: z.boolean().default(true),
+  responseLanguage: z.string().default('auto'),
+  responseLength: ResponseLengthPreferenceSchema.default('balanced'),
+  emailAppointmentReminders: z.boolean().default(true),
+  emailCounsellorUpdates: z.boolean().default(true),
+  inAppAppointmentReminders: z.boolean().default(true),
+  inAppCounsellorUpdates: z.boolean().default(true),
+});
+export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
+
+export const UpdateUserPreferencesSchema = UserPreferencesSchema.partial();
+export type UpdateUserPreferences = z.infer<typeof UpdateUserPreferencesSchema>;
+
+export const ConsentTypeSchema = z.enum([
+  'ai_chat_processing',
+  'nlp_sentiment_analysis',
+  'counsellor_data_sharing',
+  'academic_record_correlation',
+]);
+export type ConsentType = z.infer<typeof ConsentTypeSchema>;
+
+export const ConsentStatusSchema = z.enum(['granted', 'revoked']);
+export type ConsentStatus = z.infer<typeof ConsentStatusSchema>;
+
+export const UpdateConsentRequestSchema = z.object({
+  consentType: ConsentTypeSchema,
+  status: ConsentStatusSchema,
+  termsVersion: z.string().default('1.0'),
+});
+export type UpdateConsentRequest = z.infer<typeof UpdateConsentRequestSchema>;
+
+export const SupportInquiryRequestSchema = z.object({
+  inquiryType: z.enum(['contact_support', 'report_problem']),
+  subject: z.string().min(3, 'Subject must be at least 3 characters').max(120),
+  message: z.string().min(10, 'Message must be at least 10 characters').max(4000),
+  category: z.string().default('general'),
+  includeDiagnosticContext: z.boolean().default(false),
+  diagnosticContext: z.record(z.any()).optional(),
+});
+export type SupportInquiryRequest = z.infer<typeof SupportInquiryRequestSchema>;
+
+export const ChangePasswordRequestSchema = z.object({
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+});
+export type ChangePasswordRequest = z.infer<typeof ChangePasswordRequestSchema>;
+
+export const DeleteAccountRequestSchema = z.object({
+  confirmation: z.literal('DELETE'),
+  password: z.string().optional(),
+});
+export type DeleteAccountRequest = z.infer<typeof DeleteAccountRequestSchema>;
+

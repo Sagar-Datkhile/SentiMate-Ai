@@ -418,3 +418,34 @@ select:autofill {
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
+/* Chat text size tokens */
+:root {
+  --chat-text-size: 0.875rem;
+  --chat-text-leading: 1.45rem;
+}
+
+html[data-chat-size="small"] {
+  --chat-text-size: 0.8125rem;
+  --chat-text-leading: 1.35rem;
+}
+
+html[data-chat-size="large"] {
+  --chat-text-size: 1rem;
+  --chat-text-leading: 1.65rem;
+}
+
+.chat-bubble-text {
+  font-size: var(--chat-text-size, 0.875rem) !important;
+  line-height: var(--chat-text-leading, 1.45rem) !important;
+}
+
+/* Accessible reduced animations override */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+

@@ -488,7 +488,29 @@ To support long-term student conversational continuity while minimizing PostgreS
     - Idempotent upsert & duplicate-send protection: PASS (count = 1)
     - Recent-first session ordering after activity bump: PASS
   - `apps/web/test-chat-api.mjs`: All 7 security and validation tests passed (empty message 400, max length 400, live NVIDIA streaming 200, unauthenticated 401, non-student role 403, inactive account 403, cross-user session 403).
-  - TypeScript Compilation: `npx tsc --noEmit` exited with code 0 (0 errors).
+---
+
+## 11. Student Settings & Governance Infrastructure (`/student/settings`)
+
+### 11.1 Architecture & Persistence
+- **Preferences Persistence (`public.user_preferences`)**:
+  - Primary key `user_id UUID REFERENCES profiles(id) ON DELETE CASCADE`.
+  - Settings: `theme` ('light'|'dark'), `text_size` ('small'|'default'|'large'), `reduced_animations` (boolean), `enter_to_send` (boolean), `response_language` (text), `response_length` ('concise'|'balanced'|'detailed'), and discrete email/in-app notification toggles.
+  - Strict ownership-based RLS (`user_id = auth.uid()`).
+- **Consent Governance (`public.consent_events`)**:
+  - Authoritative consent derived from latest audit rows per `consent_type` (`ai_chat_processing`, `nlp_sentiment_analysis`, `counsellor_data_sharing`, `academic_record_correlation`).
+  - Immutable audit trail recording `terms_version`, `status`, and timestamps.
+  - Direct database enforcement: withrdawing `counsellor_data_sharing` disables `shared_with_counsellor` on student check-ins; withdrawing `nlp_sentiment_analysis` halts pending analysis jobs.
+- **Support Inquiries (`public.support_inquiries`)**:
+  - Rate-limited submission flow (5 per 15 minutes) with input validation.
+  - Diagnostic context attached only with explicit user checkbox consent.
+- **Conversations Export & Deletion**:
+  - Server-side decompression (`decompressContent`) streaming JSON or clean readable Markdown archives.
+  - Single and bulk permanent session deletion cascading to `chat_messages`.
+- **Privileged Account Deletion**:
+  - Validates `DELETE` confirmation and recent password auth.
+  - Server-side admin client execution via `auth.admin.deleteUser(user.id)`, cascading all associated student database rows.
+
 
 
 

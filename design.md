@@ -189,3 +189,13 @@
 - **Motion**:
   - Fast, purposeful micro-transitions (150ms to 200ms cubic-bezier(0.16, 1, 0.3, 1)).
   - Respect `prefers-reduced-motion: reduce` by zeroing transition durations and transforms.
+
+---
+
+## 7. Student Settings Visual Specification (`/student/settings`)
+- **Typography**: Header uses Instrument Serif (`font-serif`, 32px–36px) matching student sub-pages.
+- **Layout**: Desktop 4-column split (vertical navigation sidebar on left, structured cards on right); mobile horizontal pill scrollbar.
+- **Section Hierarchy**: **Account & Security** is ranked to top (#1 primary tab), followed by Chat Preferences, Notifications, Privacy & Consent, Conversations & Data, and Help & Support.
+- **Theme Invariant**: Strict pitch-black dark theme (`#000000` / `#0D0E11`) enforced throughout the student workspace. Appearance toggle controls removed to keep UI focused, distraction-free, and eye-friendly.
+- **Status Communicators**: Debounced auto-save pill (`Saving...`, `Saved`, `Retry`), honest delivery warning notices, and destructive confirmation modals with explicit keyword input.
+

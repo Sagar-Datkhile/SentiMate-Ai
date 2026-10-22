@@ -253,6 +253,18 @@ function ChatContent() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [consentAcknowledged, setConsentAcknowledged] = useState(true);
   const [consentModalOpen, setConsentModalOpen] = useState(false);
+  const [enterToSend, setEnterToSend] = useState(true);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('sentimate-enter-to-send');
+      if (stored !== null) {
+        setEnterToSend(stored === 'true');
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -996,7 +1008,7 @@ function ChatContent() {
                         </div>
                       ) : (
                         <div
-                          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
+                          className={`p-4 rounded-2xl chat-bubble-text leading-relaxed border ${
                             isUser
                               ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] border-transparent rounded-tr-xs whitespace-pre-wrap break-words'
                               : 'bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] border-[#E2E2DC] dark:border-[#1F2024] rounded-tl-xs shadow-xs min-w-0 max-w-full overflow-hidden break-words'
@@ -1118,8 +1130,10 @@ function ChatContent() {
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
+                    if (enterToSend && !e.nativeEvent.isComposing && (e as any).keyCode !== 229) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
                   }
                 }}
                 rows={1}

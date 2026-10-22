@@ -103,6 +103,14 @@ export function StudentShell({
 
   useEffect(() => {
     setMounted(true);
+    // Student dashboard strictly uses the dark theme
+    document.documentElement.classList.add('dark');
+    document.documentElement.style.colorScheme = 'dark';
+    try {
+      localStorage.setItem('sentimate-theme', 'dark');
+    } catch {
+      // ignore
+    }
   }, []);
 
   // Refs for trigger button positioning

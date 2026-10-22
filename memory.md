@@ -93,6 +93,17 @@
   - Recent message history decompressed for model context; ML pipeline and UI consume decompressed messages transparently.
   - Storage consent governance: skips message persistence when `ai_chat_processing` consent is absent or revoked.
   - Verified compression round-trip for Unicode, Marathi script, emoji, multiline text, and legacy plaintext rows. Verified all 7 chat security tests and 0 TypeScript compilation errors.
+- **Complete Student Settings & Governance (`/student/settings`)** — ✅ Complete:
+  - Additive migration `20261022000002_student_settings_and_preferences.sql` creating `user_preferences` and `support_inquiries` tables with ownership-based RLS, and student self-service RLS on `consent_events`.
+  - Ranked **Account & Security** to the top (#1 primary tab) and default active section on `/student/settings`.
+  - Enforced strict dark theme (`#000000` / `#0D0E11`) throughout the student dashboard, removing Appearance controls to keep the UI clean, distraction-free, and eye-friendly.
+  - Built Chat Preferences (Enter to send toggle preserving mobile & IME composition, preferred language selection, response length options `concise`, `balanced`, `detailed` connected to server-side model instructions without extra model calls).
+  - Built Notifications settings (discrete email and in-app toggles, honest provider status notice explaining unconfigured SMTP/Resend credentials).
+  - Built Privacy & Consent governance (authoritative consent derivation, immutable audit events, immediate database-level enforcement of sharing and analysis revocation).
+  - Built Conversations & Data controls (decompressed JSON / Markdown exports, single and bulk permanent deletion with confirmation modals).
+  - Built Account & Security (trusted identity display, password changes with current password verification, recovery email dispatch, session revocation via `signOut({ scope: 'others' })`).
+  - Built privileged Account Deletion flow requiring explicit "DELETE" confirmation, recent password verification, server-side admin client execution, database cleanup, and user cache clearing.
+  - Built Help & Support module (Contact Support & Report a Problem with rate limiting, optional explicit diagnostic context consent, and non-medical support disclaimer).
 
 ---
 
