@@ -397,7 +397,7 @@ function ToastCard({ item }: { item: ToastItem }) {
               item.action?.onClick();
               toastManager.dismiss(item.id);
             }}
-            className="mt-2 text-xs font-medium px-2.5 py-1 rounded-lg bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] hover:bg-[#D5DFEE] dark:hover:bg-[#303E57] focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] transition-colors"
+            className="mt-2 text-xs font-medium px-2.5 py-1 rounded-lg bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] hover:bg-[#D5DFEE] dark:hover:bg-[#303E57] focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] transition-colors"
           >
             {item.action.label}
           </button>
@@ -409,7 +409,7 @@ function ToastCard({ item }: { item: ToastItem }) {
         type="button"
         onClick={() => toastManager.dismiss(item.id)}
         aria-label="Dismiss notification"
-        className="flex-shrink-0 -mr-1 -mt-1 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0]"
+        className="flex-shrink-0 -mr-1 -mt-1 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5]"
       >
         <X className="w-4 h-4" aria-hidden="true" />
       </button>

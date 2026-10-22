@@ -53,15 +53,15 @@
   --text-primary: #F3F4F6;
   --text-secondary: #9CA3AF;
   --text-tertiary: #6B7280;
-  --brand-primary: #91A7D0;
-  --brand-primary-hover: #A6B9DC;
+  --brand-primary: #2C67C5;
+  --brand-primary-hover: #3875DC;
   --brand-accent-bg: #242E40;
-  --text-on-primary: #151B26;
-  --brand-teal: #91A7D0;
-  --brand-teal-hover: #A6B9DC;
+  --text-on-primary: #FFFFFF;
+  --brand-teal: #2C67C5;
+  --brand-teal-hover: #3875DC;
   --brand-teal-light: #242E40;
-  --brand-teal-border: rgba(145, 167, 208, 0.25);
-  --focus-ring: rgba(145, 167, 208, 0.4);
+  --brand-teal-border: rgba(44, 103, 197, 0.25);
+  --focus-ring: rgba(44, 103, 197, 0.4);
   --skeleton-base: #141518;
   --skeleton-highlight: #202227;
   --toast-bg: rgba(14, 15, 17, 0.92);
@@ -75,9 +75,9 @@
   --toast-error-bg: rgba(248, 113, 113, 0.12);
   --toast-warning-accent: #FBBF24;
   --toast-warning-bg: rgba(251, 191, 36, 0.12);
-  --toast-info-accent: #91A7D0;
-  --toast-info-bg: rgba(145, 167, 208, 0.12);
-  --toast-loading-accent: #91A7D0;
+  --toast-info-accent: #2C67C5;
+  --toast-info-bg: rgba(44, 103, 197, 0.12);
+  --toast-loading-accent: #2C67C5;
 }
 
 body {
@@ -190,8 +190,8 @@ input:-webkit-autofill:focus {
 }
 
 .dark input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #18191C inset, 0 0 0 2px rgba(145, 167, 208, 0.2) !important;
-  box-shadow: 0 0 0 1000px #18191C inset, 0 0 0 2px rgba(145, 167, 208, 0.2) !important;
+  -webkit-box-shadow: 0 0 0 1000px #18191C inset, 0 0 0 2px rgba(44, 103, 197, 0.2) !important;
+  box-shadow: 0 0 0 1000px #18191C inset, 0 0 0 2px rgba(44, 103, 197, 0.2) !important;
 }
 
 input:autofill,
@@ -417,4 +417,35 @@ select:autofill {
 .dark * {
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
+
+/* Chat text size tokens */
+:root {
+  --chat-text-size: 0.875rem;
+  --chat-text-leading: 1.45rem;
+}
+
+html[data-chat-size="small"] {
+  --chat-text-size: 0.8125rem;
+  --chat-text-leading: 1.35rem;
+}
+
+html[data-chat-size="large"] {
+  --chat-text-size: 1rem;
+  --chat-text-leading: 1.65rem;
+}
+
+.chat-bubble-text {
+  font-size: var(--chat-text-size, 0.875rem) !important;
+  line-height: var(--chat-text-leading, 1.45rem) !important;
+}
+
+/* Accessible reduced animations override */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
 

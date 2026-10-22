@@ -54,10 +54,11 @@
 - **Text Primary**: `#F3F4F6` (Crisp readable light slate)
 - **Text Secondary**: `#9CA3AF` (Muted secondary slate)
 - **Text Tertiary**: `#6B7280` (Muted timestamps / hints)
-- **Teal Primary (Brand)**: `#14B8A6` (Teal-500 — accessible contrast against dark surface)
-- **Teal Hover**: `#2DD4BF`
-- **Teal Dark Surface**: `rgba(20, 184, 166, 0.12)`
-- **Teal Subtle Border**: `rgba(20, 184, 166, 0.25)`
+- **Accent Primary (Brand)**: `#2C67C5` (Vibrant royal blue — accessible 5.45:1 contrast with white text)
+- **Accent Hover**: `#3875DC`
+- **Accent Accessible Text (Dark Surfaces)**: `#5B8DEF` (Lighter companion shade with > 6:1 contrast on pitch black)
+- **Accent Subtle Border**: `rgba(44, 103, 197, 0.25)`
+- **Accent Dark Surface**: `rgba(44, 103, 197, 0.12)`
 - **Warning / Amber**: `#FBBF24` (Amber-400) on `rgba(245, 158, 11, 0.12)`
 - **Critical / Danger**: `#F87171` (Red-400) on `rgba(239, 68, 68, 0.12)`
 - **Success**: `#34D399` (Emerald-400) on `rgba(16, 185, 129, 0.12)`
@@ -189,3 +190,13 @@
 - **Motion**:
   - Fast, purposeful micro-transitions (150ms to 200ms cubic-bezier(0.16, 1, 0.3, 1)).
   - Respect `prefers-reduced-motion: reduce` by zeroing transition durations and transforms.
+
+---
+
+## 7. Student Settings Visual Specification (`/student/settings`)
+- **Typography**: Header uses Instrument Serif (`font-serif`, 32px–36px) matching student sub-pages.
+- **Layout**: Desktop 4-column split (vertical navigation sidebar on left, structured cards on right); mobile horizontal pill scrollbar.
+- **Section Hierarchy**: **Account & Security** is ranked to top (#1 primary tab), followed by Chat Preferences, Notifications, Privacy & Consent, Conversations & Data, and Help & Support.
+- **Theme Invariant**: Strict pitch-black dark theme (`#000000` / `#0D0E11`) enforced throughout the student workspace. Appearance toggle controls removed to keep UI focused, distraction-free, and eye-friendly.
+- **Status Communicators**: Debounced auto-save pill (`Saving...`, `Saved`, `Retry`), honest delivery warning notices, and destructive confirmation modals with explicit keyword input.
+

@@ -91,7 +91,7 @@ export default function CounsellorStudentsPage() {
             placeholder="Search by student name, PRN, or department..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#91A7D0] min-h-[44px]"
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#2C67C5] min-h-[44px]"
           />
         </div>
 
@@ -125,7 +125,7 @@ export default function CounsellorStudentsPage() {
               {filtered.map((student) => (
                 <Card
                   key={student.id}
-                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#4F648C]/40 dark:hover:border-[#91A7D0]/40 transition-colors"
+                  className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#4F648C]/40 dark:hover:border-[#2C67C5]/40 transition-colors"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
@@ -196,7 +196,7 @@ export default function CounsellorStudentsPage() {
           {/* Privacy Scope Notice */}
           <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] space-y-1 text-xs">
             <div className="font-semibold text-[#18191B] dark:text-[#F3F4F6] flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0]" />
+              <Shield className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#5B8DEF]" />
               Strict Confidentiality & Privacy Enforcement
             </div>
             <p className="text-[#71757E]">

@@ -360,6 +360,150 @@ export class ChatRepository {
   }
 
   /**
+   * Permanently delete a single conversation session and its cascaded messages.
+   */
+  async deleteSessionPermanent(sessionId: string, studentId: string): Promise<boolean> {
+    if (!env.isConfigured.supabase) return true;
+
+    try {
+      const supabase = await createServerSupabaseClient();
+      const { error } = await supabase
+        .from('chat_sessions')
+        .delete()
+        .eq('id', sessionId)
+        .eq('student_id', studentId);
+
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Permanently delete all conversation sessions and messages for the student.
+   */
+  async deleteAllSessionsPermanent(studentId: string): Promise<boolean> {
+    if (!env.isConfigured.supabase) return true;
+
+    try {
+      const supabase = await createServerSupabaseClient();
+      const { error } = await supabase
+        .from('chat_sessions')
+        .delete()
+        .eq('student_id', studentId);
+
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Export conversation with message decompression.
+   * Strips out system messages, internal tokens, and secrets.
+   */
+  async exportSessionData(sessionId: string, studentId: string): Promise<{
+    session: ChatSessionRecord;
+    messages: Array<{
+      id: string;
+      role: 'user' | 'assistant';
+      content: string;
+      createdAt: string;
+      modelVersion?: string | null;
+    }>;
+  } | null> {
+    const session = await this.getSession(sessionId, studentId);
+    if (!session) return null;
+
+    if (!env.isConfigured.supabase) {
+      return {
+        session,
+        messages: [],
+      };
+    }
+
+    try {
+      const supabase = await createServerSupabaseClient();
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('id, sender_role, content, content_compressed, encoding_version, model_version, created_at')
+        .eq('session_id', sessionId)
+        .in('sender_role', ['user', 'assistant'])
+        .order('created_at', { ascending: true });
+
+      if (error || !data) {
+        return { session, messages: [] };
+      }
+
+      const messages = data.map((m) => ({
+        id: m.id,
+        role: m.sender_role as 'user' | 'assistant',
+        content: decompressContent(m.content_compressed, m.encoding_version, m.content ?? ''),
+        createdAt: m.created_at,
+        modelVersion: m.model_version,
+      }));
+
+      return { session, messages };
+    } catch {
+      return { session, messages: [] };
+    }
+  }
+
+  /**
+   * Export all conversation sessions and messages for a student with decompression.
+   */
+  async exportAllSessionsData(studentId: string): Promise<Array<{
+    session: ChatSessionRecord;
+    messages: Array<{
+      id: string;
+      role: 'user' | 'assistant';
+      content: string;
+      createdAt: string;
+      modelVersion?: string | null;
+    }>;
+  }>> {
+    if (!env.isConfigured.supabase) return [];
+
+    try {
+      const supabase = await createServerSupabaseClient();
+      const { data: sessions, error: sessError } = await supabase
+        .from('chat_sessions')
+        .select('id, student_id, title, is_archived, created_at, updated_at, last_activity_at')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: true });
+
+      if (sessError || !sessions) return [];
+
+      const result = [];
+      for (const session of sessions) {
+        const { data: messagesData } = await supabase
+          .from('chat_messages')
+          .select('id, sender_role, content, content_compressed, encoding_version, model_version, created_at')
+          .eq('session_id', session.id)
+          .in('sender_role', ['user', 'assistant'])
+          .order('created_at', { ascending: true });
+
+        const messages = (messagesData || []).map((m) => ({
+          id: m.id,
+          role: m.sender_role as 'user' | 'assistant',
+          content: decompressContent(m.content_compressed, m.encoding_version, m.content ?? ''),
+          createdAt: m.created_at,
+          modelVersion: m.model_version,
+        }));
+
+        result.push({
+          session: session as ChatSessionRecord,
+          messages,
+        });
+      }
+
+      return result;
+    } catch {
+      return [];
+    }
+  }
+
+  /**
    * Check whether student has active chat-history storage consent.
    * If a consent_events row for 'ai_chat_processing' exists, status must be 'granted'.
    * If status is 'revoked', returns false.

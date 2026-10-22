@@ -37,7 +37,7 @@ export function LandingFooter() {
               Connecting university students with private conversational wellbeing support, optional check-ins, explainable indicators, and confidential counsellor appointments.
             </p>
             <div className="pt-2 flex items-center gap-2 text-xs text-[#71757E]">
-              <ShieldCheck className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+              <ShieldCheck className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
               <span>Consent-governed data sharing • Strict institutional boundaries</span>
             </div>
           </div>
@@ -49,17 +49,17 @@ export function LandingFooter() {
             </h4>
             <ul className="space-y-2 text-[#4A4D54] dark:text-[#9CA3AF] text-xs sm:text-sm">
               <li>
-                <Link href="/auth/login" className="hover:text-[#4F648C] dark:hover:text-[#91A7D0] transition-colors">
+                <Link href="/auth/login" className="hover:text-[#4F648C] dark:hover:text-[#5B8DEF] transition-colors">
                   Student Chat Space
                 </Link>
               </li>
               <li>
-                <Link href="/auth/login" className="hover:text-[#4F648C] dark:hover:text-[#91A7D0] transition-colors">
+                <Link href="/auth/login" className="hover:text-[#4F648C] dark:hover:text-[#5B8DEF] transition-colors">
                   Counsellor Portal
                 </Link>
               </li>
               <li>
-                <Link href="/resources" className="hover:text-[#4F648C] dark:hover:text-[#91A7D0] transition-colors">
+                <Link href="/resources" className="hover:text-[#4F648C] dark:hover:text-[#5B8DEF] transition-colors">
                   Crisis Resources
                 </Link>
               </li>
@@ -73,7 +73,7 @@ export function LandingFooter() {
             </h4>
             <ul className="space-y-2 text-[#4A4D54] dark:text-[#9CA3AF] text-xs sm:text-sm">
               <li>
-                <a href="#privacy" className="hover:text-[#4F648C] dark:hover:text-[#91A7D0] transition-colors">
+                <a href="#privacy" className="hover:text-[#4F648C] dark:hover:text-[#5B8DEF] transition-colors">
                   Data Sharing Rules
                 </a>
               </li>

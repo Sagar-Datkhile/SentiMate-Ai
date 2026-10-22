@@ -3,6 +3,7 @@ import { env } from '@/lib/env';
 import { nvidiaChatAdapter, NvidiaChatServiceError } from '@/server/integrations/nvidiaChatAdapter';
 import { chatRepository, ChatRepository } from '@/server/repositories/chat.repository';
 import { authRepository } from '@/server/repositories/auth.repository';
+import { preferencesRepository } from '@/server/repositories/preferences.repository';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 /** A UUID looks like 8-4-4-4-12 hex characters separated by dashes. */
@@ -200,12 +201,24 @@ export async function POST(req: NextRequest) {
       ? `Continue your previous response directly and seamlessly from the exact character where it stopped. Do not repeat any words already spoken. Begin immediately with the next characters/words continuing: "${String(partialContent || '').slice(-60)}"`
       : message;
 
+    // Fetch student chat preferences (language, response length)
+    let studentPreferences: any = null;
+    if (authenticatedUserId) {
+      try {
+        studentPreferences = await preferencesRepository.getPreferences(authenticatedUserId);
+      } catch {
+        // Safe default fallback
+      }
+    }
+
     // 6. Connect to NVIDIA Nemotron streaming adapter
     const stream = await nvidiaChatAdapter.streamResponse({
       message: promptMessage,
       history,
       signal: req.signal,
       format: isSse ? 'sse' : 'raw',
+      responseLanguage: studentPreferences?.responseLanguage,
+      responseLength: studentPreferences?.responseLength,
       onComplete: async (fullText, tokenUsage) => {
         if (resolvedSessionId && hasStorageConsent && fullText.trim()) {
           const contentToSave = isContinuation && partialContent

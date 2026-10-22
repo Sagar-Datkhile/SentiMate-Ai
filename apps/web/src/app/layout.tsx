@@ -25,7 +25,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('sentimate-theme');if(t==='light'){document.documentElement.classList.remove('dark');document.documentElement.style.colorScheme='light';}else{document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';if(t!=='dark'){localStorage.setItem('sentimate-theme','dark');}}}catch(e){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}})();`,
+            __html: `(function(){try{document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';localStorage.setItem('sentimate-theme','dark');var s=localStorage.getItem('sentimate-text-size');if(s&&['small','large'].indexOf(s)!==-1){document.documentElement.setAttribute('data-chat-size',s);}var m=localStorage.getItem('sentimate-reduced-motion');if(m==='true'){document.documentElement.classList.add('reduce-motion');}}catch(e){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}})();`,
           }}
         />
       </head>

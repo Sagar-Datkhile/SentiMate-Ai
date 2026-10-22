@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
-import { HeartHandshake, CheckCircle2, Shield, AlertCircle, Clock } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 
 export default function StudentReferralsPage() {
@@ -49,12 +49,12 @@ export default function StudentReferralsPage() {
     <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
         <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
-          <div className="flex items-center gap-2">
-            <HeartHandshake className="w-5 h-5 text-[#4F648C] dark:text-[#91A7D0]" />
-            <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
-              Request Campus Counsellor Referral
-            </h1>
-          </div>
+          <h1
+            className="text-3xl sm:text-4xl font-serif text-[#18191B] dark:text-[#F3F4F6] tracking-tight"
+            style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+          >
+            Request Campus Counsellor Referral
+          </h1>
           <p className="text-xs sm:text-sm text-[#71757E] mt-1">
             Submit a direct request for professional counselling follow-up. You control exactly what context is shared.
           </p>
@@ -100,7 +100,7 @@ export default function StudentReferralsPage() {
                       onClick={() => setPriority(p)}
                       className={`py-2 px-3 text-xs font-semibold rounded-lg border capitalize transition-colors min-h-[44px] ${
                         priority === p
-                          ? 'border-[#4F648C] dark:border-[#91A7D0] bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0]'
+                          ? 'border-[#4F648C] dark:border-[#2C67C5] bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF]'
                           : 'border-[#E2E2DC] dark:border-[#1F2024] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C]'
                       }`}
                     >
@@ -121,7 +121,7 @@ export default function StudentReferralsPage() {
                     type="checkbox"
                     checked={shareCheckins}
                     onChange={(e) => setShareCheckins(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C] dark:focus:ring-[#91A7D0]"
+                    className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#5B8DEF] focus:ring-[#4F648C] dark:focus:ring-[#2C67C5]"
                   />
                   <div className="text-xs">
                     <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] block">
@@ -138,7 +138,7 @@ export default function StudentReferralsPage() {
                     type="checkbox"
                     checked={shareAcademics}
                     onChange={(e) => setShareAcademics(e.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C] dark:focus:ring-[#91A7D0]"
+                    className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#5B8DEF] focus:ring-[#4F648C] dark:focus:ring-[#2C67C5]"
                   />
                   <div className="text-xs">
                     <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] block">
@@ -152,7 +152,7 @@ export default function StudentReferralsPage() {
               </div>
 
               <div className="p-3 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl flex items-center gap-2 text-xs text-[#71757E]">
-                <Clock className="w-4 h-4 shrink-0 text-[#4F648C] dark:text-[#91A7D0]" />
+                <Clock className="w-4 h-4 shrink-0 text-[#4F648C] dark:text-[#5B8DEF]" />
                 <span>Counsellor review occurs during campus business hours (Mon–Fri 8:30 AM – 5:00 PM).</span>
               </div>
             </Card>

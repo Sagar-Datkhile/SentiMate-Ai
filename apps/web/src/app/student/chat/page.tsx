@@ -255,6 +255,18 @@ function ChatContent() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [consentAcknowledged, setConsentAcknowledged] = useState(true);
   const [consentModalOpen, setConsentModalOpen] = useState(false);
+  const [enterToSend, setEnterToSend] = useState(true);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('sentimate-enter-to-send');
+      if (stored !== null) {
+        setEnterToSend(stored === 'true');
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -974,9 +986,9 @@ function ChatContent() {
                         </div>
                       ) : (
                         <div
-                          className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
+                          className={`p-4 rounded-2xl chat-bubble-text leading-relaxed border ${
                             isUser
-                              ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] border-transparent rounded-tr-xs whitespace-pre-wrap break-words'
+                              ? 'bg-[#4F648C] text-white dark:bg-[#2C67C5] dark:text-white border-transparent rounded-tr-xs whitespace-pre-wrap break-words'
                               : 'bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] border-[#E2E2DC] dark:border-[#1F2024] rounded-tl-xs shadow-xs min-w-0 max-w-full overflow-hidden break-words'
                           }`}
                         >
@@ -984,9 +996,9 @@ function ChatContent() {
                             m.content
                           ) : m.status === 'streaming' && !m.content ? (
                             <div className="flex items-center gap-1.5 py-1 px-0.5" aria-label="Assistant is thinking">
-                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#91A7D0]/70 animate-pulse" />
-                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#91A7D0]/70 animate-pulse [animation-delay:200ms]" />
-                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#91A7D0]/70 animate-pulse [animation-delay:400ms]" />
+                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#2C67C5]/70 animate-pulse" />
+                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#2C67C5]/70 animate-pulse [animation-delay:200ms]" />
+                              <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#2C67C5]/70 animate-pulse [animation-delay:400ms]" />
                               <span className="sr-only">Preparing response...</span>
                             </div>
                           ) : (
@@ -1003,7 +1015,7 @@ function ChatContent() {
                                   <button
                                     type="button"
                                     onClick={() => handleContinueMessage(m.id)}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-[#4F648C] hover:bg-[#405374] dark:bg-[#91A7D0] dark:hover:bg-[#A6B9DC] text-white dark:text-[#151B26] transition-colors shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C]"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-[#4F648C] hover:bg-[#405374] dark:bg-[#2C67C5] dark:hover:bg-[#3875DC] text-white dark:text-white transition-colors shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C]"
                                   >
                                     <span>Continue</span>
                                   </button>
@@ -1085,7 +1097,7 @@ function ChatContent() {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              className="relative flex items-end gap-2 bg-white/70 dark:bg-[#121316]/65 backdrop-blur-md border border-[#E2E2DC]/80 dark:border-white/[0.08] rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] focus-within:border-[#4F648C] dark:focus-within:border-[#91A7D0] focus-within:ring-2 focus-within:ring-[#4F648C]/15 dark:focus-within:ring-[#91A7D0]/20 transition-all"
+              className="relative flex items-end gap-2 bg-white/70 dark:bg-[#121316]/65 backdrop-blur-md border border-[#E2E2DC]/80 dark:border-white/[0.08] rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] focus-within:border-[#4F648C] dark:focus-within:border-[#2C67C5] focus-within:ring-2 focus-within:ring-[#4F648C]/15 dark:focus-within:ring-[#2C67C5]/20 transition-all"
             >
               <textarea
                 ref={textareaRef}
@@ -1096,8 +1108,10 @@ function ChatContent() {
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
+                    if (enterToSend && !e.nativeEvent.isComposing && (e as any).keyCode !== 229) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
                   }
                 }}
                 rows={1}
@@ -1120,9 +1134,9 @@ function ChatContent() {
                   <button
                     type="submit"
                     disabled={!inputValue.trim()}
-                    className={`w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] rounded-full flex items-center justify-center transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] ${
+                    className={`w-9 h-9 min-w-[36px] min-h-[36px] max-w-[36px] max-h-[36px] rounded-full flex items-center justify-center transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] ${
                       inputValue.trim()
-                        ? 'bg-[#4F648C] hover:bg-[#405374] dark:bg-[#91A7D0] dark:hover:bg-[#A6B9DC] text-white dark:text-[#151B26] shadow-sm cursor-pointer'
+                        ? 'bg-[#4F648C] hover:bg-[#405374] dark:bg-[#2C67C5] dark:hover:bg-[#3875DC] text-white dark:text-white shadow-sm cursor-pointer'
                         : 'bg-[#E2E2DC] dark:bg-[#2A2B30] text-[#8C9099] dark:text-[#636773] cursor-not-allowed opacity-60'
                     }`}
                     title="Send message"

@@ -13,13 +13,8 @@ import {
   HeartHandshake,
   Settings,
   LogOut,
-  Sun,
-  Moon,
-  Check,
-  ChevronRight,
   Loader2,
 } from 'lucide-react';
-import { useTheme } from '../theme-provider';
 import { toast } from '@/components/ui/Toast';
 import { createClient } from '@/lib/supabase/client';
 import { AvatarBubble } from './AvatarBubble';
@@ -51,11 +46,8 @@ export function AccountMenu({
 }: AccountMenuProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
-
   const [mounted, setMounted] = useState(false);
   const [coords, setCoords] = useState<{ top?: number; bottom?: number; left: number; width?: number }>({ left: 0 });
-  const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
 
@@ -218,6 +210,7 @@ export function AccountMenu({
     { href: '/student/appointments', label: 'Appointments', icon: Calendar },
     { href: '/resources', label: 'Resources', icon: LifeBuoy },
     { href: '/student/referrals', label: 'Human Support Referral', icon: HeartHandshake },
+    { href: '/student/settings', label: 'Settings', icon: Settings },
   ];
 
   // Helper to register ref
@@ -271,82 +264,22 @@ export function AccountMenu({
               ref={setItemRef}
               role="menuitem"
               onClick={() => onClose()}
-              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] ${
                 isActive
-                  ? 'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] font-semibold'
+                  ? 'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] font-semibold'
                   : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#4F648C] dark:text-[#91A7D0]' : 'text-[#71757E]'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[#4F648C] dark:text-[#5B8DEF]' : 'text-[#71757E]'}`} />
                 <span>{item.label}</span>
               </div>
               {isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-[#4F648C] dark:bg-[#91A7D0]" aria-hidden="true" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#4F648C] dark:bg-[#2C67C5]" aria-hidden="true" />
               )}
             </Link>
           );
         })}
-
-        {/* 3. Settings & Theme Selection */}
-        <div className="pt-1">
-          <button
-            type="button"
-            ref={setItemRef}
-            role="menuitem"
-            aria-expanded={settingsExpanded}
-            onClick={() => setSettingsExpanded(!settingsExpanded)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] hover:text-[#18191B] dark:hover:text-[#F3F4F6] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0]"
-          >
-            <div className="flex items-center gap-2.5">
-              <Settings className="w-4 h-4 text-[#71757E]" />
-              <span>Settings & Appearance</span>
-            </div>
-            <ChevronRight
-              className={`w-3.5 h-3.5 text-[#71757E] transition-transform duration-200 ${
-                settingsExpanded ? 'rotate-90' : ''
-              }`}
-            />
-          </button>
-
-          {/* Inline Theme Preferences */}
-          {settingsExpanded && (
-            <div className="ml-4 pl-3 border-l border-[#E2E2DC] dark:border-[#1F2024] my-1 space-y-1 animate-in fade-in-0 duration-150">
-              <div className="text-[10px] uppercase font-semibold text-[#71757E] tracking-wider px-2 py-0.5">
-                Theme
-              </div>
-              <div className="grid grid-cols-2 gap-1 p-1 bg-[#F4F4F1] dark:bg-[#18191C] rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setTheme('light')}
-                  className={`flex flex-col items-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-colors ${
-                    theme === 'light'
-                      ? 'bg-white dark:bg-[#222327] text-[#4F648C] dark:text-[#91A7D0] shadow-xs font-semibold'
-                      : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
-                  }`}
-                  aria-label="Light theme"
-                >
-                  <Sun className="w-3.5 h-3.5" />
-                  <span>Light</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTheme('dark')}
-                  className={`flex flex-col items-center gap-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-colors ${
-                    theme === 'dark'
-                      ? 'bg-white dark:bg-[#222327] text-[#4F648C] dark:text-[#91A7D0] shadow-xs font-semibold'
-                      : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
-                  }`}
-                  aria-label="Dark theme"
-                >
-                  <Moon className="w-3.5 h-3.5" />
-                  <span>Dark</span>
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* 4. Divider & Log out */}

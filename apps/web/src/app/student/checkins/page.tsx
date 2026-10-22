@@ -84,18 +84,16 @@ export default function StudentCheckinsPage() {
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
-              Voluntary Wellbeing Check-in
-            </h1>
-            <p className="text-xs sm:text-sm text-[#71757E] mt-1">
-              A private moment of self-reflection. All questions are skippable.
-            </p>
-          </div>
-          <Badge variant="teal" size="md">
-            Confidential & Voluntary
-          </Badge>
+        <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
+          <h1
+            className="text-3xl sm:text-4xl font-serif text-[#18191B] dark:text-[#F3F4F6] tracking-tight"
+            style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+          >
+            Voluntary Wellbeing Check-in
+          </h1>
+          <p className="text-xs sm:text-sm text-[#71757E] mt-1">
+            A private moment of self-reflection. All questions are skippable.
+          </p>
         </div>
 
         {submitted ? (
@@ -119,7 +117,7 @@ export default function StudentCheckinsPage() {
             <Card className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Smile className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                  <Smile className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                     Overall Mood Today (1 = Very Low, 5 = Great)
                   </span>
@@ -141,7 +139,7 @@ export default function StudentCheckinsPage() {
                     onClick={() => setMood(val)}
                     className={`py-3 rounded-lg border text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
                       mood === val
-                        ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] border-[#4F648C] dark:border-[#91A7D0]'
+                        ? 'bg-[#4F648C] text-white dark:bg-[#2C67C5] dark:text-white border-[#4F648C] dark:border-[#2C67C5]'
                         : 'bg-[#F4F4F1] dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] hover:bg-[#EAEAE5] dark:hover:bg-[#222327]'
                     }`}
                   >
@@ -155,7 +153,7 @@ export default function StudentCheckinsPage() {
             <Card className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Moon className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                  <Moon className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                     Hours of Sleep Last Night
                   </span>
@@ -188,7 +186,7 @@ export default function StudentCheckinsPage() {
             <Card className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                  <Zap className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF]">
                     Academic & Personal Stress (1 = Very Low, 5 = Extreme)
                   </span>
@@ -236,7 +234,7 @@ export default function StudentCheckinsPage() {
                   type="checkbox"
                   checked={shareWithCounsellor}
                   onChange={(e) => setShareWithCounsellor(e.target.checked)}
-                  className="mt-1 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C] dark:focus:ring-[#91A7D0]"
+                  className="mt-1 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#5B8DEF] focus:ring-[#4F648C] dark:focus:ring-[#2C67C5]"
                 />
                 <span className="text-xs text-[#4A4D54] dark:text-[#9CA3AF] leading-relaxed">
                   Allow my assigned counsellor to view this check-in during scheduled review appointments.
@@ -255,7 +253,7 @@ export default function StudentCheckinsPage() {
         {/* Section: Personal Check-in Trends */}
         <div className="space-y-4 pt-6 border-t border-[#E2E2DC] dark:border-[#1F2024]">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+            <TrendingUp className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
             <h2 className="text-sm font-semibold text-[#18191B] dark:text-[#F3F4F6] uppercase tracking-wide">
               Recent Check-in History & Weekly Trends
             </h2>

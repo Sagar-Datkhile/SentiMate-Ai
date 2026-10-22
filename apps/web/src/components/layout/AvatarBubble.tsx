@@ -50,7 +50,7 @@ export function AvatarBubble({ avatarUrl, displayName, size = 8, className = '' 
 
   return (
     <div
-      className={`${base} bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] font-bold`}
+      className={`${base} bg-[#4F648C] dark:bg-[#2C67C5] text-white dark:text-white font-bold`}
       aria-hidden="true"
     >
       {initialLetter}

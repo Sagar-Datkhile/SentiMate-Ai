@@ -143,7 +143,7 @@ export function DeleteConversationDialog({
             disabled={isDeleting}
             onClick={onClose}
             aria-label="Close dialog"
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#71757E] hover:text-[#18191B] dark:text-[#9CA3AF] dark:hover:text-[#F3F4F6] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] cursor-pointer"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-[#71757E] hover:text-[#18191B] dark:text-[#9CA3AF] dark:hover:text-[#F3F4F6] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -184,7 +184,7 @@ export function DeleteConversationDialog({
             type="button"
             disabled={isDeleting}
             onClick={onConfirm}
-            className="h-10 min-h-[40px] px-4 rounded-xl text-sm font-medium bg-[#F4F4F1] hover:bg-[#EAEAE5] dark:bg-[#18191C] dark:hover:bg-[#222327] text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            className="h-10 min-h-[40px] px-4 rounded-xl text-sm font-medium bg-[#F4F4F1] hover:bg-[#EAEAE5] dark:bg-[#18191C] dark:hover:bg-[#222327] text-[#9E4A4A] hover:text-[#7D2E2E] dark:text-[#C47272] dark:hover:text-[#D18686] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C47272] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
             {isDeleting && (
               <svg className="animate-spin h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
