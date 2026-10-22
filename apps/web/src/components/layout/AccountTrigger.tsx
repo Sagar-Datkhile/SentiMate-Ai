@@ -34,9 +34,11 @@ export function AccountTrigger({
     );
   }
 
+  const profileName = userProfile.fullName || userProfile.displayName;
+
   return (
     <Tooltip
-      content={isCollapsed ? `Account: ${userProfile.displayName}` : null}
+      content={isCollapsed ? `Account: ${profileName}` : null}
       side="right"
       className="relative flex items-center w-full"
     >
@@ -46,8 +48,8 @@ export function AccountTrigger({
         onClick={onToggle}
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-label={`Account menu for ${userProfile.displayName}`}
-        className={`w-full h-11 flex items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] cursor-pointer text-left select-none overflow-hidden ${
+        aria-label={`Account menu for ${profileName}`}
+        className={`w-full h-11 flex items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] cursor-pointer text-left select-none overflow-hidden ${
           isCollapsed ? 'justify-center px-0' : 'gap-2.5 px-2'
         } hover:bg-[#EAEAE5] dark:hover:bg-[#18191C] ${
           isOpen ? 'bg-[#EAEAE5] dark:bg-[#18191C]' : ''
@@ -56,7 +58,7 @@ export function AccountTrigger({
         <div className="shrink-0 flex items-center justify-center">
           <AvatarBubble
             avatarUrl={userProfile.avatarUrl}
-            displayName={userProfile.displayName}
+            displayName={profileName}
             size={8}
           />
         </div>
@@ -66,7 +68,7 @@ export function AccountTrigger({
           }`}
         >
           <div className="font-semibold text-xs text-[#18191B] dark:text-[#F3F4F6] truncate leading-tight whitespace-nowrap">
-            {userProfile.displayName}
+            {profileName}
           </div>
         </div>
       </button>

@@ -151,7 +151,7 @@ interface AvailabilityState {
 
 export default function StudentProfilePage() {
   const router = useRouter();
-  const { sessions, isLoadingSessions } = useStudent();
+  const { sessions, isLoadingSessions, updateUserProfile } = useStudent();
   const [fullName, setFullName] = useState('');
   const [currentUsername, setCurrentUsername] = useState('');
   const [username, setUsername] = useState('');
@@ -232,7 +232,14 @@ export default function StudentProfilePage() {
         throw new Error('Could not load profile details from server.');
       }
       const data = await res.json();
-      if (data.fullName) setFullName(data.fullName);
+      if (data.fullName) {
+        setFullName(data.fullName);
+        updateUserProfile({
+          fullName: data.fullName,
+          displayName: data.fullName,
+          avatarUrl: data.avatarUrl || undefined,
+        });
+      }
       if (data.username) {
         setCurrentUsername(data.username);
         setUsername(data.username);
@@ -681,11 +688,18 @@ export default function StudentProfilePage() {
 
       // Dispatch shared profile state update for sidebar without page reload
       const activeSidebarPhoto = confirmedAvatarUrl || oauthAvatarUrl || undefined;
+      const trimmedFullName = fullName.trim();
+      updateUserProfile({
+        fullName: trimmedFullName,
+        displayName: trimmedFullName,
+        avatarUrl: activeSidebarPhoto,
+      });
+
       window.dispatchEvent(
         new CustomEvent('sentimate:profile-updated', {
           detail: {
             avatarUrl: activeSidebarPhoto,
-            fullName,
+            fullName: trimmedFullName,
           },
         })
       );
