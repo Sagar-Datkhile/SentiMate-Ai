@@ -418,17 +418,3 @@ select:autofill {
   scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
-/* ── Markdown message typography & list marker guarantees ── */
-.sentimate-markdown ul {
-  list-style-type: disc !important;
-}
-
-.sentimate-markdown ol {
-  list-style-type: decimal !important;
-}
-
-.sentimate-markdown li > p {
-  margin-bottom: 0.25rem !important;
-}
-
-
