@@ -132,6 +132,7 @@ export async function GET(req: NextRequest) {
 
       return NextResponse.json({
         fullName: profile?.full_name || 'Alex Student',
+        avatarUrl: profile?.avatar_url || null,
         username: studentProfile?.username || null,
         prn: studentProfile?.prn || 'PRN-2024-ENG-0892',
         institution,
@@ -151,6 +152,7 @@ export async function GET(req: NextRequest) {
     // Default mock response for offline development
     return NextResponse.json({
       fullName: 'Alex Student',
+      avatarUrl: null,
       username: 'alex_student',
       prn: 'PRN-2024-ENG-0892',
       institution: {
@@ -246,6 +248,38 @@ export async function PUT(req: NextRequest) {
         if (!validation.isValid) {
           return NextResponse.json(
             { error: validation.error, code: validation.isReserved ? 'RESERVED_USERNAME' : 'INVALID_USERNAME' },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // Validate optional avatarUrl
+    let targetAvatarUrl: string | null | undefined = undefined;
+    const rawAvatarUrl = body.avatarUrl !== undefined ? body.avatarUrl : body.avatar_url;
+    if (rawAvatarUrl !== undefined) {
+      if (rawAvatarUrl === null || String(rawAvatarUrl).trim() === '') {
+        targetAvatarUrl = null;
+      } else {
+        const trimmedUrl = String(rawAvatarUrl).trim();
+        try {
+          const parsed = new URL(trimmedUrl);
+          if (parsed.protocol !== 'https:') {
+            return NextResponse.json(
+              { error: 'Avatar URL must use a secure HTTPS scheme.', code: 'INVALID_AVATAR_URL' },
+              { status: 400 }
+            );
+          }
+          if (parsed.username || parsed.password) {
+            return NextResponse.json(
+              { error: 'Avatar URL cannot contain embedded credentials.', code: 'INVALID_AVATAR_URL' },
+              { status: 400 }
+            );
+          }
+          targetAvatarUrl = trimmedUrl;
+        } catch {
+          return NextResponse.json(
+            { error: 'Please enter a valid URL (e.g. https://example.com/photo.jpg).', code: 'INVALID_AVATAR_URL' },
             { status: 400 }
           );
         }
@@ -383,12 +417,30 @@ export async function PUT(req: NextRequest) {
         }
       }
 
-      // Update basic profile (e.g. fullName)
-      if (body.fullName) {
-        await supabase
+      // Update basic profile (e.g. fullName, avatar_url)
+      const profileUpdates: { full_name?: string; avatar_url?: string | null; updated_at: string } = {
+        updated_at: new Date().toISOString(),
+      };
+      if (body.fullName && typeof body.fullName === 'string') {
+        profileUpdates.full_name = body.fullName.trim();
+      }
+      if (targetAvatarUrl !== undefined) {
+        profileUpdates.avatar_url = targetAvatarUrl;
+      }
+
+      if (profileUpdates.full_name !== undefined || profileUpdates.avatar_url !== undefined) {
+        const { error: profileUpdateError } = await supabase
           .from('profiles')
-          .update({ full_name: body.fullName.trim(), updated_at: new Date().toISOString() })
+          .update(profileUpdates)
           .eq('id', studentId);
+
+        if (profileUpdateError) {
+          console.error('[Profile Update] Error updating profiles table:', profileUpdateError);
+          return NextResponse.json(
+            { error: profileUpdateError.message || 'Failed to update user profile', code: 'DB_ERROR' },
+            { status: 500 }
+          );
+        }
       }
 
       // Update semester results if provided
@@ -419,6 +471,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({
       success: true,
       username: normalizedUsername,
+      avatarUrl: targetAvatarUrl !== undefined ? targetAvatarUrl : null,
       departmentId: body.departmentId || null,
       message: 'Profile and academic details updated successfully.',
     });

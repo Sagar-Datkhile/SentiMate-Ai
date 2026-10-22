@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -347,3 +347,31 @@ select:autofill {
   transform-box: fill-box;
   transform-origin: center;
 }
+
+/* ── Welcome layout & typography ── */
+.sentimate-welcome-greeting {
+  font-family: 'Playfair Display', Georgia, serif;
+  color: #4A4D54;
+}
+
+.dark .sentimate-welcome-greeting {
+  color: #C5CAD3;
+}
+
+.sentimate-welcome-heading {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  color: #18191B;
+}
+
+.dark .sentimate-welcome-heading {
+  color: #F3F4F6;
+}
+
+.sentimate-welcome-subline {
+  color: #71757E;
+}
+
+.dark .sentimate-welcome-subline {
+  color: #8C9099;
+}
+

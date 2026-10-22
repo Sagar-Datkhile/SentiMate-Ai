@@ -341,6 +341,7 @@ export default function StudentProfilePage() {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = e.target.value;
       setPhotoUrlInput(val);
+      setImageLoadError(false);
       if (urlValidationError) {
         setUrlValidationError(null);
       }
@@ -358,8 +359,17 @@ export default function StudentProfilePage() {
   // 3. Google OAuth photo from sign-in metadata
   // 4. Initials fallback
   let displayPhotoUrl: string | null = null;
-  if (stagedPhotoUrl && !imageLoadError) {
-    displayPhotoUrl = stagedPhotoUrl;
+  if (stagedPhotoUrl) {
+    if (!imageLoadError) {
+      displayPhotoUrl = stagedPhotoUrl;
+    } else if (savedAvatarUrl) {
+      displayPhotoUrl = savedAvatarUrl;
+    } else if (oauthAvatarUrl) {
+      displayPhotoUrl = oauthAvatarUrl;
+    }
+  } else if (photoUrlInput.trim() === '' && stagedPhotoUrl === '') {
+    // Custom URL is explicitly cleared: fall back to Google OAuth photo, then initials
+    displayPhotoUrl = oauthAvatarUrl || null;
   } else if (savedAvatarUrl) {
     displayPhotoUrl = savedAvatarUrl;
   } else if (oauthAvatarUrl) {
@@ -550,12 +560,15 @@ export default function StudentProfilePage() {
       }
     }
 
+    const newAvatarUrl = trimmedPhotoUrl || null;
+
     try {
       const response = await fetch('/api/student/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fullName,
+          avatarUrl: newAvatarUrl,
           username: normalized,
           prn: prn.trim(),
           departmentId: departmentId || null,
@@ -589,32 +602,19 @@ export default function StudentProfilePage() {
         toast.error('Profile update failed.', {
           description: errorDetail,
         });
+        // Retain the existing saved photo on save failure
         return;
       }
 
-      // Update avatar_url in database
-      const newAvatarUrl = trimmedPhotoUrl || null;
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          await supabase
-            .from('profiles')
-            .update({ avatar_url: newAvatarUrl, updated_at: new Date().toISOString() })
-            .eq('id', user.id);
-        }
-      } catch (e) {
-        console.warn('[Profile Save] Failed to update avatar_url directly:', e);
-      }
-
-      setSavedAvatarUrl(newAvatarUrl);
-      setStagedPhotoUrl(trimmedPhotoUrl);
+      // Confirmed success: update saved avatar and reset error state
+      const confirmedAvatarUrl = data?.avatarUrl !== undefined ? data.avatarUrl : newAvatarUrl;
+      setSavedAvatarUrl(confirmedAvatarUrl);
+      setStagedPhotoUrl(confirmedAvatarUrl || '');
+      setPhotoUrlInput(confirmedAvatarUrl || '');
       setImageLoadError(false);
 
       // Dispatch shared profile state update for sidebar without page reload
-      const activeSidebarPhoto = newAvatarUrl || oauthAvatarUrl || undefined;
+      const activeSidebarPhoto = confirmedAvatarUrl || oauthAvatarUrl || undefined;
       window.dispatchEvent(
         new CustomEvent('sentimate:profile-updated', {
           detail: {
