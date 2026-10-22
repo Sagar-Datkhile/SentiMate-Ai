@@ -23,6 +23,7 @@ import { useTheme } from '../theme-provider';
 import { toast } from '@/components/ui/Toast';
 import { createClient } from '@/lib/supabase/client';
 import { AvatarBubble } from './AvatarBubble';
+import { clearStudentCache } from './StudentContext';
 
 export interface UserProfileData {
   displayName: string;
@@ -188,6 +189,7 @@ export function AccountMenu({
 
     try {
       toast.clear();
+      clearStudentCache();
       const supabase = createClient();
       const { error } = await supabase.auth.signOut();
       if (error) {

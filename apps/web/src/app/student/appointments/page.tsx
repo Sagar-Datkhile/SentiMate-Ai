@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { StudentShell } from '@/components/layout/StudentShell';
+
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -132,7 +132,7 @@ export default function StudentAppointmentsPage() {
   };
 
   return (
-    <StudentShell>
+    <>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
@@ -347,6 +347,6 @@ export default function StudentAppointmentsPage() {
           </div>
         </div>
       </Dialog>
-    </StudentShell>
+    </>
   );
 }

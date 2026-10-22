@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowUp,
   Square,
@@ -14,7 +15,7 @@ import {
   Info,
   X,
 } from 'lucide-react';
-import { StudentShell, ChatSessionItem } from '@/components/layout/StudentShell';
+import { useStudent, ChatSessionItem } from '@/components/layout/StudentContext';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
@@ -128,9 +129,19 @@ function dbRowToMessage(row: any): Message {
   };
 }
 
-export default function StudentChatPage() {
-  const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
-  const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(true);
+function ChatContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const {
+    sessions,
+    isLoadingSessions,
+    setSessions,
+    addSession,
+    updateSessionTitle,
+    deleteSession,
+    setActiveSessionId: setContextActiveSessionId,
+  } = useStudent();
+
   // null = "new chat" (no DB session yet); string = DB UUID
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
@@ -201,45 +212,19 @@ export default function StudentChatPage() {
 
   // ── Session loading ──────────────────────────────────────────────────────────
 
-  const loadSessions = useCallback(async () => {
-    try {
-      const res = await fetch('/api/chat/sessions');
-      if (!res.ok) {
-        setIsLoadingSessions(false);
-        return;
-      }
-      const { sessions: dbSessions } = await res.json();
-      const items: ChatSessionItem[] = (dbSessions ?? []).map((s: any) => ({
-        id: s.id,
-        title: s.title,
-        createdAt: s.created_at,
-        lastActivityAt: s.last_activity_at ?? s.updated_at ?? s.created_at,
-      }));
-      setSessions(items);
-    } catch {
-      // Network error — keep empty list, no crash
-    } finally {
-      setIsLoadingSessions(false);
-    }
-  }, []);
+  // ── Sync active session with URL search parameter ────────────────────────────
 
-  // ── Initial mount: load sessions & check URL session param ───────────────────
+  const sessionParam = searchParams.get('session');
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      await loadSessions();
-      if (!mounted) return;
-      if (typeof window !== 'undefined') {
-        const params = new URLSearchParams(window.location.search);
-        const sessionParam = params.get('session');
-        if (sessionParam && isUUID(sessionParam)) {
-          setActiveSessionId(sessionParam);
-        }
-      }
-    })();
-    return () => { mounted = false; };
-  }, [loadSessions]);
+    if (sessionParam && isUUID(sessionParam)) {
+      setActiveSessionId(sessionParam);
+      setContextActiveSessionId(sessionParam);
+    } else {
+      setActiveSessionId(null);
+      setContextActiveSessionId(null);
+    }
+  }, [sessionParam, setContextActiveSessionId]);
 
   // ── Load messages when active session changes ────────────────────────────────
 
@@ -321,9 +306,7 @@ export default function StudentChatPage() {
         autoTitleGeneratedSessionIdsRef.current.add(sessionId);
 
         // Update conversation metadata in place without touching message state
-        setSessions((prev) =>
-          prev.map((s) => (s.id === sessionId ? { ...s, title: newTitle } : s))
-        );
+        updateSessionTitle(sessionId, newTitle);
 
         if (force) {
           toast.success('Title updated', { description: `"${newTitle}"` });
@@ -412,7 +395,11 @@ export default function StudentChatPage() {
             createdAt: new Date().toISOString(),
             lastActivityAt: new Date().toISOString(),
           };
-          setSessions((prev) => [newSessionItem, ...prev]);
+          addSession(newSessionItem);
+          setContextActiveSessionId(serverSessionId);
+          if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', `/student/chat?session=${serverSessionId}`);
+          }
         }
       }
 
@@ -610,23 +597,25 @@ export default function StudentChatPage() {
   // ── Session management ───────────────────────────────────────────────────────
 
   const handleNewSession = () => {
-    // Don't create a DB session yet — it will be created lazily on first message
     loadedSessionIdRef.current = null;
     setActiveSessionId(null);
+    setContextActiveSessionId(null);
     setMessages([]);
+    router.push('/student/chat');
   };
 
   const handleSelectSession = (id: string) => {
     if (id === activeSessionId) return;
     setActiveSessionId(id);
+    setContextActiveSessionId(id);
+    router.push(`/student/chat?session=${id}`);
   };
 
   const handleRenameSession = async (id: string, newTitle: string) => {
     manuallyRenamedSessionIdsRef.current.add(id);
-    // Optimistic update
-    setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title: newTitle } : s)));
+    updateSessionTitle(id, newTitle);
 
-    if (!isUUID(id)) return; // temp ID — not yet in DB
+    if (!isUUID(id)) return;
 
     try {
       const res = await fetch(`/api/chat/sessions/${id}`, {
@@ -635,43 +624,27 @@ export default function StudentChatPage() {
         body: JSON.stringify({ title: newTitle }),
       });
       if (!res.ok) {
-        // Rollback optimistic update
-        await loadSessions();
         toast.error('Failed to rename conversation');
       }
     } catch {
-      await loadSessions();
       toast.error('Failed to rename conversation');
     }
   };
 
   const handleDeleteSession = async (id: string) => {
-    // Optimistic removal
-    const removed = sessions.find((s) => s.id === id);
-    setSessions((prev) => prev.filter((s) => s.id !== id));
-
     if (activeSessionId === id) {
       const remaining = sessions.filter((s) => s.id !== id);
       if (remaining.length > 0) {
-        setActiveSessionId(remaining[0].id);
+        router.push(`/student/chat?session=${remaining[0].id}`);
       } else {
         handleNewSession();
       }
     }
 
-    if (!isUUID(id)) return; // temp ID — nothing to delete in DB
-
     try {
-      const res = await fetch(`/api/chat/sessions/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => null);
-        // Rollback: re-add the session
-        if (removed) setSessions((prev) => [removed, ...prev]);
-        throw new Error(errorData?.error || 'Failed to delete conversation on server.');
-      }
-    } catch (err: any) {
-      if (removed) setSessions((prev) => [removed, ...prev]);
-      throw err;
+      await deleteSession(id);
+    } catch {
+      toast.error('Failed to delete conversation');
     }
   };
 
@@ -682,15 +655,7 @@ export default function StudentChatPage() {
   const isInitialLoading = isLoadingSessions || isProfileLoading;
 
   return (
-    <StudentShell
-      sessions={sessions}
-      activeSessionId={activeSessionId ?? 'new-chat'}
-      isLoadingSessions={isLoadingSessions}
-      onNewSession={handleNewSession}
-      onSelectSession={handleSelectSession}
-      onRenameSession={handleRenameSession}
-      onDeleteSession={handleDeleteSession}
-    >
+    <>
       {/*
         Main chat area. When `isNewChat` the flex column justifies to center so
         the composer + heading sit mid-screen. After the first message is sent the
@@ -928,6 +893,14 @@ export default function StudentChatPage() {
           </div>
         </div>
       </Dialog>
-    </StudentShell>
+    </>
+  );
+}
+
+export default function StudentChatPage() {
+  return (
+    <Suspense fallback={null}>
+      <ChatContent />
+    </Suspense>
   );
 }

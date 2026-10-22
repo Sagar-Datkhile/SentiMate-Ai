@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { StudentShell, ChatSessionItem } from '@/components/layout/StudentShell';
+import { useStudent } from '@/components/layout/StudentContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -151,8 +151,7 @@ interface AvailabilityState {
 
 export default function StudentProfilePage() {
   const router = useRouter();
-  const [sessions, setSessions] = useState<ChatSessionItem[]>([]);
-  const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(true);
+  const { sessions, isLoadingSessions } = useStudent();
   const [fullName, setFullName] = useState('');
   const [currentUsername, setCurrentUsername] = useState('');
   const [username, setUsername] = useState('');
@@ -360,34 +359,10 @@ export default function StudentProfilePage() {
     }
   };
 
-  const loadSessions = useCallback(async () => {
-    try {
-      setIsLoadingSessions(true);
-      const res = await fetch('/api/chat/sessions');
-      if (!res.ok) {
-        setIsLoadingSessions(false);
-        return;
-      }
-      const { sessions: dbSessions } = await res.json();
-      const items: ChatSessionItem[] = (dbSessions ?? []).map((s: any) => ({
-        id: s.id,
-        title: s.title,
-        createdAt: s.created_at,
-        lastActivityAt: s.last_activity_at ?? s.updated_at ?? s.created_at,
-      }));
-      setSessions(items);
-    } catch {
-      // Graceful fallback
-    } finally {
-      setIsLoadingSessions(false);
-    }
-  }, []);
-
-  // Load real profile data and chat sessions on mount
+  // Load real profile data on mount
   useEffect(() => {
     loadProfile();
-    loadSessions();
-  }, [loadSessions]);
+  }, []);
 
   const handleSemesterChange = (semesterNum: number, value: string) => {
     setSemesters((prev) =>
@@ -759,35 +734,7 @@ export default function StudentProfilePage() {
       : undefined;
 
   return (
-    <StudentShell
-      studentName={fullName}
-      avatarUrl={displayPhotoUrl || undefined}
-      sessions={sessions}
-      isLoadingSessions={isLoadingSessions}
-      onNewSession={() => router.push('/student/chat')}
-      onSelectSession={(id) => router.push(`/student/chat?session=${id}`)}
-      onDeleteSession={async (id) => {
-        try {
-          await fetch(`/api/chat/sessions/${id}`, { method: 'DELETE' });
-          setSessions((prev) => prev.filter((s) => s.id !== id));
-        } catch {
-          // ignore
-        }
-      }}
-      onRenameSession={async (id, newTitle) => {
-        try {
-          setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, title: newTitle } : s)));
-          await fetch(`/api/chat/sessions/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: newTitle }),
-          });
-        } catch {
-          loadSessions();
-        }
-      }}
-    >
-      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Page Title */}
         <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <h1
@@ -1300,6 +1247,5 @@ export default function StudentProfilePage() {
         </form>
         )}
       </div>
-    </StudentShell>
   );
 }
