@@ -156,19 +156,17 @@ export default function StudentChatPage() {
   const autoTitleGeneratedSessionIdsRef = useRef<Set<string>>(new Set());
   const titleJobsInFlightRef = useRef<Set<string>>(new Set());
 
-  // ── Welcome heading first-name ─────────────────────────────────────────────
+  // ── Welcome heading first-name & profile loading ───────────────────────────
   const [firstName, setFirstName] = useState<string>('');
-  // Tracks whether we have already played the reveal for the current new-chat
-  // entry. Stored in a ref so it survives re-renders without triggering them.
-  const helloAnimPlayedRef = useRef(false);
-  const [helloAnimating, setHelloAnimating] = useState(false);
+  const [isProfileLoading, setIsProfileLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
       try {
         const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
+        if (user && mounted) {
           const full =
             user.user_metadata?.full_name ||
             user.user_metadata?.name ||
@@ -180,8 +178,15 @@ export default function StudentChatPage() {
         }
       } catch {
         // Ignore — heading degrades gracefully without a name
+      } finally {
+        if (mounted) {
+          setIsProfileLoading(false);
+        }
       }
     })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
 
@@ -667,20 +672,7 @@ export default function StudentChatPage() {
   // "New chat" = no real DB session and no messages sent yet.
   // Drives both the centered composer and heading visibility without any persistent flag.
   const isNewChat = activeSessionId === null && messages.length === 0;
-
-  // Fire the hello reveal exactly once per new-chat entry; never replays on
-  // typing, re-renders, theme changes or sidebar toggles.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (isNewChat && !helloAnimPlayedRef.current) {
-      helloAnimPlayedRef.current = true;
-      setHelloAnimating(true);
-    }
-    if (!isNewChat) {
-      helloAnimPlayedRef.current = false;
-      setHelloAnimating(false);
-    }
-  }, [isNewChat]);
+  const isInitialLoading = isLoadingSessions || isProfileLoading;
 
   return (
     <StudentShell
@@ -800,53 +792,44 @@ export default function StudentChatPage() {
         </LoadingRegion>
 
         {/* ── Centered welcome heading (only visible in new-chat state) ── */}
+        {/* ── Centered welcome layout (only visible in new-chat state) ── */}
         <div
           aria-hidden={!isNewChat}
-          className={`text-center px-4 pb-6 transition-all duration-[250ms] ease-out motion-reduce:transition-none ${
+          className={`w-full text-center px-4 transition-all duration-[250ms] ease-out motion-reduce:transition-none ${
             isNewChat
-              ? 'opacity-100 max-h-64 mb-0'
-              : 'opacity-0 max-h-0 overflow-hidden pointer-events-none pb-0'
-          }`}
+              ? 'max-h-80 mb-5'
+              : 'max-h-0 overflow-hidden pointer-events-none mb-0'
+          } ${isInitialLoading ? 'opacity-0' : isNewChat ? 'opacity-100' : 'opacity-0'}`}
         >
-          {/*
-            Heading uses Instrument Serif with a static pastel gradient and a
-            clip-path sweep animation for the handwriting-style reveal.
-            data-animating drives the CSS animation; it is set once per
-            new-chat entry and never replayed on typing or re-renders.
-          */}
-          <h1
-            className="sentimate-hello-heading text-[30px] leading-[1.2] sm:text-[48px] sm:leading-[1.15] lg:text-[52px] mx-auto max-w-2xl mb-5 px-2"
-            data-animating={helloAnimating ? 'true' : 'false'}
-            aria-label={
-              firstName
-                ? `Hey ${firstName}, What's on your mind today?`
-                : `Hey, What's on your mind today?`
-            }
-          >
-            {firstName ? (
-              <>
-                <span>{`Hey ${firstName},`}</span>
-                <span className="sentimate-question">What’s on your mind today?</span>
-              </>
-            ) : (
-              <>
-                <span>Hey,</span>
-                <span className="sentimate-question">What’s on your mind today?</span>
-              </>
-            )}
-          </h1>
+          <div className="mx-auto max-w-[720px] px-2 select-none">
+            {/* Small greeting */}
+            <p className="sentimate-welcome-greeting text-sm sm:text-base md:text-[17px] font-normal mb-1.5 sm:mb-2">
+              {firstName ? `Hey ${firstName},` : 'Hey there,'}
+            </p>
+
+            {/* Playfair Display main heading (40-48px on desktop, responsively smaller on mobile) */}
+            <h1 className="sentimate-welcome-heading text-[32px] sm:text-[40px] md:text-[44px] lg:text-[48px] leading-[1.15] font-normal tracking-[-0.01em] mb-2.5 sm:mb-3">
+              What’s on your mind today?
+            </h1>
+
+            {/* Muted supporting line */}
+            <p className="sentimate-welcome-subline text-xs sm:text-sm font-normal">
+              No need to find the perfect words.
+            </p>
+          </div>
         </div>
 
         {/* ── Composer — single instance, always mounted ── */}
-        <div className="bg-[#FBFBFA] dark:bg-[#000000] shrink-0 w-full px-4 sm:px-6 pt-3.5 pb-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:min-h-[104px] flex flex-col justify-center">
-          <div className="max-w-3xl w-full mx-auto">
+        <div className={`shrink-0 w-full px-4 sm:px-6 pb-4 pb-[max(1rem,env(safe-area-inset-bottom))] flex flex-col justify-center transition-all duration-[250ms] ease-out ${
+          isNewChat ? 'pt-0' : 'pt-3 md:min-h-[104px]'
+        }`}>
+          <div className="max-w-[720px] w-full mx-auto">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 handleSendMessage();
               }}
-              style={{ backgroundColor: 'transparent' }}
-              className="relative flex items-center gap-2 !bg-transparent border border-[#E2E2DC] dark:border-[#2C2D32] rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 focus-within:border-[#4F648C] dark:focus-within:border-[#91A7D0] transition-all"
+              className="relative flex items-center gap-2 bg-white/70 dark:bg-[#121316]/65 backdrop-blur-md border border-[#E2E2DC]/80 dark:border-white/[0.08] rounded-2xl sm:rounded-3xl p-1.5 sm:p-2 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] focus-within:border-[#4F648C] dark:focus-within:border-[#91A7D0] focus-within:ring-2 focus-within:ring-[#4F648C]/15 dark:focus-within:ring-[#91A7D0]/20 transition-all"
             >
               <textarea
                 ref={textareaRef}
@@ -860,8 +843,7 @@ export default function StudentChatPage() {
                 }}
                 rows={1}
                 placeholder="How are you feeling today?"
-                style={{ backgroundColor: 'transparent' }}
-                className="w-full min-w-0 !bg-transparent !border-0 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] dark:placeholder-[#8C9099] focus:outline-none resize-none max-h-32 min-h-[36px] py-2 px-3 leading-5"
+                className="w-full min-w-0 bg-transparent border-0 text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] dark:placeholder-[#8C9099] focus:outline-none resize-none max-h-32 min-h-[36px] py-2 px-3 leading-5"
               />
 
               <div className="flex items-center shrink-0">
