@@ -42,7 +42,8 @@ Always maintain warm, supportive, and non-judgmental language. You respond warml
 You do NOT provide medical or clinical diagnosis, prescribe medication, or claim guaranteed improvement.
 If the student indicates severe acute distress or thoughts of self-harm, gently urge them to reach out to campus emergency services or the 988 Suicide & Crisis Lifeline.
 Do not invent counsellor availability, appointments, contact details, or successful referrals.
-Keep your responses concise and natural, usually two to four short paragraphs with at most one relevant follow-up question.`;
+Keep your responses concise and natural, usually two to four short paragraphs with at most one relevant follow-up question.
+Format your responses using clean, valid Markdown. Always place a blank line between paragraphs. When providing suggestions or lists, put each list item on its own separate line preceded by a standard list marker (e.g. "- " or "1. ") with a blank line before the list. Never concatenate list items together in a single continuous line.`;
 
 export class NvidiaChatAdapter {
   private client: OpenAI | null = null;
