@@ -400,15 +400,51 @@ export const UpdateConsentRequestSchema = z.object({
 });
 export type UpdateConsentRequest = z.infer<typeof UpdateConsentRequestSchema>;
 
+export const SupportCategorySchema = z.enum([
+  'feedback',
+  'enquiry',
+  'support',
+  'bug',
+  'general',
+  'counsellor',
+  'account',
+  'privacy',
+  'chat_bug',
+  'appointments_bug',
+  'appearance_bug',
+  'performance_bug',
+]);
+export type SupportCategory = z.infer<typeof SupportCategorySchema>;
+
+export const BugPrioritySchema = z.enum(['low', 'medium', 'high', 'critical']);
+export type BugPriority = z.infer<typeof BugPrioritySchema>;
+
+export const BugStatusSchema = z.enum(['new', 'in_progress', 'resolved', 'closed']);
+export type BugStatus = z.infer<typeof BugStatusSchema>;
+
+export const EmailDeliveryStatusSchema = z.enum(['queued', 'sent', 'failed']);
+export type EmailDeliveryStatus = z.infer<typeof EmailDeliveryStatusSchema>;
+
 export const SupportInquiryRequestSchema = z.object({
-  inquiryType: z.enum(['contact_support', 'report_problem']),
-  subject: z.string().min(3, 'Subject must be at least 3 characters').max(120),
-  message: z.string().min(10, 'Message must be at least 10 characters').max(4000),
-  category: z.string().default('general'),
+  inquiryType: z.string().optional(),
+  category: SupportCategorySchema.default('support'),
+  subject: z.string().min(3, 'Subject must be at least 3 characters').max(120, 'Subject cannot exceed 120 characters'),
+  message: z.string().min(10, 'Message must be at least 10 characters').max(4000, 'Message cannot exceed 4000 characters'),
+  reproductionSteps: z.string().max(2000, 'Reproduction steps cannot exceed 2000 characters').optional(),
+  expectedBehavior: z.string().max(1000, 'Expected behavior cannot exceed 1000 characters').optional(),
+  actualBehavior: z.string().max(1000, 'Actual behavior cannot exceed 1000 characters').optional(),
   includeDiagnosticContext: z.boolean().default(false),
   diagnosticContext: z.record(z.any()).optional(),
+  idempotencyKey: z.string().max(100).optional(),
 });
 export type SupportInquiryRequest = z.infer<typeof SupportInquiryRequestSchema>;
+
+export const UpdateBugTriageSchema = z.object({
+  status: BugStatusSchema.optional(),
+  priority: BugPrioritySchema.optional(),
+  internalNotes: z.string().max(5000, 'Internal notes cannot exceed 5000 characters').optional(),
+});
+export type UpdateBugTriage = z.infer<typeof UpdateBugTriageSchema>;
 
 export const ChangePasswordRequestSchema = z.object({
   currentPassword: z.string().optional(),

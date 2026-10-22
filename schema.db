@@ -607,15 +607,27 @@ CREATE POLICY "Students can insert own consent events"
 
 CREATE TABLE IF NOT EXISTS public.support_inquiries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    reference_id TEXT UNIQUE NOT NULL DEFAULT ('REF-' || to_char(timezone('utc'::text, now()), 'YYYYMMDD') || '-' || upper(substring(gen_random_uuid()::text from 1 for 6))),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    inquiry_type TEXT NOT NULL CHECK (inquiry_type IN ('contact_support', 'report_problem')),
+    submitter_email TEXT,
+    submitter_name TEXT,
+    inquiry_type TEXT NOT NULL,
+    category TEXT NOT NULL DEFAULT 'support',
     subject TEXT NOT NULL,
     message TEXT NOT NULL,
-    category TEXT NOT NULL DEFAULT 'general',
+    reproduction_steps TEXT,
+    expected_behavior TEXT,
+    actual_behavior TEXT,
     include_diagnostic_context BOOLEAN NOT NULL DEFAULT FALSE,
     diagnostic_context JSONB,
-    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved', 'closed')),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+    idempotency_key TEXT UNIQUE,
+    status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'in_progress', 'resolved', 'closed', 'open')),
+    email_delivery_status TEXT NOT NULL DEFAULT 'queued' CHECK (email_delivery_status IN ('queued', 'sent', 'failed')),
+    email_delivery_attempts INT NOT NULL DEFAULT 0,
+    email_last_error TEXT,
+    email_recipients TEXT[],
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
 );
 
 ALTER TABLE public.support_inquiries ENABLE ROW LEVEL SECURITY;
@@ -629,4 +641,76 @@ CREATE POLICY "Users can insert own support inquiries"
     ON public.support_inquiries FOR INSERT
     TO authenticated
     WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Admins can view all support inquiries"
+    ON public.support_inquiries FOR SELECT
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+
+CREATE POLICY "Admins can update support inquiries status"
+    ON public.support_inquiries FOR UPDATE
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+
+CREATE TABLE IF NOT EXISTS public.support_inquiry_admin_metadata (
+    inquiry_id UUID PRIMARY KEY REFERENCES public.support_inquiries(id) ON DELETE CASCADE,
+    priority TEXT NOT NULL DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high', 'critical')),
+    internal_notes TEXT DEFAULT '',
+    updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.support_inquiry_admin_metadata ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins have full access to inquiry metadata"
+    ON public.support_inquiry_admin_metadata FOR ALL
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+
+CREATE TABLE IF NOT EXISTS public.support_inquiry_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    inquiry_id UUID NOT NULL REFERENCES public.support_inquiries(id) ON DELETE CASCADE,
+    actor_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    actor_email TEXT,
+    action TEXT NOT NULL,
+    old_state JSONB,
+    new_state JSONB,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.support_inquiry_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins have full access to inquiry audit events"
+    ON public.support_inquiry_events FOR ALL
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+
+CREATE TABLE IF NOT EXISTS public.email_outbox_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    inquiry_id UUID NOT NULL REFERENCES public.support_inquiries(id) ON DELETE CASCADE,
+    recipients TEXT[] NOT NULL,
+    subject TEXT NOT NULL,
+    html_body TEXT NOT NULL,
+    text_body TEXT NOT NULL,
+    reply_to TEXT,
+    status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN ('queued', 'processing', 'sent', 'failed')),
+    attempts INT NOT NULL DEFAULT 0,
+    max_attempts INT NOT NULL DEFAULT 5,
+    last_error TEXT,
+    next_attempt_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    sent_at TIMESTAMPTZ
+);
+
+ALTER TABLE public.email_outbox_jobs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admins can access email outbox"
+    ON public.email_outbox_jobs FOR ALL
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+
 
