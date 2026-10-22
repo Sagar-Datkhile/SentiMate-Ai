@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Textarea } from '@/components/ui/Textarea';
-import { HeartHandshake, CheckCircle2, Shield, AlertCircle, Clock } from 'lucide-react';
+import { CheckCircle2, Clock } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 
 export default function StudentReferralsPage() {
@@ -49,12 +49,12 @@ export default function StudentReferralsPage() {
     <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
         <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
-          <div className="flex items-center gap-2">
-            <HeartHandshake className="w-5 h-5 text-[#4F648C] dark:text-[#91A7D0]" />
-            <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
-              Request Campus Counsellor Referral
-            </h1>
-          </div>
+          <h1
+            className="text-3xl sm:text-4xl font-serif text-[#18191B] dark:text-[#F3F4F6] tracking-tight"
+            style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+          >
+            Request Campus Counsellor Referral
+          </h1>
           <p className="text-xs sm:text-sm text-[#71757E] mt-1">
             Submit a direct request for professional counselling follow-up. You control exactly what context is shared.
           </p>

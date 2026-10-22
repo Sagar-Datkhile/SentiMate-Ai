@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { HeartHandshake, ShieldCheck, ArrowRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { HeartHandshake, ArrowRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
@@ -156,13 +156,6 @@ export default function RegisterPage() {
                 <span>{errorMessage}</span>
               </div>
             )}
-
-            <div className="flex items-center gap-2 p-3 bg-[#EEF2F8] dark:bg-[#242E40]/60 rounded-lg border border-[#D6E0EE] dark:border-[#91A7D0]/25 text-xs text-[#4F648C] dark:text-[#91A7D0]">
-              <ShieldCheck className="w-4 h-4 shrink-0" />
-              <span>
-                Public registration grants student role access. Counsellor and staff accounts are provisioned exclusively by administration.
-              </span>
-            </div>
 
             {/* Sign in with Google Button */}
             <button

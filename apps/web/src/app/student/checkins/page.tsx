@@ -84,18 +84,16 @@ export default function StudentCheckinsPage() {
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
-              Voluntary Wellbeing Check-in
-            </h1>
-            <p className="text-xs sm:text-sm text-[#71757E] mt-1">
-              A private moment of self-reflection. All questions are skippable.
-            </p>
-          </div>
-          <Badge variant="teal" size="md">
-            Confidential & Voluntary
-          </Badge>
+        <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
+          <h1
+            className="text-3xl sm:text-4xl font-serif text-[#18191B] dark:text-[#F3F4F6] tracking-tight"
+            style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+          >
+            Voluntary Wellbeing Check-in
+          </h1>
+          <p className="text-xs sm:text-sm text-[#71757E] mt-1">
+            A private moment of self-reflection. All questions are skippable.
+          </p>
         </div>
 
         {submitted ? (

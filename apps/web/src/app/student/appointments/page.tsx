@@ -135,18 +135,16 @@ export default function StudentAppointmentsPage() {
     <>
       <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#18191B] dark:text-[#F3F4F6]">
-              Counsellor Appointments & Availability
-            </h1>
-            <p className="text-xs sm:text-sm text-[#71757E] mt-1">
-              Schedule confidential 1-on-1 sessions with licensed campus counsellors. Protected against double-booking.
-            </p>
-          </div>
-          <Badge variant="teal" size="md">
-            Transactional Scheduling
-          </Badge>
+        <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
+          <h1
+            className="text-3xl sm:text-4xl font-serif text-[#18191B] dark:text-[#F3F4F6] tracking-tight"
+            style={{ fontFamily: '"Instrument Serif", Georgia, serif' }}
+          >
+            Counsellor Appointments & Availability
+          </h1>
+          <p className="text-xs sm:text-sm text-[#71757E] mt-1">
+            Schedule confidential 1-on-1 sessions with licensed campus counsellors. Protected against double-booking.
+          </p>
         </div>
 
 
