@@ -39,6 +39,7 @@ let memoryUserProfile: UserProfileData | null = null;
 let memorySessions: ChatSessionItem[] | null = null;
 let inFlightSessionsPromise: Promise<ChatSessionItem[]> | null = null;
 let inFlightUserPromise: Promise<{ userId: string; profile: UserProfileData } | null> | null = null;
+let hasFetchedUserFromDb = false;
 
 /**
  * Purges all cached student profile and conversation data.
@@ -50,6 +51,7 @@ export function clearStudentCache() {
   memorySessions = null;
   inFlightSessionsPromise = null;
   inFlightUserPromise = null;
+  hasFetchedUserFromDb = false;
 
   if (typeof window !== 'undefined') {
     try {
@@ -81,7 +83,7 @@ function getInitialUserProfile(): { profile: UserProfileData; isLoading: boolean
     }
   }
   return {
-    profile: { displayName: 'Alex', role: 'Student' },
+    profile: { displayName: 'Student', fullName: 'Student', role: 'Student' },
     isLoading: true,
   };
 }
@@ -123,10 +125,13 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
 
   // ── Fetch and Deduplicate User Profile ────────────────────────────────────────
   const fetchUser = useCallback(async (force = false) => {
-    if (!force && memoryUserProfile && memoryUserId) {
+    // If cached profile exists, hydrate UI immediately to eliminate skeleton flicker
+    if (memoryUserProfile && memoryUserId) {
       setUserProfile(memoryUserProfile);
       setIsLoadingUser(false);
-      return;
+      if (!force && hasFetchedUserFromDb) {
+        return;
+      }
     }
 
     if (inFlightUserPromise) {
@@ -154,20 +159,19 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
           clearStudentCache();
         }
 
-        const name =
-          user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          user.email?.split('@')[0] ||
-          'Alex';
-
+        let fullName: string | undefined = undefined;
         let username: string | undefined = undefined;
         let avatarUrl: string | undefined = undefined;
 
         try {
           const [profileRes, studentRes] = await Promise.all([
-            supabase.from('profiles').select('avatar_url').eq('id', user.id).maybeSingle(),
+            supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).maybeSingle(),
             supabase.from('student_profiles').select('username').eq('id', user.id).maybeSingle(),
           ]);
+
+          if (profileRes.data?.full_name && profileRes.data.full_name.trim().length > 0) {
+            fullName = profileRes.data.full_name.trim();
+          }
 
           if (studentRes.data?.username) {
             username = studentRes.data.username;
@@ -180,6 +184,27 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
           }
         } catch {
           // Non-critical profile lookup failure
+        }
+
+        // Resilient fallback: If direct client query did not find full_name, try the profile API endpoint
+        if (!fullName) {
+          try {
+            const apiRes = await fetch('/api/student/profile');
+            if (apiRes.ok) {
+              const apiData = await apiRes.json();
+              if (apiData?.fullName && apiData.fullName !== 'Alex Student') {
+                fullName = apiData.fullName.trim();
+              }
+              if (!avatarUrl && apiData?.avatarUrl) {
+                avatarUrl = apiData.avatarUrl;
+              }
+              if (!username && apiData?.username) {
+                username = apiData.username;
+              }
+            }
+          } catch {
+            // Ignore API fallback error
+          }
         }
 
         if (!avatarUrl) {
@@ -195,8 +220,19 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
             undefined;
         }
 
+        // Authoritative source: public.profiles.full_name.
+        // Fallback to auth metadata only if public.profiles.full_name is not configured.
+        const authFallback =
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          user.email?.split('@')[0] ||
+          'Student';
+
+        const finalFullName = fullName || authFallback;
+
         const resolvedProfile: UserProfileData = {
-          displayName: name,
+          displayName: finalFullName,
+          fullName: finalFullName,
           email: user.email,
           username,
           avatarUrl,
@@ -205,6 +241,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
 
         memoryUserId = user.id;
         memoryUserProfile = resolvedProfile;
+        hasFetchedUserFromDb = true;
 
         if (typeof window !== 'undefined') {
           try {
@@ -362,6 +399,9 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
   const updateUserProfile = useCallback((updates: Partial<UserProfileData>) => {
     setUserProfile((prev) => {
       const updated = { ...prev, ...updates };
+      if (updates.fullName && !updates.displayName) {
+        updated.displayName = updates.fullName;
+      }
       memoryUserProfile = updated;
       if (typeof window !== 'undefined' && memoryUserId) {
         try {
@@ -384,6 +424,7 @@ export function StudentProvider({ children }: { children: React.ReactNode }) {
       if (customEvent.detail) {
         updateUserProfile({
           displayName: customEvent.detail.fullName ?? undefined,
+          fullName: customEvent.detail.fullName ?? undefined,
           avatarUrl:
             customEvent.detail.avatarUrl !== undefined
               ? customEvent.detail.avatarUrl

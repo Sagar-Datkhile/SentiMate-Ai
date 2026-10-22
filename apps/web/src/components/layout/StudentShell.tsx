@@ -78,7 +78,8 @@ export function StudentShell({
   // User profile
   const userProfile: UserProfileData = {
     ...student.userProfile,
-    displayName: studentName ?? student.userProfile.displayName,
+    displayName: studentName ?? student.userProfile.fullName ?? student.userProfile.displayName,
+    fullName: studentName ?? student.userProfile.fullName ?? student.userProfile.displayName,
     avatarUrl: avatarUrl !== undefined ? avatarUrl : student.userProfile.avatarUrl,
   };
   const isLoadingUser = student.isLoadingUser;

@@ -27,6 +27,7 @@ import { clearStudentCache } from './StudentContext';
 
 export interface UserProfileData {
   displayName: string;
+  fullName?: string;
   email?: string;
   username?: string;
   role?: string;
@@ -244,12 +245,12 @@ export function AccountMenu({
       <div className="p-3 border-b border-[#E2E2DC]/70 dark:border-[#1F2024]/70 flex items-center gap-3">
         <AvatarBubble
           avatarUrl={userProfile.avatarUrl}
-          displayName={userProfile.displayName}
+          displayName={userProfile.fullName || userProfile.displayName}
           size={9}
         />
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-xs text-[#18191B] dark:text-[#F3F4F6] truncate leading-tight">
-            {userProfile.displayName || 'Student Account'}
+            {userProfile.fullName || userProfile.displayName || 'Student Account'}
           </div>
           <div className="text-[11px] text-[#71757E] truncate mt-0.5">
             {userProfile.username ? `@${userProfile.username}` : ''}

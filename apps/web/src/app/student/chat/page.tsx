@@ -241,6 +241,8 @@ function ChatContent() {
     updateSessionTitle,
     deleteSession,
     setActiveSessionId: setContextActiveSessionId,
+    userProfile,
+    isLoadingUser,
   } = useStudent();
 
   // null = "new chat" (no DB session yet); string = DB UUID
@@ -297,38 +299,14 @@ function ChatContent() {
   const autoTitleGeneratedSessionIdsRef = useRef<Set<string>>(new Set());
   const titleJobsInFlightRef = useRef<Set<string>>(new Set());
 
-  // ── Welcome heading first-name & profile loading ───────────────────────────
-  const [firstName, setFirstName] = useState<string>('');
-  const [isProfileLoading, setIsProfileLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user && mounted) {
-          const full =
-            user.user_metadata?.full_name ||
-            user.user_metadata?.name ||
-            user.email?.split('@')[0] ||
-            '';
-          // Extract only the first word (first name), trimming whitespace
-          const first = full.trim().split(/\s+/)[0] ?? '';
-          setFirstName(first);
-        }
-      } catch {
-        // Ignore — heading degrades gracefully without a name
-      } finally {
-        if (mounted) {
-          setIsProfileLoading(false);
-        }
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // ── Welcome heading first-name (derived from public.profiles.full_name) ────
+  const firstName = useMemo(() => {
+    const raw = (userProfile.fullName || userProfile.displayName || '').trim();
+    if (!raw || raw.toLowerCase() === 'student' || raw.toLowerCase() === 'alex') {
+      return '';
+    }
+    return raw.split(/\s+/)[0] ?? '';
+  }, [userProfile.fullName, userProfile.displayName]);
 
 
   const latestAssistantMessageId = useMemo(() => {
@@ -924,7 +902,7 @@ function ChatContent() {
   // "New chat" = no real DB session and no messages sent yet.
   // Drives both the centered composer and heading visibility without any persistent flag.
   const isNewChat = activeSessionId === null && messages.length === 0;
-  const isInitialLoading = isLoadingSessions || isProfileLoading;
+  const isInitialLoading = isLoadingSessions || isLoadingUser;
 
   return (
     <>
