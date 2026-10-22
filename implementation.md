@@ -511,6 +511,55 @@ To support long-term student conversational continuity while minimizing PostgreS
   - Validates `DELETE` confirmation and recent password auth.
   - Server-side admin client execution via `auth.admin.deleteUser(user.id)`, cascading all associated student database rows.
 
+---
+
+## 12. Student In-App Notification Center (`/student/notifications`)
+
+### 12.1 Database & Schema (`supabase/migrations/20261023000002_student_notifications_center.sql`)
+- **Table**: `public.notifications`
+- **Columns**: `id UUID PRIMARY KEY`, `user_id UUID REFERENCES profiles(id) ON DELETE CASCADE`, `title TEXT`, `message TEXT` (preview), `category TEXT CHECK (category IN ('support', 'appointment', 'counsellor', 'announcement', 'system'))`, `action_url TEXT`, `source_reference TEXT`, `event_id TEXT UNIQUE`, `metadata JSONB`, `is_read BOOLEAN DEFAULT FALSE`, `read_at TIMESTAMPTZ`, `dismissed_at TIMESTAMPTZ`, `created_at TIMESTAMPTZ`.
+- **Indexes**:
+  - `idx_notifications_user_active` on `(user_id, dismissed_at, created_at DESC)`
+  - `idx_notifications_user_unread` on `(user_id, is_read) WHERE is_read = FALSE AND dismissed_at IS NULL`
+  - `idx_notifications_event_id` on `(event_id)`
+  - `idx_notifications_category` on `(category)`
+- **Row-Level Security (RLS)**:
+  - Students SELECT own non-dismissed rows (`user_id = auth.uid() AND dismissed_at IS NULL`).
+  - Students UPDATE own rows only (`user_id = auth.uid()`).
+  - INSERT restricted to trusted server operations and admins.
+- **Realtime**: Added to `supabase_realtime` publication for reactive client updates.
+
+### 12.2 Server Architecture & Repositories
+- **Contracts (`packages/contracts`)**:
+  - `NotificationCategorySchema`, `NotificationItemSchema`, `NotificationListResponseSchema`, `MarkNotificationReadSchema`, `BulkNotificationActionSchema`.
+- **Repository (`NotificationsRepository`)**:
+  - Validates internal destinations (strictly relative paths starting with `/`).
+  - Honors in-app user preferences (`inAppAppointmentReminders`, `inAppCounsellorUpdates`).
+  - Enforces event idempotency through `event_id` uniqueness.
+  - Paginated retrieval with independent unread count calculation.
+  - Scopes bulk actions (`markAllAsRead`, `clearAllNotifications`) to server-issued snapshot boundaries (`created_at <= snapshotTime`), protecting newly arriving notifications.
+  - Performs soft-dismissal (`dismissed_at = now()`) for the authenticated student only without deleting underlying records.
+- **Event Integrations**:
+  - Support/bug report triage updates (`support.repository.ts:updateTriage`) dispatch `support` category notifications.
+  - Appointment bookings and cancellations (`/student/appointments`) dispatch `appointment` category notifications.
+  - Support referrals (`/student/referrals`) dispatch `counsellor` category notifications.
+
+### 12.3 API Routes
+- `GET /api/student/notifications`: Authenticated paginated notifications retrieval, independent unread badge count, snapshot timestamp.
+- `PATCH /api/student/notifications/[id]/read`: Mark individual notification read with unread count decrement.
+- `POST /api/student/notifications/read-all`: Mark all notifications read up to `snapshotTime`.
+- `POST /api/student/notifications/clear-all`: Soft-dismiss all notifications up to `snapshotTime`.
+- `POST /api/student/notifications`: Controlled server event ingestion for appointment and counsellor events.
+
+### 12.4 Frontend Component (`NotificationCenter.tsx`) & Layout (`StudentShell.tsx`)
+- **Placement**: Mounted in persistent `StudentShell.tsx` header for mobile and absolute top-right (`absolute top-3.5 right-6 z-30`) for desktop, avoiding layout shift and chat remounts.
+- **Bell Trigger**: Minimal Lucide `Bell` with unread badge capped visually at `99+` and accessible unread count label.
+- **Panel**: 400px wide, right-aligned, viewport-safe max height (`max-h-[min(560px,calc(100vh-80px))]`), scrollable.
+- **Header**: "Notifications" title, unread pill badge, "Mark all read" action, and `BrushCleaning` icon (`Brush as BrushCleaning` from `lucide-react`) with tooltip (disabled when empty).
+- **Items**: Category icons (`Calendar`, `HeartHandshake`, `LifeBuoy`, `Megaphone`, `Sparkles`), title, preview, relative timestamp, subtle unread indicator dot and background tint.
+- **Empty & Error States**: "You’re all caught up" / "No new notifications right now." empty state, skeleton loaders, retry on failure.
+- **Accessibility & Motion**: Outside-click dismissal, Escape key handling with focus return to bell trigger, keyboard navigation, and reduced-motion respecting transitions.
+
 
 
 

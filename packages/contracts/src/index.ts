@@ -458,3 +458,54 @@ export const DeleteAccountRequestSchema = z.object({
 });
 export type DeleteAccountRequest = z.infer<typeof DeleteAccountRequestSchema>;
 
+// ============================================================================
+// NOTIFICATIONS CONTRACTS
+// ============================================================================
+export const NotificationCategorySchema = z.enum([
+  'support',
+  'appointment',
+  'counsellor',
+  'announcement',
+  'system',
+]);
+export type NotificationCategory = z.infer<typeof NotificationCategorySchema>;
+
+export const NotificationItemSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  title: z.string(),
+  preview: z.string(),
+  category: NotificationCategorySchema,
+  actionUrl: z.string().nullable().optional(),
+  isRead: z.boolean(),
+  readAt: z.string().nullable().optional(),
+  dismissedAt: z.string().nullable().optional(),
+  sourceReference: z.string().nullable().optional(),
+  eventId: z.string().nullable().optional(),
+  createdAt: z.string(),
+  metadata: z.record(z.any()).optional(),
+});
+export type NotificationItem = z.infer<typeof NotificationItemSchema>;
+
+export const NotificationListResponseSchema = z.object({
+  notifications: z.array(NotificationItemSchema),
+  unreadCount: z.number().int().nonnegative(),
+  total: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  hasMore: z.boolean(),
+  snapshotTime: z.string(),
+});
+export type NotificationListResponse = z.infer<typeof NotificationListResponseSchema>;
+
+export const MarkNotificationReadSchema = z.object({
+  isRead: z.boolean().default(true),
+});
+export type MarkNotificationRead = z.infer<typeof MarkNotificationReadSchema>;
+
+export const BulkNotificationActionSchema = z.object({
+  snapshotTime: z.string().datetime().optional(),
+});
+export type BulkNotificationAction = z.infer<typeof BulkNotificationActionSchema>;
+
+

@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { env } from '@/lib/env';
 import { emailService } from '../services/email.service';
+import { notificationsRepository } from './notifications.repository';
 import type { SupportCategory, BugPriority, BugStatus, EmailDeliveryStatus } from '@sentimate/contracts';
 
 export interface CreateInquiryInput {
@@ -581,6 +582,29 @@ export class SupportRepository {
       });
     } catch {
       // Table migrating
+    }
+
+    // 4. Create student notification if status changed
+    if (current.userId && newState.status !== oldState.status) {
+      try {
+        const statusLabel = String(newState.status).replace('_', ' ');
+        await notificationsRepository.createNotification({
+          userId: current.userId,
+          category: 'support',
+          title: `Support update: ${current.referenceId}`,
+          preview: `Your inquiry "${current.subject.slice(0, 40)}" status has been updated to ${statusLabel}.`,
+          actionUrl: '/student/settings?tab=help',
+          sourceReference: current.referenceId,
+          eventId: `support-${inquiryId}-${newState.status}`,
+          metadata: {
+            inquiryId,
+            oldStatus: oldState.status,
+            newStatus: newState.status,
+          },
+        });
+      } catch (notifErr) {
+        console.warn('[SupportRepository] failed to create notification:', notifErr);
+      }
     }
 
     const refreshed = await this.getInquiryById(inquiryId);

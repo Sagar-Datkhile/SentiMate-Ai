@@ -713,4 +713,55 @@ CREATE POLICY "Admins can access email outbox"
     USING (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'))
     WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
 
+-- ----------------------------------------------------------------------------
+-- 11. NOTIFICATIONS CENTER ARCHITECTURE
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    category TEXT NOT NULL DEFAULT 'system' CHECK (category IN ('support', 'appointment', 'counsellor', 'announcement', 'system')),
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    action_url TEXT,
+    event_id TEXT UNIQUE,
+    source_reference TEXT,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    read_at TIMESTAMPTZ,
+    dismissed_at TIMESTAMPTZ,
+    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Students view own active notifications"
+    ON public.notifications FOR SELECT
+    TO authenticated
+    USING (user_id = auth.uid() AND dismissed_at IS NULL);
+
+CREATE POLICY "Admins view all notifications"
+    ON public.notifications FOR SELECT
+    TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+
+CREATE POLICY "Students update own notification status"
+    ON public.notifications FOR UPDATE
+    TO authenticated
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "Admins can insert notifications"
+    ON public.notifications FOR INSERT
+    TO authenticated
+    WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin'));
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_active 
+    ON public.notifications(user_id, dismissed_at, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread 
+    ON public.notifications(user_id, is_read) 
+    WHERE is_read = FALSE AND dismissed_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_notifications_event_id 
+    ON public.notifications(event_id);
+
+
 

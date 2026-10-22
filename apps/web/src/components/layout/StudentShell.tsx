@@ -24,6 +24,7 @@ import { SidebarToggle } from './SidebarToggle';
 import { AccountTrigger } from './AccountTrigger';
 import { AccountMenu, UserProfileData } from './AccountMenu';
 import { DeleteConversationDialog } from './DeleteConversationDialog';
+import { NotificationCenter } from './NotificationCenter';
 
 import { useStudent, ChatSessionItem } from './StudentContext';
 export type { ChatSessionItem } from './StudentContext';
@@ -765,7 +766,7 @@ export function StudentShell({
       />
 
       {/* 7. Main Content Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         {/* Mobile Top Bar */}
         <header className="md:hidden flex items-center justify-between px-4 py-2.5 border-b border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#0D0E11] shrink-0 h-14">
           <button
@@ -780,8 +781,15 @@ export function StudentShell({
             <HeartHandshake className="w-4 h-4 text-[#18191B] dark:text-white" />
             <span className="font-semibold text-sm">SentiMate</span>
           </div>
-          <div className="w-10" />
+          <div className="flex items-center justify-end">
+            <NotificationCenter />
+          </div>
         </header>
+
+        {/* Desktop Notification Bell (persistent top-right) */}
+        <div className="hidden md:flex items-center absolute top-3.5 right-6 z-30 pointer-events-auto">
+          <NotificationCenter />
+        </div>
 
         {/* Content Body */}
         <main className="flex-1 flex flex-col min-h-0 overflow-y-auto">

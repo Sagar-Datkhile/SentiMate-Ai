@@ -68,7 +68,7 @@ interface InquiryItem {
   }>;
 }
 
-export default function AdminBugsPage() {
+function AdminBugsContent() {
   const searchParams = useSearchParams();
   const initialRef = searchParams.get('ref');
 
@@ -828,3 +828,12 @@ export default function AdminBugsPage() {
     </AdminShell>
   );
 }
+
+export default function AdminBugsPage() {
+  return (
+    <React.Suspense fallback={null}>
+      <AdminBugsContent />
+    </React.Suspense>
+  );
+}
+
