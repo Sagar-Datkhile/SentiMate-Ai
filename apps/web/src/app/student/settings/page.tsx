@@ -25,6 +25,7 @@ import {
   Languages,
   Sliders,
   CheckCircle2,
+  Mail,
 } from 'lucide-react';
 import { useStudent } from '@/components/layout/StudentContext';
 import { Card } from '@/components/ui/Card';
@@ -32,6 +33,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Badge } from '@/components/ui/Badge';
+import { Select } from '@/components/ui/Select';
 import { Dialog } from '@/components/ui/Dialog';
 import { Skeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
@@ -75,8 +77,8 @@ interface NotificationStatus {
 }
 
 const SUPPORTED_LANGUAGES = [
+  { code: 'English', label: 'English (Default)' },
   { code: 'auto', label: 'Automatic (Match student input language)' },
-  { code: 'English', label: 'English' },
   { code: 'Spanish', label: 'Spanish (Español)' },
   { code: 'French', label: 'French (Français)' },
   { code: 'German', label: 'German (Deutsch)' },
@@ -104,7 +106,7 @@ export default function StudentSettingsPage() {
     textSize: 'default',
     reducedAnimations: false,
     enterToSend: true,
-    responseLanguage: 'auto',
+    responseLanguage: 'English',
     responseLength: 'balanced',
     emailAppointmentReminders: true,
     emailCounsellorUpdates: true,
@@ -670,7 +672,7 @@ export default function StudentSettingsPage() {
         {/* Auto-save status feedback badge */}
         <div className="flex items-center gap-2">
           {saveStatus === 'saving' && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] animate-pulse">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] animate-pulse">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>Saving changes...</span>
             </div>
@@ -685,7 +687,7 @@ export default function StudentSettingsPage() {
             <button
               type="button"
               onClick={() => savePreferences(preferences)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 hover:bg-rose-100 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-[#FEF2F2] dark:bg-[#BA6868]/15 text-[#9E4A4A] dark:text-[#C47272] hover:bg-[#FEE2E2] transition-colors cursor-pointer"
               title="Click to retry saving"
             >
               <AlertCircle className="w-3.5 h-3.5" />
@@ -725,13 +727,13 @@ export default function StudentSettingsPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveSection(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] cursor-pointer ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] cursor-pointer ${
                     isActive
-                      ? 'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] font-semibold shadow-xs'
+                      ? 'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] font-semibold shadow-xs'
                       : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#4F648C] dark:text-[#91A7D0]' : 'text-[#71757E]'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#4F648C] dark:text-[#5B8DEF]' : 'text-[#71757E]'}`} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -750,7 +752,7 @@ export default function StudentSettingsPage() {
                   onClick={() => setActiveSection(tab.id)}
                   className={`whitespace-nowrap flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer shrink-0 ${
                     isActive
-                      ? 'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] font-semibold border border-[#D5DFEE] dark:border-[#91A7D0]/30'
+                      ? 'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] font-semibold border border-[#D5DFEE] dark:border-[#2C67C5]/30'
                       : 'bg-white dark:bg-[#0D0E11] text-[#71757E] border border-[#E2E2DC] dark:border-[#1F2024]'
                   }`}
                 >
@@ -786,24 +788,7 @@ export default function StudentSettingsPage() {
                     </div>
 
                     <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] space-y-1">
-                      <span className="text-[10px] uppercase font-semibold text-[#71757E]">Account Role</span>
-                      <div className="flex items-center gap-1.5">
-                        <Badge variant="teal" size="sm">
-                          Student
-                        </Badge>
-                        <span className="text-[10px] text-[#71757E]">(Protected)</span>
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] space-y-1">
-                      <span className="text-[10px] uppercase font-semibold text-[#71757E]">Authentication Provider</span>
-                      <p className="font-semibold text-[#18191B] dark:text-[#F3F4F6] capitalize">
-                        {accountInfo?.providers?.join(', ') || 'Email & Password'}
-                      </p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] space-y-1">
-                      <span className="text-[10px] uppercase font-semibold text-[#71757E]">Account Created</span>
+                      <span className="text-[10px] uppercase font-semibold text-[#71757E]">Account Created On</span>
                       <p className="font-semibold text-[#18191B] dark:text-[#F3F4F6]">
                         {accountInfo?.createdAt ? new Date(accountInfo.createdAt).toLocaleDateString() : 'N/A'}
                       </p>
@@ -900,11 +885,11 @@ export default function StudentSettingsPage() {
                 </Card>
 
                 {/* Danger Zone: Account Deletion */}
-                <Card className="p-6 space-y-4 border-rose-200 dark:border-rose-950/60 bg-rose-50/20 dark:bg-rose-950/10">
+                <Card className="p-6 space-y-4 border-[#E2E2DC] dark:border-[#BA6868]/20 bg-[#FEF2F2]/10 dark:bg-[#BA6868]/5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <h2 className="text-base font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4" />
+                      <h2 className="text-base font-semibold text-[#9E4A4A] dark:text-[#C47272] flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-[#9E4A4A] dark:text-[#C47272]" />
                         <span>Delete SentiMate Account</span>
                       </h2>
                       <p className="text-xs text-[#71757E] mt-1 max-w-md leading-relaxed">
@@ -913,10 +898,10 @@ export default function StudentSettingsPage() {
                     </div>
 
                     <Button
-                      variant="primary"
+                      variant="outline"
                       size="sm"
                       onClick={() => setDeleteAccountModalOpen(true)}
-                      className="bg-rose-600 hover:bg-rose-700 text-white shrink-0"
+                      className="text-[#9E4A4A] dark:text-[#C47272] border-[#E2E2DC] dark:border-[#BA6868]/30 hover:bg-[#FEF2F2] dark:hover:bg-[#BA6868]/10 shrink-0"
                     >
                       Delete Account
                     </Button>
@@ -945,7 +930,7 @@ export default function StudentSettingsPage() {
                         onChange={(e) => handleEnterToSendChange(e.target.checked)}
                         className="sr-only peer"
                       />
-                      <div className="w-11 h-6 bg-[#E2E2DC] dark:bg-[#2E3036] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F648C] dark:peer-checked:bg-[#91A7D0]" />
+                      <div className="w-11 h-6 bg-[#E2E2DC] dark:bg-[#2E3036] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F648C] dark:peer-checked:bg-[#2C67C5]" />
                     </label>
                   </div>
                 </Card>
@@ -961,17 +946,14 @@ export default function StudentSettingsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <select
+                    <Select
                       value={preferences.responseLanguage}
                       onChange={(e) => triggerAutoSave({ responseLanguage: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4F648C] dark:focus:ring-[#91A7D0]"
-                    >
-                      {SUPPORTED_LANGUAGES.map((lang) => (
-                        <option key={lang.code} value={lang.code}>
-                          {lang.label}
-                        </option>
-                      ))}
-                    </select>
+                      options={SUPPORTED_LANGUAGES.map((lang) => ({
+                        value: lang.code,
+                        label: lang.label,
+                      }))}
+                    />
                   </div>
                 </Card>
 
@@ -1009,7 +991,7 @@ export default function StudentSettingsPage() {
                         onClick={() => triggerAutoSave({ responseLength: opt.id as any })}
                         className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                           preferences.responseLength === opt.id
-                            ? 'border-[#4F648C] dark:border-[#91A7D0] bg-[#EEF2F8] dark:bg-[#242E40] text-[#18191B] dark:text-[#F3F4F6]'
+                            ? 'border-[#4F648C] dark:border-[#2C67C5] bg-[#EEF2F8] dark:bg-[#242E40] text-[#18191B] dark:text-[#F3F4F6]'
                             : 'border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] text-[#4A4D54] dark:text-[#9CA3AF] hover:border-[#C8C8C0]'
                         }`}
                       >
@@ -1046,23 +1028,37 @@ export default function StudentSettingsPage() {
                         Counsellor Appointment Reminders
                       </span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label className="flex items-center justify-between p-3 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] cursor-pointer">
-                          <span className="text-xs text-[#4A4D54] dark:text-[#9CA3AF]">In-App Notification</span>
-                          <input
-                            type="checkbox"
-                            checked={preferences.inAppAppointmentReminders}
-                            onChange={(e) => triggerAutoSave({ inAppAppointmentReminders: e.target.checked })}
-                            className="h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C]"
-                          />
+                        <label className="flex items-center justify-between p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] hover:border-[#C8C8C0] dark:hover:border-[#2E3036] transition-colors cursor-pointer">
+                          <div className="flex items-center gap-2.5">
+                            <Bell className="w-4 h-4 text-[#71757E]" />
+                            <span className="text-xs font-medium text-[#18191B] dark:text-[#F3F4F6]">In-App Notification</span>
+                          </div>
+                          <div className="relative inline-flex items-center shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={preferences.inAppAppointmentReminders}
+                              onChange={(e) => triggerAutoSave({ inAppAppointmentReminders: e.target.checked })}
+                              className="sr-only peer"
+                              aria-label="In-App Appointment Reminders"
+                            />
+                            <div className="w-11 h-6 bg-[#E2E2DC] dark:bg-[#2E3036] peer-focus-visible:ring-2 peer-focus-visible:ring-[#4F648C] dark:peer-focus-visible:ring-[#2C67C5] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F648C] dark:peer-checked:bg-[#2C67C5]" />
+                          </div>
                         </label>
-                        <label className="flex items-center justify-between p-3 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] cursor-pointer">
-                          <span className="text-xs text-[#4A4D54] dark:text-[#9CA3AF]">University Email</span>
-                          <input
-                            type="checkbox"
-                            checked={preferences.emailAppointmentReminders}
-                            onChange={(e) => triggerAutoSave({ emailAppointmentReminders: e.target.checked })}
-                            className="h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C]"
-                          />
+                        <label className="flex items-center justify-between p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] hover:border-[#C8C8C0] dark:hover:border-[#2E3036] transition-colors cursor-pointer">
+                          <div className="flex items-center gap-2.5">
+                            <Mail className="w-4 h-4 text-[#71757E]" />
+                            <span className="text-xs font-medium text-[#18191B] dark:text-[#F3F4F6]">University Email</span>
+                          </div>
+                          <div className="relative inline-flex items-center shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={preferences.emailAppointmentReminders}
+                              onChange={(e) => triggerAutoSave({ emailAppointmentReminders: e.target.checked })}
+                              className="sr-only peer"
+                              aria-label="University Email Appointment Reminders"
+                            />
+                            <div className="w-11 h-6 bg-[#E2E2DC] dark:bg-[#2E3036] peer-focus-visible:ring-2 peer-focus-visible:ring-[#4F648C] dark:peer-focus-visible:ring-[#2C67C5] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F648C] dark:peer-checked:bg-[#2C67C5]" />
+                          </div>
                         </label>
                       </div>
                     </div>
@@ -1073,23 +1069,37 @@ export default function StudentSettingsPage() {
                         Referral & Case Status Follow-ups
                       </span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <label className="flex items-center justify-between p-3 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] cursor-pointer">
-                          <span className="text-xs text-[#4A4D54] dark:text-[#9CA3AF]">In-App Notification</span>
-                          <input
-                            type="checkbox"
-                            checked={preferences.inAppCounsellorUpdates}
-                            onChange={(e) => triggerAutoSave({ inAppCounsellorUpdates: e.target.checked })}
-                            className="h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C]"
-                          />
+                        <label className="flex items-center justify-between p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] hover:border-[#C8C8C0] dark:hover:border-[#2E3036] transition-colors cursor-pointer">
+                          <div className="flex items-center gap-2.5">
+                            <Bell className="w-4 h-4 text-[#71757E]" />
+                            <span className="text-xs font-medium text-[#18191B] dark:text-[#F3F4F6]">In-App Notification</span>
+                          </div>
+                          <div className="relative inline-flex items-center shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={preferences.inAppCounsellorUpdates}
+                              onChange={(e) => triggerAutoSave({ inAppCounsellorUpdates: e.target.checked })}
+                              className="sr-only peer"
+                              aria-label="In-App Counsellor Updates"
+                            />
+                            <div className="w-11 h-6 bg-[#E2E2DC] dark:bg-[#2E3036] peer-focus-visible:ring-2 peer-focus-visible:ring-[#4F648C] dark:peer-focus-visible:ring-[#2C67C5] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F648C] dark:peer-checked:bg-[#2C67C5]" />
+                          </div>
                         </label>
-                        <label className="flex items-center justify-between p-3 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] cursor-pointer">
-                          <span className="text-xs text-[#4A4D54] dark:text-[#9CA3AF]">University Email</span>
-                          <input
-                            type="checkbox"
-                            checked={preferences.emailCounsellorUpdates}
-                            onChange={(e) => triggerAutoSave({ emailCounsellorUpdates: e.target.checked })}
-                            className="h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C]"
-                          />
+                        <label className="flex items-center justify-between p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] hover:border-[#C8C8C0] dark:hover:border-[#2E3036] transition-colors cursor-pointer">
+                          <div className="flex items-center gap-2.5">
+                            <Mail className="w-4 h-4 text-[#71757E]" />
+                            <span className="text-xs font-medium text-[#18191B] dark:text-[#F3F4F6]">University Email</span>
+                          </div>
+                          <div className="relative inline-flex items-center shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={preferences.emailCounsellorUpdates}
+                              onChange={(e) => triggerAutoSave({ emailCounsellorUpdates: e.target.checked })}
+                              className="sr-only peer"
+                              aria-label="University Email Counsellor Updates"
+                            />
+                            <div className="w-11 h-6 bg-[#E2E2DC] dark:bg-[#2E3036] peer-focus-visible:ring-2 peer-focus-visible:ring-[#4F648C] dark:peer-focus-visible:ring-[#2C67C5] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F648C] dark:peer-checked:bg-[#2C67C5]" />
+                          </div>
                         </label>
                       </div>
                     </div>
@@ -1104,7 +1114,7 @@ export default function StudentSettingsPage() {
                       : 'bg-[#F4F4F1] dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] text-[#71757E]'
                   }`}
                 >
-                  <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#4F648C] dark:text-[#91A7D0]" />
+                  <Info className="w-4 h-4 shrink-0 mt-0.5 text-[#4F648C] dark:text-[#5B8DEF]" />
                   <div className="space-y-1">
                     <strong className="block text-[#18191B] dark:text-[#F3F4F6]">
                       Delivery Infrastructure Status
@@ -1121,9 +1131,9 @@ export default function StudentSettingsPage() {
             {/* 4. PRIVACY & CONSENT */}
             {activeSection === 'privacy' && (
               <div className="space-y-6">
-                <div className="p-4 rounded-2xl bg-[#EEF2F8] dark:bg-[#242E40]/40 border border-[#D5DFEE] dark:border-[#91A7D0]/20 text-xs text-[#4A4D54] dark:text-[#9CA3AF] space-y-1.5">
+                <div className="p-4 rounded-2xl bg-[#EEF2F8] dark:bg-[#242E40]/40 border border-[#D5DFEE] dark:border-[#2C67C5]/20 text-xs text-[#4A4D54] dark:text-[#9CA3AF] space-y-1.5">
                   <div className="flex items-center gap-2 font-semibold text-[#18191B] dark:text-[#F3F4F6]">
-                    <Shield className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                    <Shield className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
                     <span>Authoritative Consent Governance</span>
                   </div>
                   <p>
@@ -1290,21 +1300,16 @@ export default function StudentSettingsPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5">
-                        Export Scope
-                      </label>
-                      <select
+                      <Select
+                        label="Export Scope"
+                        labelClassName="block text-xs font-semibold text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5 normal-case"
                         value={exportScope}
                         onChange={(e) => setExportScope(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4F648C]"
-                      >
-                        <option value="all">All Conversations ({student.sessions.length} sessions)</option>
-                        {student.sessions.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.title}
-                          </option>
-                        ))}
-                      </select>
+                        options={[
+                          { value: 'all', label: `All Conversations (${student.sessions.length} sessions)` },
+                          ...student.sessions.map((s) => ({ value: s.id, label: s.title })),
+                        ]}
+                      />
                     </div>
 
                     <div>
@@ -1317,7 +1322,7 @@ export default function StudentSettingsPage() {
                           onClick={() => setExportFormat('markdown')}
                           className={`py-2 px-3 rounded-xl border text-xs font-medium transition-colors cursor-pointer ${
                             exportFormat === 'markdown'
-                              ? 'border-[#4F648C] dark:border-[#91A7D0] bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] font-semibold'
+                              ? 'border-[#4F648C] dark:border-[#2C67C5] bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] font-semibold'
                               : 'border-[#E2E2DC] dark:border-[#1F2024] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C]'
                           }`}
                         >
@@ -1328,7 +1333,7 @@ export default function StudentSettingsPage() {
                           onClick={() => setExportFormat('json')}
                           className={`py-2 px-3 rounded-xl border text-xs font-medium transition-colors cursor-pointer ${
                             exportFormat === 'json'
-                              ? 'border-[#4F648C] dark:border-[#91A7D0] bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] font-semibold'
+                              ? 'border-[#4F648C] dark:border-[#2C67C5] bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] font-semibold'
                               : 'border-[#E2E2DC] dark:border-[#1F2024] text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C]'
                           }`}
                         >
@@ -1353,9 +1358,9 @@ export default function StudentSettingsPage() {
                 </Card>
 
                 {/* Delete Conversations */}
-                <Card className="p-6 space-y-5 border-rose-200/50 dark:border-rose-950/40">
+                <Card className="p-6 space-y-5 border-[#E2E2DC] dark:border-[#BA6868]/20">
                   <div>
-                    <h2 className="text-base font-semibold text-rose-600 dark:text-rose-400">
+                    <h2 className="text-base font-semibold text-[#9E4A4A] dark:text-[#C47272]">
                       Delete Conversations
                     </h2>
                     <p className="text-xs text-[#71757E] mt-1">
@@ -1369,7 +1374,7 @@ export default function StudentSettingsPage() {
                       size="sm"
                       onClick={() => setDeleteSingleModalOpen(true)}
                       disabled={student.sessions.length === 0}
-                      className="gap-2 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/40 hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                      className="gap-2 text-[#9E4A4A] dark:text-[#C47272] border-[#E2E2DC] dark:border-[#BA6868]/30 hover:bg-[#FEF2F2] dark:hover:bg-[#BA6868]/10"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>Delete Individual Conversation</span>
@@ -1380,7 +1385,7 @@ export default function StudentSettingsPage() {
                       size="sm"
                       onClick={() => setDeleteAllModalOpen(true)}
                       disabled={student.sessions.length === 0}
-                      className="gap-2 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/40 hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                      className="gap-2 text-[#9E4A4A] dark:text-[#C47272] border-[#E2E2DC] dark:border-[#BA6868]/30 hover:bg-[#FEF2F2] dark:hover:bg-[#BA6868]/10"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>Delete All Conversations</span>
@@ -1411,7 +1416,7 @@ export default function StudentSettingsPage() {
                       onClick={() => setSupportTab('contact')}
                       className={`py-2 px-3 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                         supportTab === 'contact'
-                          ? 'bg-white dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] shadow-xs'
+                          ? 'bg-white dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] shadow-xs'
                           : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
                       }`}
                     >
@@ -1422,7 +1427,7 @@ export default function StudentSettingsPage() {
                       onClick={() => setSupportTab('problem')}
                       className={`py-2 px-3 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
                         supportTab === 'problem'
-                          ? 'bg-white dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] shadow-xs'
+                          ? 'bg-white dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] shadow-xs'
                           : 'text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
                       }`}
                     >
@@ -1432,30 +1437,27 @@ export default function StudentSettingsPage() {
 
                   <form onSubmit={handleSubmitSupport} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-semibold text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5">
-                        Category
-                      </label>
-                      <select
+                      <Select
+                        label="Category"
+                        labelClassName="block text-xs font-semibold text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5 normal-case"
                         value={supportCategory}
                         onChange={(e) => setSupportCategory(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4F648C]"
-                      >
-                        {supportTab === 'contact' ? (
-                          <>
-                            <option value="general">General Support Inquiry</option>
-                            <option value="counsellor">Counselling Services Question</option>
-                            <option value="account">Account Access & PRN Verification</option>
-                            <option value="privacy">Privacy & Data Governance</option>
-                          </>
-                        ) : (
-                          <>
-                            <option value="chat_bug">AI Companion Response Issue</option>
-                            <option value="appointments_bug">Appointment Scheduling Glitch</option>
-                            <option value="appearance_bug">Visual or Theme Rendering Bug</option>
-                            <option value="performance_bug">Slow Loading or Disconnection</option>
-                          </>
-                        )}
-                      </select>
+                        options={
+                          supportTab === 'contact'
+                            ? [
+                                { value: 'general', label: 'General Support Inquiry' },
+                                { value: 'counsellor', label: 'Counselling Services Question' },
+                                { value: 'account', label: 'Account Access & PRN Verification' },
+                                { value: 'privacy', label: 'Privacy & Data Governance' },
+                              ]
+                            : [
+                                { value: 'chat_bug', label: 'AI Companion Response Issue' },
+                                { value: 'appointments_bug', label: 'Appointment Scheduling Glitch' },
+                                { value: 'appearance_bug', label: 'Visual or Theme Rendering Bug' },
+                                { value: 'performance_bug', label: 'Slow Loading or Disconnection' },
+                              ]
+                        }
+                      />
                     </div>
 
                     <Input
@@ -1486,7 +1488,7 @@ export default function StudentSettingsPage() {
                           type="checkbox"
                           checked={includeDiagnosticContext}
                           onChange={(e) => setIncludeDiagnosticContext(e.target.checked)}
-                          className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#91A7D0] focus:ring-[#4F648C]"
+                          className="mt-0.5 h-4 w-4 rounded border-[#E2E2DC] text-[#4F648C] dark:text-[#5B8DEF] focus:ring-[#4F648C]"
                         />
                         <div className="text-xs">
                           <span className="font-semibold text-[#18191B] dark:text-[#F3F4F6] block">
@@ -1518,13 +1520,13 @@ export default function StudentSettingsPage() {
                 {/* Non-Medical Disclaimer & Policies */}
                 <div className="p-4 rounded-2xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-xs text-[#71757E] space-y-2">
                   <div className="flex items-center gap-2 font-semibold text-[#18191B] dark:text-[#F3F4F6]">
-                    <LifeBuoy className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                    <LifeBuoy className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
                     <span>Non-Diagnostic Decision Support Notice</span>
                   </div>
                   <p className="leading-relaxed">
                     SentiMate provides empathetic reflection, self-check-ins, and campus counsellor connection. It does NOT provide medical or clinical diagnosis, psychiatric triage, or prescription of pharmaceuticals. For acute crisis or thoughts of self-harm, immediately reach out to <strong>988 Suicide & Crisis Lifeline</strong> or campus emergency services.
                   </p>
-                  <div className="pt-2 flex items-center gap-4 text-xs font-semibold text-[#4F648C] dark:text-[#91A7D0]">
+                  <div className="pt-2 flex items-center gap-4 text-xs font-semibold text-[#4F648C] dark:text-[#5B8DEF]">
                     <Link href="/#privacy" className="hover:underline flex items-center gap-1">
                       <span>Privacy Policy & FERPA Compliance</span>
                       <ExternalLink className="w-3 h-3" />
@@ -1550,24 +1552,20 @@ export default function StudentSettingsPage() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5">
-              Select Conversation to Delete
-            </label>
-            <select
+            <Select
+              label="Select Conversation to Delete"
+              labelClassName="block text-xs font-semibold text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5 normal-case"
+              placeholder="-- Choose conversation --"
               value={sessionToDelete}
               onChange={(e) => setSessionToDelete(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] text-xs font-medium focus:outline-none focus:ring-2 focus:ring-rose-500"
-            >
-              <option value="">-- Choose conversation --</option>
-              {student.sessions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.title}
-                </option>
-              ))}
-            </select>
+              options={student.sessions.map((s) => ({
+                value: s.id,
+                label: s.title,
+              }))}
+            />
           </div>
 
-          <p className="text-xs text-rose-600 dark:text-rose-400">
+          <p className="text-xs text-[#9E4A4A] dark:text-[#C47272]">
             Warning: This action cannot be undone. All messages within this conversation will be permanently wiped from the database.
           </p>
 
@@ -1581,7 +1579,7 @@ export default function StudentSettingsPage() {
               isLoading={isDeletingConversations}
               disabled={!sessionToDelete}
               onClick={handleDeleteSingleConversation}
-              className="bg-rose-600 hover:bg-rose-700 text-white"
+              className="bg-[#943838] hover:bg-[#7D2E2E] text-white"
             >
               Confirm Deletion
             </Button>
@@ -1597,7 +1595,7 @@ export default function StudentSettingsPage() {
         description="Are you sure you want to permanently erase your entire conversational history?"
       >
         <div className="space-y-4">
-          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs text-rose-700 dark:text-rose-300 space-y-1">
+          <div className="p-3.5 rounded-xl bg-[#FEF2F2] dark:bg-[#BA6868]/10 border border-[#E2E2DC] dark:border-[#BA6868]/25 text-xs text-[#8A3A3A] dark:text-[#D18686] space-y-1">
             <strong>High-Risk Destructive Action</strong>
             <p>
               This will permanently delete all {student.sessions.length} conversation sessions and all associated messages. Your voluntary wellbeing check-ins and academic records will remain preserved.
@@ -1613,7 +1611,7 @@ export default function StudentSettingsPage() {
               size="sm"
               isLoading={isDeletingConversations}
               onClick={handleDeleteAllConversations}
-              className="bg-rose-600 hover:bg-rose-700 text-white"
+              className="bg-[#943838] hover:bg-[#7D2E2E] text-white"
             >
               Delete All Conversations
             </Button>
@@ -1629,7 +1627,7 @@ export default function StudentSettingsPage() {
         description="Permanently delete your student profile, chat history, and personal account."
       >
         <div className="space-y-4">
-          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 text-xs text-rose-700 dark:text-rose-300 space-y-1.5">
+          <div className="p-3.5 rounded-xl bg-[#FEF2F2] dark:bg-[#BA6868]/10 border border-[#E2E2DC] dark:border-[#BA6868]/25 text-xs text-[#8A3A3A] dark:text-[#D18686] space-y-1.5">
             <strong>Permanent Account Deletion</strong>
             <p>
               This will immediately revoke authentication access, erase all conversations, delete your user preferences, and clean student records. This cannot be undone.
@@ -1678,7 +1676,7 @@ export default function StudentSettingsPage() {
               isLoading={isDeletingAccount}
               disabled={deleteConfirmationText !== 'DELETE'}
               onClick={handleDeleteAccount}
-              className="bg-rose-600 hover:bg-rose-700 text-white"
+              className="bg-[#943838] hover:bg-[#7D2E2E] text-white"
             >
               Permanently Delete Account
             </Button>

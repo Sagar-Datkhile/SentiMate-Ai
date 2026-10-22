@@ -13,9 +13,9 @@ export function Badge({ className = '', variant = 'neutral', size = 'md', childr
 
   const variantStyles = {
     brand:
-      'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] border border-[#D5DFEE] dark:border-[rgba(145,167,208,0.25)]',
+      'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] border border-[#D5DFEE] dark:border-[rgba(44, 103, 197, 0.25)]',
     teal:
-      'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] border border-[#D5DFEE] dark:border-[rgba(145,167,208,0.25)]',
+      'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] border border-[#D5DFEE] dark:border-[rgba(44, 103, 197, 0.25)]',
     emerald:
       'bg-[#ECFDF5] dark:bg-[rgba(16,185,129,0.15)] text-[#047857] dark:text-[#34D399] border border-[#A7F3D0] dark:border-[rgba(16,185,129,0.3)]',
     amber:

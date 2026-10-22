@@ -771,7 +771,7 @@ export default function StudentProfilePage() {
             {/* Section 1: Basic Identity */}
             <Card className="space-y-4">
             <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
-              <User className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+              <User className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
               <h2 className="text-[18px] font-semibold text-[#18191B] dark:text-[#F3F4F6]">
                 Personal identity
               </h2>
@@ -791,7 +791,7 @@ export default function StudentProfilePage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] font-bold flex items-center justify-center text-xl select-none">
+                    <div className="w-full h-full bg-[#4F648C] dark:bg-[#2C67C5] text-white dark:text-white font-bold flex items-center justify-center text-xl select-none">
                       {(fullName || 'S').charAt(0).toUpperCase()}
                     </div>
                   )}
@@ -875,7 +875,7 @@ export default function StudentProfilePage() {
                 <div className="flex items-center gap-1.5 text-xs px-1 min-h-[20px]">
                   {availabilityState.status === 'checking' && (
                     <span className="flex items-center gap-1 text-[#71757E]">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#4F648C] dark:text-[#91A7D0]" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#4F648C] dark:text-[#5B8DEF]" />
                       Checking availability...
                     </span>
                   )}
@@ -886,7 +886,7 @@ export default function StudentProfilePage() {
                     </span>
                   )}
                   {availabilityState.status === 'current_user' && (
-                    <span className="flex items-center gap-1 text-[#4F648C] dark:text-[#91A7D0] font-medium">
+                    <span className="flex items-center gap-1 text-[#4F648C] dark:text-[#5B8DEF] font-medium">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       {availabilityState.message || 'Currently your username'}
                     </span>
@@ -925,7 +925,7 @@ export default function StudentProfilePage() {
           {/* Section 2: Educational Context */}
           <Card className="space-y-5">
             <div className="flex items-center gap-2 border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
-              <GraduationCap className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+              <GraduationCap className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
               <h2 className="text-[18px] font-semibold text-[#18191B] dark:text-[#F3F4F6]">
                 Institution details
               </h2>
@@ -944,7 +944,7 @@ export default function StudentProfilePage() {
                   id="institution-display"
                   tabIndex={0}
                   aria-readonly="true"
-                  className="w-full !min-h-[48px] !rounded-xl px-3.5 py-3 text-sm bg-[#F5F5F3] dark:bg-[#141518] border border-[#E2E2DC] dark:border-[#222428] text-[#18191B] dark:text-[#F3F4F6] flex items-center leading-relaxed select-text focus:outline-none focus:ring-2 focus:ring-[#4F648C]/20 dark:focus:ring-[#91A7D0]/20"
+                  className="w-full !min-h-[48px] !rounded-xl px-3.5 py-3 text-sm bg-[#F5F5F3] dark:bg-[#141518] border border-[#E2E2DC] dark:border-[#222428] text-[#18191B] dark:text-[#F3F4F6] flex items-center leading-relaxed select-text focus:outline-none focus:ring-2 focus:ring-[#4F648C]/20 dark:focus:ring-[#2C67C5]/20"
                 >
                   <span className="break-words whitespace-normal w-full font-medium">
                     {institution.name || "Pune Vidyarthi Griha's College of Engineering & S.S. Dhamankar Institute of Management, Nashik"}
@@ -1060,7 +1060,7 @@ export default function StudentProfilePage() {
           <Card className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3 gap-2">
               <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                <Shield className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
                 <h2 className="text-[18px] font-semibold text-[#18191B] dark:text-[#F3F4F6]">
                   Academic progress
                 </h2>
@@ -1085,7 +1085,7 @@ export default function StudentProfilePage() {
                       Semester {sem.semester}
                     </span>
                     {activeCurrentSemester === sem.semester && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EEF2F8] text-[#4F648C] dark:bg-[#242E40] dark:text-[#91A7D0] font-semibold">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#EEF2F8] text-[#4F648C] dark:bg-[#242E40] dark:text-[#5B8DEF] font-semibold">
                         Current
                       </span>
                     )}
@@ -1096,7 +1096,7 @@ export default function StudentProfilePage() {
                     placeholder="Enter SGPA"
                     value={sem.sgpa}
                     onChange={(e) => handleSemesterChange(sem.semester, e.target.value)}
-                    className="w-full h-10 px-3 rounded-lg text-xs sm:text-sm font-mono bg-[#FAFAF8] dark:bg-[#18191C] border border-[#E2E2DC]/80 dark:border-[#2A2B30] text-[#18191B] dark:text-[#F3F4F6] placeholder-[#8C9099] dark:placeholder-[#6B7280] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#91A7D0] focus:ring-2 focus:ring-[#4F648C]/20 dark:focus:ring-[#91A7D0]/20 transition-all"
+                    className="w-full h-10 px-3 rounded-lg text-xs sm:text-sm font-mono bg-[#FAFAF8] dark:bg-[#18191C] border border-[#E2E2DC]/80 dark:border-[#2A2B30] text-[#18191B] dark:text-[#F3F4F6] placeholder-[#8C9099] dark:placeholder-[#6B7280] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#2C67C5] focus:ring-2 focus:ring-[#4F648C]/20 dark:focus:ring-[#2C67C5]/20 transition-all"
                   />
                 </div>
               ))}
@@ -1107,7 +1107,7 @@ export default function StudentProfilePage() {
           <Card className="space-y-4">
             <div className="flex items-center justify-between border-b border-[#E2E2DC] dark:border-[#1F2024] pb-3">
               <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                <MessageSquare className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
                 <h2 className="text-[18px] font-semibold text-[#18191B] dark:text-[#F3F4F6]">
                   Recent conversations
                 </h2>
@@ -1117,7 +1117,7 @@ export default function StudentProfilePage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/student/chat')}
-                className="gap-1.5 text-xs text-[#4F648C] dark:text-[#91A7D0] hover:bg-[#EEF2F8] dark:hover:bg-[#242E40]"
+                className="gap-1.5 text-xs text-[#4F648C] dark:text-[#5B8DEF] hover:bg-[#EEF2F8] dark:hover:bg-[#242E40]"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New chat</span>
@@ -1164,11 +1164,11 @@ export default function StudentProfilePage() {
                 {sessions.slice(0, 5).map((session) => (
                   <div
                     key={session.id}
-                    className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#222428] bg-white dark:bg-[#141518] hover:border-[#4F648C]/40 dark:hover:border-[#91A7D0]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                    className="p-3.5 rounded-xl border border-[#E2E2DC] dark:border-[#222428] bg-white dark:bg-[#141518] hover:border-[#4F648C]/40 dark:hover:border-[#2C67C5]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                   >
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2">
-                        <MessageSquare className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0] shrink-0" />
+                        <MessageSquare className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#5B8DEF] shrink-0" />
                         <h3 className="text-sm font-medium text-[#18191B] dark:text-[#F3F4F6] truncate">
                           {session.title || 'Untitled conversation'}
                         </h3>
@@ -1191,7 +1191,7 @@ export default function StudentProfilePage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => router.push(`/student/chat?session=${session.id}`)}
-                      className="shrink-0 gap-1.5 text-xs text-[#4F648C] dark:text-[#91A7D0] hover:bg-[#EEF2F8] dark:hover:bg-[#242E40]"
+                      className="shrink-0 gap-1.5 text-xs text-[#4F648C] dark:text-[#5B8DEF] hover:bg-[#EEF2F8] dark:hover:bg-[#242E40]"
                     >
                       <span>Continue</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -1205,7 +1205,7 @@ export default function StudentProfilePage() {
                       variant="ghost"
                       size="sm"
                       onClick={() => router.push('/student/chat')}
-                      className="text-xs text-[#4F648C] dark:text-[#91A7D0]"
+                      className="text-xs text-[#4F648C] dark:text-[#5B8DEF]"
                     >
                       <span>View all {sessions.length} conversations in chat</span>
                       <ArrowRight className="w-3.5 h-3.5 ml-1" />

@@ -165,7 +165,7 @@ export default function RegisterPage() {
               className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl border border-[#E2E2DC] dark:border-[#1F2024] bg-white dark:bg-[#18191C] hover:bg-[#F4F4F0] dark:hover:bg-[#222327] text-[#18191B] dark:text-[#F3F4F6] text-sm font-semibold transition-colors shadow-xs min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isGoogleLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#4F648C] dark:text-[#91A7D0]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#4F648C] dark:text-[#5B8DEF]" />
               ) : (
                 <GoogleIcon className="w-5 h-5" />
               )}
@@ -235,7 +235,7 @@ export default function RegisterPage() {
           Already have an account?{' '}
           <Link
             href="/auth/login"
-            className="font-semibold text-[#4F648C] dark:text-[#91A7D0] hover:underline"
+            className="font-semibold text-[#4F648C] dark:text-[#5B8DEF] hover:underline"
           >
             Sign in
           </Link>

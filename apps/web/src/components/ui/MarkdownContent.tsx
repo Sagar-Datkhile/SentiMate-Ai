@@ -72,7 +72,7 @@ export const MarkdownContent = memo(function MarkdownContent({
             </ol>
           ),
           li: ({ children }) => (
-            <li className="leading-relaxed pl-1 marker:text-[#4F648C] dark:marker:text-[#91A7D0]">
+            <li className="leading-relaxed pl-1 marker:text-[#4F648C] dark:marker:text-[#5B8DEF]">
               {children}
             </li>
           ),
@@ -91,7 +91,7 @@ export const MarkdownContent = memo(function MarkdownContent({
 
           // Blockquote
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-[#4F648C] dark:border-[#91A7D0] pl-3.5 py-1 my-3 bg-[#EEF2F8]/40 dark:bg-[#242E40]/30 rounded-r text-[#4A4D54] dark:text-[#9CA3AF] italic">
+            <blockquote className="border-l-2 border-[#4F648C] dark:border-[#2C67C5] pl-3.5 py-1 my-3 bg-[#EEF2F8]/40 dark:bg-[#242E40]/30 rounded-r text-[#4A4D54] dark:text-[#9CA3AF] italic">
               {children}
             </blockquote>
           ),
@@ -167,7 +167,7 @@ export const MarkdownContent = memo(function MarkdownContent({
                   checked={Boolean(checked)}
                   readOnly
                   aria-disabled="true"
-                  className="mr-2 rounded border-[#E2E2DC] dark:border-[#2E3036] accent-[#4F648C] dark:accent-[#91A7D0] pointer-events-none"
+                  className="mr-2 rounded border-[#E2E2DC] dark:border-[#2E3036] accent-[#4F648C] dark:accent-[#2C67C5] pointer-events-none"
                 />
               );
             }
@@ -185,7 +185,7 @@ export const MarkdownContent = memo(function MarkdownContent({
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#4F648C] dark:text-[#91A7D0] underline hover:text-[#405374] dark:hover:text-[#A6B9DC] font-medium transition-colors break-all"
+                className="text-[#4F648C] dark:text-[#5B8DEF] underline hover:text-[#405374] dark:hover:text-[#3875DC] font-medium transition-colors break-all"
               >
                 {children}
               </a>

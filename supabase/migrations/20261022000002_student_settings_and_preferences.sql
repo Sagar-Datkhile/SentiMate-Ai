@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
     reduced_animations BOOLEAN NOT NULL DEFAULT FALSE,
     -- Chat Preferences
     enter_to_send BOOLEAN NOT NULL DEFAULT TRUE,
-    response_language TEXT NOT NULL DEFAULT 'auto',
+    response_language TEXT NOT NULL DEFAULT 'English',
     response_length TEXT NOT NULL DEFAULT 'balanced' CHECK (response_length IN ('concise', 'balanced', 'detailed')),
     -- Notifications
     email_appointment_reminders BOOLEAN NOT NULL DEFAULT TRUE,

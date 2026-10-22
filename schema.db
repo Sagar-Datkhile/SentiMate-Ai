@@ -567,7 +567,7 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
     text_size TEXT NOT NULL DEFAULT 'default' CHECK (text_size IN ('small', 'default', 'large')),
     reduced_animations BOOLEAN NOT NULL DEFAULT FALSE,
     enter_to_send BOOLEAN NOT NULL DEFAULT TRUE,
-    response_language TEXT NOT NULL DEFAULT 'auto',
+    response_language TEXT NOT NULL DEFAULT 'English',
     response_length TEXT NOT NULL DEFAULT 'balanced' CHECK (response_length IN ('concise', 'balanced', 'detailed')),
     email_appointment_reminders BOOLEAN NOT NULL DEFAULT TRUE,
     email_counsellor_updates BOOLEAN NOT NULL DEFAULT TRUE,

@@ -47,7 +47,7 @@ export function AccountTrigger({
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label={`Account menu for ${userProfile.displayName}`}
-        className={`w-full h-11 flex items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] cursor-pointer text-left select-none overflow-hidden ${
+        className={`w-full h-11 flex items-center rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] cursor-pointer text-left select-none overflow-hidden ${
           isCollapsed ? 'justify-center px-0' : 'gap-2.5 px-2'
         } hover:bg-[#EAEAE5] dark:hover:bg-[#18191C] ${
           isOpen ? 'bg-[#EAEAE5] dark:bg-[#18191C]' : ''

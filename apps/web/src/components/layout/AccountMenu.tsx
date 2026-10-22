@@ -263,18 +263,18 @@ export function AccountMenu({
               ref={setItemRef}
               role="menuitem"
               onClick={() => onClose()}
-              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] ${
+              className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] ${
                 isActive
-                  ? 'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#91A7D0] font-semibold'
+                  ? 'bg-[#EEF2F8] dark:bg-[#242E40] text-[#4F648C] dark:text-[#5B8DEF] font-semibold'
                   : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] hover:text-[#18191B] dark:hover:text-[#F3F4F6]'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-[#4F648C] dark:text-[#91A7D0]' : 'text-[#71757E]'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[#4F648C] dark:text-[#5B8DEF]' : 'text-[#71757E]'}`} />
                 <span>{item.label}</span>
               </div>
               {isActive && (
-                <div className="w-1.5 h-1.5 rounded-full bg-[#4F648C] dark:bg-[#91A7D0]" aria-hidden="true" />
+                <div className="w-1.5 h-1.5 rounded-full bg-[#4F648C] dark:bg-[#2C67C5]" aria-hidden="true" />
               )}
             </Link>
           );

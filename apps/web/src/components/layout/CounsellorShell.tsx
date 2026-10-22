@@ -88,7 +88,7 @@ export function CounsellorShell({
           </div>
           <div>
             <span className="font-semibold text-sm tracking-tight">SentiMate</span>
-            <span className="block text-[10px] text-[#91A7D0] uppercase font-semibold">Counsellor Portal</span>
+            <span className="block text-[10px] text-[#5B8DEF] uppercase font-semibold">Counsellor Portal</span>
           </div>
         </Link>
         {mobileDrawerOpen && (
@@ -117,7 +117,7 @@ export function CounsellorShell({
               onClick={() => setMobileDrawerOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors ${
                 isCurrent
-                  ? 'bg-[#18191C] text-[#91A7D0] font-semibold border-l-2 border-[#91A7D0]'
+                  ? 'bg-[#18191C] text-[#5B8DEF] font-semibold border-l-2 border-[#2C67C5]'
                   : 'text-slate-300 hover:bg-[#18191C] hover:text-white'
               }`}
             >
@@ -140,12 +140,12 @@ export function CounsellorShell({
           </div>
         ) : (
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="w-7 h-7 rounded-full bg-[#4F648C] dark:bg-[#91A7D0] text-white dark:text-[#151B26] flex items-center justify-center text-xs font-bold shrink-0">
+            <div className="w-7 h-7 rounded-full bg-[#4F648C] dark:bg-[#2C67C5] text-white dark:text-white flex items-center justify-center text-xs font-bold shrink-0">
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div className="truncate">
               <span className="text-xs font-medium block truncate">{displayName}</span>
-              <span className="text-[10px] text-[#91A7D0] block truncate">Licensed Counsellor</span>
+              <span className="text-[10px] text-[#5B8DEF] block truncate">Licensed Counsellor</span>
             </div>
           </div>
         )}

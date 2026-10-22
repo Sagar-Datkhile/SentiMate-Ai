@@ -370,7 +370,7 @@ export const UserPreferencesSchema = z.object({
   textSize: TextSizePreferenceSchema.default('default'),
   reducedAnimations: z.boolean().default(false),
   enterToSend: z.boolean().default(true),
-  responseLanguage: z.string().default('auto'),
+  responseLanguage: z.string().default('English'),
   responseLength: ResponseLengthPreferenceSchema.default('balanced'),
   emailAppointmentReminders: z.boolean().default(true),
   emailCounsellorUpdates: z.boolean().default(true),

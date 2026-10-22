@@ -401,7 +401,7 @@ export function StudentShell({
                 type="button"
                 onClick={handleNewChatAction}
                 aria-label="New conversation"
-                className="w-10 h-10 rounded-xl bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#91A7D0] text-[#4F648C] dark:text-[#91A7D0] flex items-center justify-center transition-colors shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C]"
+                className="w-10 h-10 rounded-xl bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#2C67C5] text-[#4F648C] dark:text-[#5B8DEF] flex items-center justify-center transition-colors shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C]"
               >
                 <Plus className="w-5 h-5" />
               </button>
@@ -410,9 +410,9 @@ export function StudentShell({
             <Button
               onClick={handleNewChatAction}
               variant="outline"
-              className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#91A7D0] text-xs font-semibold shadow-xs"
+              className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#2C67C5] text-xs font-semibold shadow-xs"
             >
-              <Plus className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+              <Plus className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
               <span>New conversation</span>
             </Button>
           )}
@@ -448,7 +448,7 @@ export function StudentShell({
                     key={s.id}
                     className={`group relative flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-white dark:bg-[#18191C] font-medium text-[#4F648C] dark:text-[#91A7D0] shadow-xs'
+                        ? 'bg-white dark:bg-[#18191C] font-medium text-[#4F648C] dark:text-[#5B8DEF] shadow-xs'
                         : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
                     }`}
                     onClick={() => {
@@ -473,7 +473,7 @@ export function StudentShell({
                         aria-label={`Options for "${s.title}"`}
                         aria-haspopup="menu"
                         aria-expanded={isMenuOpen}
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0] ${
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5] ${
                           isMenuOpen
                             ? 'opacity-100 bg-[#E2E2DC] dark:bg-[#222327] text-[#18191B] dark:text-[#F3F4F6]'
                             : 'opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 focus-visible:opacity-100 text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6] hover:bg-[#E2E2DC] dark:hover:bg-[#222327]'
@@ -541,9 +541,9 @@ export function StudentShell({
               <Button
                 onClick={handleNewChatAction}
                 variant="outline"
-                className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#91A7D0] text-xs font-semibold shadow-xs"
+                className="w-full justify-start gap-2 bg-white dark:bg-[#18191C] border-[#E2E2DC] dark:border-[#1F2024] hover:border-[#4F648C] dark:hover:border-[#2C67C5] text-xs font-semibold shadow-xs"
               >
-                <Plus className="w-4 h-4 text-[#4F648C] dark:text-[#91A7D0]" />
+                <Plus className="w-4 h-4 text-[#4F648C] dark:text-[#5B8DEF]" />
                 <span>New conversation</span>
               </Button>
             </div>
@@ -564,7 +564,7 @@ export function StudentShell({
                       key={s.id}
                       className={`group relative flex items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-colors cursor-pointer ${
                         isActive
-                          ? 'bg-white dark:bg-[#18191C] font-medium text-[#4F648C] dark:text-[#91A7D0] shadow-xs'
+                          ? 'bg-white dark:bg-[#18191C] font-medium text-[#4F648C] dark:text-[#5B8DEF] shadow-xs'
                           : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
                       }`}
                       onClick={() => {
@@ -590,7 +590,7 @@ export function StudentShell({
                           aria-label={`Options for "${s.title}"`}
                           aria-haspopup="menu"
                           aria-expanded={isMenuOpen}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer opacity-100 text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6] hover:bg-[#E2E2DC] dark:hover:bg-[#222327] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#91A7D0]"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer opacity-100 text-[#71757E] hover:text-[#18191B] dark:hover:text-[#F3F4F6] hover:bg-[#E2E2DC] dark:hover:bg-[#222327] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C] dark:focus-visible:ring-[#2C67C5]"
                         >
                           <MoreVertical className="w-3.5 h-3.5" />
                         </button>
@@ -644,7 +644,7 @@ export function StudentShell({
             onClick={() => handleOpenRename(menuSession)}
             className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-[#18191B] dark:text-[#F3F4F6] hover:bg-[#F4F4F1] dark:hover:bg-[#18191C] focus-visible:bg-[#F4F4F1] dark:focus-visible:bg-[#18191C] focus-visible:outline-none transition-colors cursor-pointer"
           >
-            <Pencil className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0] shrink-0" />
+            <Pencil className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#5B8DEF] shrink-0" />
             <span>Rename</span>
           </button>
 
@@ -676,9 +676,9 @@ export function StudentShell({
             type="button"
             role="menuitem"
             onClick={() => handleOpenDelete(menuSession)}
-            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 focus-visible:bg-red-50 dark:focus-visible:bg-red-950/30 focus-visible:outline-none transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-[#9E4A4A] dark:text-[#C47272] hover:bg-[#FEF2F2] dark:hover:bg-[#BA6868]/15 focus-visible:bg-[#FEF2F2] dark:focus-visible:bg-[#BA6868]/15 focus-visible:outline-none transition-colors cursor-pointer"
           >
-            <Trash2 className="w-3.5 h-3.5 text-red-600 dark:text-red-400 shrink-0" />
+            <Trash2 className="w-3.5 h-3.5 text-[#9E4A4A] dark:text-[#C47272] shrink-0" />
             <span>Delete</span>
           </button>
         </div>,
@@ -717,7 +717,7 @@ export function StudentShell({
               autoFocus
               maxLength={100}
               disabled={isRenaming}
-              className="w-full px-3 py-2 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#2C2D32] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] focus:outline-none focus:ring-2 focus:ring-[#4F648C] dark:focus:ring-[#91A7D0] transition-colors"
+              className="w-full px-3 py-2 rounded-xl bg-[#F4F4F1] dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#2C2D32] text-xs sm:text-sm text-[#18191B] dark:text-[#F3F4F6] placeholder-[#71757E] focus:outline-none focus:ring-2 focus:ring-[#4F648C] dark:focus:ring-[#2C67C5] transition-colors"
             />
             {renameTitle.trim().length === 0 && (
               <p className="text-[11px] text-red-500 mt-1">Title cannot be empty.</p>

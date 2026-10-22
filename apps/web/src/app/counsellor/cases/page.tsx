@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Dialog } from '@/components/ui/Dialog';
 import { Textarea } from '@/components/ui/Textarea';
+import { Select } from '@/components/ui/Select';
 import { CaseCardSkeleton, LoadingRegion, Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import {
@@ -180,7 +181,7 @@ export default function CounsellorCasesPage() {
 
               <div className="flex items-center gap-4 text-xs text-[#71757E]">
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#91A7D0]" />
+                  <Calendar className="w-3.5 h-3.5 text-[#4F648C] dark:text-[#5B8DEF]" />
                   <span>Next Follow-up: {c.nextFollowUp}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -193,7 +194,7 @@ export default function CounsellorCasesPage() {
               {c.notes.length > 0 && (
                 <div className="space-y-2 pt-2 border-t border-[#E2E2DC]/40 dark:border-[#1F2024]/40">
                   <span className="text-[11px] font-semibold uppercase tracking-wider text-[#71757E] flex items-center gap-1">
-                    <Lock className="w-3 h-3 text-[#4F648C] dark:text-[#91A7D0]" />
+                    <Lock className="w-3 h-3 text-[#4F648C] dark:text-[#5B8DEF]" />
                     Confidential Session Notes
                   </span>
                   {c.notes.map((note) => (
@@ -252,7 +253,7 @@ export default function CounsellorCasesPage() {
               value={noteTitle}
               onChange={(e) => setNoteTitle(e.target.value)}
               placeholder="e.g. Session 2 Observations & Coping Plan"
-              className="w-full rounded-lg px-3 py-2 text-xs bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#91A7D0] min-h-[40px]"
+              className="w-full rounded-lg px-3 py-2 text-xs bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#2C67C5] min-h-[40px]"
             />
           </div>
 
@@ -265,24 +266,22 @@ export default function CounsellorCasesPage() {
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               placeholder="Record intervention strategies, student affect, and action steps..."
-              className="w-full rounded-lg p-2.5 text-xs bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#91A7D0]"
+              className="w-full rounded-lg p-2.5 text-xs bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] focus:outline-none focus:border-[#4F648C] dark:focus:border-[#2C67C5]"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF] mb-1">
-              Update Case Status
-            </label>
-            <select
+            <Select
+              label="Update Case Status"
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full rounded-lg px-3 py-2 text-xs bg-white dark:bg-[#18191C] border border-[#E2E2DC] dark:border-[#1F2024] text-[#18191B] dark:text-[#F3F4F6] min-h-[40px]"
-            >
-              <option value="acknowledged">Acknowledged</option>
-              <option value="in_progress">In Progress</option>
-              <option value="follow_up">Follow Up</option>
-              <option value="resolved">Resolved</option>
-            </select>
+              options={[
+                { value: 'acknowledged', label: 'Acknowledged' },
+                { value: 'in_progress', label: 'In Progress' },
+                { value: 'follow_up', label: 'Follow Up' },
+                { value: 'resolved', label: 'Resolved' },
+              ]}
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
