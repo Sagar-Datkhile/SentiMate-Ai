@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { StudentShell } from '@/components/layout/StudentShell';
+
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -46,8 +46,7 @@ export default function StudentReferralsPage() {
   };
 
   return (
-    <StudentShell>
-      <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
+    <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 w-full">
         {/* Header */}
         <div className="border-b border-[#E2E2DC] dark:border-[#1F2024] pb-5">
           <div className="flex items-center gap-2">
@@ -173,6 +172,5 @@ export default function StudentReferralsPage() {
           </form>
         )}
       </div>
-    </StudentShell>
   );
 }

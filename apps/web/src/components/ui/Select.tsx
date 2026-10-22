@@ -8,6 +8,7 @@ export interface SelectOption {
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
+  labelClassName?: string;
   options: SelectOption[];
   placeholder?: string;
   error?: string;
@@ -19,6 +20,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     {
       className = '',
       label,
+      labelClassName,
       options,
       placeholder,
       error,
@@ -37,7 +39,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="block text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5"
+            className={labelClassName || "block text-xs font-semibold uppercase tracking-wider text-[#4A4D54] dark:text-[#9CA3AF] mb-1.5"}
           >
             {label}
           </label>

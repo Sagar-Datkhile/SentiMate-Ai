@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import {
   Plus,
   HeartHandshake,
@@ -25,12 +25,8 @@ import { AccountTrigger } from './AccountTrigger';
 import { AccountMenu, UserProfileData } from './AccountMenu';
 import { DeleteConversationDialog } from './DeleteConversationDialog';
 
-export interface ChatSessionItem {
-  id: string;
-  title: string;
-  createdAt: string;
-  lastActivityAt?: string;
-}
+import { useStudent, ChatSessionItem } from './StudentContext';
+export type { ChatSessionItem } from './StudentContext';
 
 interface StudentShellProps {
   children: React.ReactNode;
@@ -47,31 +43,45 @@ interface StudentShellProps {
 
 export function StudentShell({
   children,
-  sessions = [],
-  activeSessionId,
-  isLoadingSessions = false,
+  sessions: sessionsProp,
+  activeSessionId: activeSessionIdProp,
+  isLoadingSessions: isLoadingSessionsProp,
   onNewSession,
   onSelectSession,
   onRenameSession,
   onDeleteSession,
-  studentName = 'Alex',
+  studentName,
   avatarUrl,
 }: StudentShellProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const student = useStudent();
 
   // Desktop sidebar collapse state (persisted locally)
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
-  // User profile information
-  const [userProfile, setUserProfile] = useState<UserProfileData>({
-    displayName: studentName,
-    email: undefined,
-    username: undefined,
-    role: 'Student',
-  });
-  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  // Derived / shared sessions & loading
+  const sessions = sessionsProp ?? student.sessions;
+  const isLoadingSessions = isLoadingSessionsProp ?? student.isLoadingSessions;
+
+  // Active session ID: prop takes precedence, otherwise if on /student/chat read search param or context
+  const effectiveActiveSessionId =
+    activeSessionIdProp !== undefined
+      ? activeSessionIdProp
+      : pathname === '/student/chat'
+        ? (searchParams?.get('session') || student.activeSessionId)
+        : null;
+
+  // User profile
+  const userProfile: UserProfileData = {
+    ...student.userProfile,
+    displayName: studentName ?? student.userProfile.displayName,
+    avatarUrl: avatarUrl !== undefined ? avatarUrl : student.userProfile.avatarUrl,
+  };
+  const isLoadingUser = student.isLoadingUser;
 
   // Actions menu state
   const [mounted, setMounted] = useState(false);
@@ -123,105 +133,7 @@ export function StudentShell({
     });
   };
 
-  // Fetch real authenticated user profile data
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
 
-        if (user) {
-          const name =
-            user.user_metadata?.full_name ||
-            user.user_metadata?.name ||
-            user.email?.split('@')[0] ||
-            studentName;
-
-          // Also check profiles table for avatar and student_profiles for username
-          let username: string | undefined = undefined;
-          let avatarUrl: string | undefined = undefined;
-          try {
-            const [profileRes, studentRes] = await Promise.all([
-              supabase.from('profiles').select('avatar_url').eq('id', user.id).maybeSingle(),
-              supabase.from('student_profiles').select('username').eq('id', user.id).maybeSingle(),
-            ]);
-
-            if (studentRes.data?.username) {
-              username = studentRes.data.username;
-            } else if (user.email) {
-              username = user.email.split('@')[0];
-            }
-
-            // Uploaded profile photo takes priority over OAuth photo
-            if (profileRes.data?.avatar_url) {
-              avatarUrl = profileRes.data.avatar_url;
-            }
-          } catch {
-            // Ignore optional profile lookup
-          }
-
-          // Fall back to Google / OAuth photo from user metadata if no uploaded photo
-          if (!avatarUrl) {
-            const meta = user.user_metadata || {};
-            const identityMeta = (user.identities?.[0]?.identity_data as Record<string, string> | undefined) || {};
-            avatarUrl =
-              meta.avatar_url ||
-              meta.picture ||
-              meta.photoURL ||
-              identityMeta.avatar_url ||
-              identityMeta.picture ||
-              undefined;
-          }
-
-          setUserProfile({
-            displayName: name,
-            email: user.email,
-            username,
-            avatarUrl,
-            role: 'Student',
-          });
-        }
-      } catch {
-        // Fall back to studentName prop
-      } finally {
-        setIsLoadingUser(false);
-      }
-    };
-    fetchUser();
-  }, [studentName]);
-
-  // Synchronize avatarUrl prop immediately when provided
-  useEffect(() => {
-    if (avatarUrl !== undefined) {
-      setUserProfile((prev) => (prev ? { ...prev, avatarUrl } : prev));
-    }
-  }, [avatarUrl]);
-
-  // Listen for real-time shared profile updates across the app (no page reload)
-  useEffect(() => {
-    const handleProfileUpdate = (e: Event) => {
-      const customEvent = e as CustomEvent<{ avatarUrl?: string; fullName?: string }>;
-      if (customEvent.detail) {
-        setUserProfile((prev) =>
-          prev
-            ? {
-                ...prev,
-                displayName: customEvent.detail.fullName ?? prev.displayName,
-                avatarUrl:
-                  customEvent.detail.avatarUrl !== undefined
-                    ? customEvent.detail.avatarUrl
-                    : prev.avatarUrl,
-              }
-            : prev
-        );
-      }
-    };
-
-    window.addEventListener('sentimate:profile-updated', handleProfileUpdate);
-    return () => window.removeEventListener('sentimate:profile-updated', handleProfileUpdate);
-  }, []);
 
   const handleToggleMenu = (session: ChatSessionItem, triggerEl: HTMLElement) => {
     if (menuSession?.id === session.id) {
@@ -276,6 +188,13 @@ export function StudentShell({
     try {
       if (onRenameSession) {
         onRenameSession(renameModalSession.id, trimmed);
+      } else {
+        student.updateSessionTitle(renameModalSession.id, trimmed);
+        fetch(`/api/chat/sessions/${renameModalSession.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: trimmed }),
+        }).catch(() => {});
       }
       toast.success('Conversation renamed', {
         description: `Updated title to "${trimmed}".`,
@@ -304,11 +223,13 @@ export function StudentShell({
     try {
       if (onDeleteSession) {
         await onDeleteSession(target.id);
+      } else {
+        await student.deleteSession(target.id);
       }
       toast.success('Conversation deleted', {
         description: `"${target.title}" has been deleted.`,
       });
-      if (target.id === activeSessionId) {
+      if (target.id === effectiveActiveSessionId) {
         handleNewChatAction();
       }
       setDeleteModalSession(null);
@@ -396,8 +317,12 @@ export function StudentShell({
   };
 
   const handleNewChatAction = () => {
-    if (onNewSession) onNewSession();
-    else router.push('/student/chat');
+    if (onNewSession) {
+      onNewSession();
+    } else {
+      student.setActiveSessionId(null);
+      router.push('/student/chat');
+    }
     setMobileDrawerOpen(false);
   };
 
@@ -508,7 +433,7 @@ export function StudentShell({
               <div className="px-2 py-3 text-xs text-[#71757E] italic">No previous chats yet</div>
             ) : (
               sessions.map((s) => {
-                const isActive = s.id === activeSessionId;
+                const isActive = s.id === effectiveActiveSessionId;
                 const isMenuOpen = menuSession?.id === s.id;
                 return (
                   <div
@@ -519,7 +444,12 @@ export function StudentShell({
                         : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
                     }`}
                     onClick={() => {
-                      if (onSelectSession) onSelectSession(s.id);
+                      if (onSelectSession) {
+                        onSelectSession(s.id);
+                      } else {
+                        student.setActiveSessionId(s.id);
+                        router.push(`/student/chat?session=${s.id}`);
+                      }
                     }}
                   >
                     <span title={s.title} className="truncate flex-1 min-w-0 pr-1.5">{s.title}</span>
@@ -619,7 +549,7 @@ export function StudentShell({
                 <div className="px-2 py-3 text-xs text-[#71757E] italic">No previous chats yet</div>
               ) : (
                 sessions.map((s) => {
-                  const isActive = s.id === activeSessionId;
+                  const isActive = s.id === effectiveActiveSessionId;
                   const isMenuOpen = menuSession?.id === s.id;
                   return (
                     <div
@@ -630,7 +560,12 @@ export function StudentShell({
                           : 'text-[#4A4D54] dark:text-[#9CA3AF] hover:bg-[#EAEAE5] dark:hover:bg-[#18191C]'
                       }`}
                       onClick={() => {
-                        if (onSelectSession) onSelectSession(s.id);
+                        if (onSelectSession) {
+                          onSelectSession(s.id);
+                        } else {
+                          student.setActiveSessionId(s.id);
+                          router.push(`/student/chat?session=${s.id}`);
+                        }
                         setMobileDrawerOpen(false);
                       }}
                     >
