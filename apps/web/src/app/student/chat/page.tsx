@@ -22,6 +22,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { ChatMessageSkeleton, LoadingRegion } from '@/components/ui/Skeleton';
 import { toast } from '@/components/ui/Toast';
 import { AssistantAvatar } from '@/components/layout/AssistantAvatar';
+import { MarkdownContent } from '@/components/ui/MarkdownContent';
 import { createClient } from '@/lib/supabase/client';
 
 interface Message {
@@ -29,8 +30,108 @@ interface Message {
   senderRole: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: string;
-  status?: 'pending' | 'streaming' | 'completed' | 'failed';
+  status?: 'pending' | 'streaming' | 'completed' | 'failed' | 'interrupted' | 'truncated';
   errorMessage?: string;
+}
+
+interface StreamEvent {
+  token?: string;
+  done?: boolean;
+  finishReason?: 'stop' | 'length' | 'cancelled' | 'error' | 'interrupted';
+  error?: string;
+  tokenUsage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
+}
+
+/**
+ * Robust stream parser handling:
+ * 1. SSE events split across network chunks (line buffering until newline)
+ * 2. Multiple events per chunk
+ * 3. Final decoder buffer flushing
+ * 4. Provider error events without dropping accumulated text
+ * 5. Fallback for raw plaintext streams
+ */
+async function parseChatStream(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  onToken: (token: string) => void,
+  onDone: (result: {
+    finishReason: 'stop' | 'length' | 'cancelled' | 'error' | 'interrupted';
+    error?: string;
+  }) => void
+): Promise<void> {
+  const decoder = new TextDecoder('utf-8');
+  let buffer = '';
+  let finishReasonReceived: 'stop' | 'length' | 'cancelled' | 'error' | 'interrupted' | null = null;
+  let providerError: string | undefined = undefined;
+
+  const processLine = (line: string) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    if (trimmed.startsWith('data:')) {
+      const jsonStr = trimmed.slice(5).trim();
+      if (jsonStr === '[DONE]') {
+        if (!finishReasonReceived) finishReasonReceived = 'stop';
+        return;
+      }
+      try {
+        const parsed: StreamEvent = JSON.parse(jsonStr);
+        if (parsed.token) {
+          onToken(parsed.token);
+        }
+        if (parsed.error) {
+          providerError = parsed.error;
+          finishReasonReceived = 'error';
+        }
+        if (parsed.done && parsed.finishReason) {
+          finishReasonReceived = parsed.finishReason;
+        }
+      } catch {
+        // Fallback: if data: payload wasn't JSON, treat as raw text token
+        onToken(jsonStr);
+      }
+    } else {
+      // Non-SSE raw plaintext fallback
+      onToken(line);
+    }
+  };
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      // Decode with stream: true to retain multi-byte UTF-8 sequence boundaries
+      buffer += decoder.decode(value, { stream: true });
+
+      // Handle events split across network chunks
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+
+      for (const line of lines) {
+        processLine(line);
+      }
+    }
+
+    // Flush any remaining characters in the TextDecoder
+    buffer += decoder.decode();
+    if (buffer.trim()) {
+      processLine(buffer);
+      buffer = '';
+    }
+
+    // If stream ended without an explicit completion event, mark as interrupted rather than assuming success
+    const finalReason = finishReasonReceived ?? 'interrupted';
+    onDone({ finishReason: finalReason, error: providerError });
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      onDone({ finishReason: 'cancelled' });
+    } else {
+      onDone({
+        finishReason: 'error',
+        error: err?.message || 'Network stream interrupted unexpectedly',
+      });
+    }
+  }
 }
 
 /**
@@ -346,7 +447,7 @@ function ChatContent() {
         titleJobsInFlightRef.current.delete(sessionId);
       }
     },
-    []
+    [updateSessionTitle]
   );
 
   const handleRegenerateTitle = useCallback(
@@ -438,27 +539,41 @@ function ChatContent() {
       }
 
       const reader = response.body.getReader();
-      const decoder = new TextDecoder();
       let accumulated = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      await parseChatStream(
+        reader,
+        (token) => {
+          accumulated += token;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantMessageId ? { ...m, content: accumulated } : m
+            )
+          );
+        },
+        ({ finishReason, error }) => {
+          let nextStatus: Message['status'] = 'completed';
+          if (finishReason === 'length') {
+            nextStatus = 'truncated';
+          } else if (finishReason === 'cancelled' || finishReason === 'interrupted') {
+            nextStatus = 'interrupted';
+          } else if (finishReason === 'error') {
+            nextStatus = 'failed';
+          }
 
-        const chunk = decoder.decode(value, { stream: true });
-        accumulated += chunk;
-
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantMessageId ? { ...m, content: accumulated } : m
-          )
-        );
-      }
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMessageId ? { ...m, status: 'completed' } : m
-        )
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantMessageId
+                ? {
+                    ...m,
+                    content: accumulated,
+                    status: nextStatus,
+                    errorMessage: error ? sanitizeErrorMessage(error) : undefined,
+                  }
+                : m
+            )
+          );
+        }
       );
 
       // Move this conversation to the top of the sessions list after successful save
@@ -481,7 +596,7 @@ function ChatContent() {
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantMessageId
-              ? { ...m, content: (m.content ? m.content + ' [Generation stopped]' : 'Generation stopped by user.'), status: 'completed' }
+              ? { ...m, status: 'interrupted' }
               : m
           )
         );
@@ -492,8 +607,7 @@ function ChatContent() {
             m.id === assistantMessageId
               ? {
                   ...m,
-                  content: m.content || '',
-                  status: 'failed',
+                  status: m.content ? 'interrupted' : 'failed',
                   errorMessage: sanitized,
                 }
               : m
@@ -507,7 +621,120 @@ function ChatContent() {
   };
 
   /**
-   * Retries generating a response for a failed assistant message in-place
+   * Continues generating for an assistant response that was truncated by token limit.
+   * Seamlessly appends tokens to the existing message without duplicating content.
+   */
+  const handleContinueMessage = async (assistantId: string) => {
+    if (isGenerating) return;
+
+    const targetMsg = messages.find((m) => m.id === assistantId);
+    if (!targetMsg || !targetMsg.content.trim()) return;
+
+    const existingContent = targetMsg.content;
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === assistantId
+          ? { ...m, status: 'streaming', errorMessage: undefined }
+          : m
+      )
+    );
+    setIsGenerating(true);
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+        },
+        body: JSON.stringify({
+          sessionId: activeSessionId && isUUID(activeSessionId) ? activeSessionId : undefined,
+          message: 'Continue previous response',
+          isContinuation: true,
+          continuationAssistantMessageId: assistantId,
+          partialContent: existingContent,
+        }),
+        signal: abortController.signal,
+      });
+
+      if (!response.ok || !response.body) {
+        const errorData = await response.json().catch(() => null);
+        const errMsg = sanitizeErrorMessage(errorData?.error || `Chat API error (${response.status})`);
+        throw new Error(errMsg);
+      }
+
+      const reader = response.body.getReader();
+      let accumulated = existingContent;
+
+      await parseChatStream(
+        reader,
+        (token) => {
+          accumulated += token;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId ? { ...m, content: accumulated } : m
+            )
+          );
+        },
+        ({ finishReason, error }) => {
+          let nextStatus: Message['status'] = 'completed';
+          if (finishReason === 'length') {
+            nextStatus = 'truncated';
+          } else if (finishReason === 'cancelled' || finishReason === 'interrupted') {
+            nextStatus = 'interrupted';
+          } else if (finishReason === 'error') {
+            nextStatus = 'failed';
+          }
+
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? {
+                    ...m,
+                    content: accumulated,
+                    status: nextStatus,
+                    errorMessage: error ? sanitizeErrorMessage(error) : undefined,
+                  }
+                : m
+            )
+          );
+        }
+      );
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, status: 'interrupted' }
+              : m
+          )
+        );
+      } else {
+        const sanitized = sanitizeErrorMessage(err?.message);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? {
+                  ...m,
+                  status: 'interrupted',
+                  errorMessage: sanitized,
+                }
+              : m
+          )
+        );
+      }
+    } finally {
+      setIsGenerating(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  /**
+   * Retries generating a response for a failed or interrupted assistant message in-place
    * without duplicating the user's message in chat history.
    */
   const handleRetryMessage = async (failedAssistantId: string) => {
@@ -542,7 +769,10 @@ function ChatContent() {
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+        },
         body: JSON.stringify({
           sessionId: activeSessionId && isUUID(activeSessionId) ? activeSessionId : undefined,
           message: textToRetry,
@@ -558,34 +788,48 @@ function ChatContent() {
       }
 
       const reader = response.body.getReader();
-      const decoder = new TextDecoder();
       let accumulated = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      await parseChatStream(
+        reader,
+        (token) => {
+          accumulated += token;
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === failedAssistantId ? { ...m, content: accumulated } : m
+            )
+          );
+        },
+        ({ finishReason, error }) => {
+          let nextStatus: Message['status'] = 'completed';
+          if (finishReason === 'length') {
+            nextStatus = 'truncated';
+          } else if (finishReason === 'cancelled' || finishReason === 'interrupted') {
+            nextStatus = 'interrupted';
+          } else if (finishReason === 'error') {
+            nextStatus = 'failed';
+          }
 
-        const chunk = decoder.decode(value, { stream: true });
-        accumulated += chunk;
-
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === failedAssistantId ? { ...m, content: accumulated } : m
-          )
-        );
-      }
-
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === failedAssistantId ? { ...m, status: 'completed' } : m
-        )
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === failedAssistantId
+                ? {
+                    ...m,
+                    content: accumulated,
+                    status: nextStatus,
+                    errorMessage: error ? sanitizeErrorMessage(error) : undefined,
+                  }
+                : m
+            )
+          );
+        }
       );
     } catch (err: any) {
       if (err.name === 'AbortError') {
         setMessages((prev) =>
           prev.map((m) =>
             m.id === failedAssistantId
-              ? { ...m, content: (m.content ? m.content + ' [Generation stopped]' : 'Generation stopped by user.'), status: 'completed' }
+              ? { ...m, status: 'interrupted' }
               : m
           )
         );
@@ -596,8 +840,7 @@ function ChatContent() {
             m.id === failedAssistantId
               ? {
                   ...m,
-                  content: m.content || '',
-                  status: 'failed',
+                  status: m.content ? 'interrupted' : 'failed',
                   errorMessage: sanitized,
                 }
               : m
@@ -720,11 +963,11 @@ function ChatContent() {
                     className={`flex items-start gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}
                   >
                     {!isUser && m.id === latestAssistantMessageId && (
-                      <AssistantAvatar isLatest={true} animated={m.status !== 'failed'} />
+                      <AssistantAvatar isLatest={true} animated={m.status !== 'failed' && m.status !== 'interrupted'} />
                     )}
 
                     <div className={`space-y-1 max-w-[85%] sm:max-w-[80%]`}>
-                      {m.status === 'failed' ? (
+                      {m.status === 'failed' && !m.content ? (
                         <div className="p-4 rounded-2xl rounded-tl-xs text-xs sm:text-sm bg-amber-50/80 dark:bg-[#1A1813] border border-amber-200 dark:border-amber-900/40 text-[#78350F] dark:text-[#FDE68A] shadow-xs space-y-3">
                           <div className="flex items-start gap-2.5">
                             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
@@ -755,11 +998,13 @@ function ChatContent() {
                         <div
                           className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed border ${
                             isUser
-                              ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] border-transparent rounded-tr-xs'
-                              : 'bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] border-[#E2E2DC] dark:border-[#1F2024] rounded-tl-xs shadow-xs'
+                              ? 'bg-[#4F648C] text-white dark:bg-[#91A7D0] dark:text-[#151B26] border-transparent rounded-tr-xs whitespace-pre-wrap break-words'
+                              : 'bg-white dark:bg-[#18191C] text-[#18191B] dark:text-[#F3F4F6] border-[#E2E2DC] dark:border-[#1F2024] rounded-tl-xs shadow-xs min-w-0 max-w-full overflow-hidden break-words'
                           }`}
                         >
-                          {m.status === 'streaming' && !m.content ? (
+                          {isUser ? (
+                            m.content
+                          ) : m.status === 'streaming' && !m.content ? (
                             <div className="flex items-center gap-1.5 py-1 px-0.5" aria-label="Assistant is thinking">
                               <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#91A7D0]/70 animate-pulse" />
                               <span className="w-2 h-2 rounded-full bg-[#4F648C]/70 dark:bg-[#91A7D0]/70 animate-pulse [animation-delay:200ms]" />
@@ -768,9 +1013,41 @@ function ChatContent() {
                             </div>
                           ) : (
                             <>
-                              {m.content}
-                              {m.status === 'streaming' && (
-                                <span className="inline-block w-1.5 h-4 ml-1 bg-current animate-pulse align-middle" aria-hidden="true" />
+                              <MarkdownContent content={m.content} isStreaming={m.status === 'streaming'} />
+
+                              {/* Truncated by token limit indicator with Continue action */}
+                              {m.status === 'truncated' && (
+                                <div className="mt-2.5 flex items-center justify-between gap-2 pt-2 border-t border-[#E2E2DC]/70 dark:border-[#1F2024]">
+                                  <div className="flex items-center gap-1.5 text-xs text-[#71757E] dark:text-[#8C9099]">
+                                    <Clock className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Response reached length limit</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleContinueMessage(m.id)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-[#4F648C] hover:bg-[#405374] dark:bg-[#91A7D0] dark:hover:bg-[#A6B9DC] text-white dark:text-[#151B26] transition-colors shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F648C]"
+                                  >
+                                    <span>Continue</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {/* Interrupted or provider error with preserved content */}
+                              {(m.status === 'interrupted' || (m.status === 'failed' && Boolean(m.content))) && (
+                                <div className="mt-2.5 flex items-center justify-between gap-2 pt-2 border-t border-[#E2E2DC]/70 dark:border-[#1F2024]">
+                                  <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Response interrupted</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRetryMessage(m.id)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-800 transition-colors shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                                  >
+                                    <RotateCcw className="w-3 h-3" />
+                                    <span>Retry</span>
+                                  </button>
+                                </div>
                               )}
                             </>
                           )}

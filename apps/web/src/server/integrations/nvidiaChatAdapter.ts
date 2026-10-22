@@ -10,8 +10,14 @@ export interface StreamChatParams {
   message: string;
   history?: ChatHistoryMessage[];
   signal?: AbortSignal;
+  maxTokens?: number;
+  format?: 'sse' | 'raw';
   onToken?: (token: string) => void;
-  onComplete?: (fullText: string, tokenUsage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number }) => void;
+  onComplete?: (
+    fullText: string,
+    tokenUsage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number },
+    finishReason?: 'stop' | 'length' | 'cancelled' | 'error' | 'interrupted'
+  ) => void;
   onError?: (error: Error) => void;
 }
 
@@ -42,7 +48,8 @@ Always maintain warm, supportive, and non-judgmental language. You respond warml
 You do NOT provide medical or clinical diagnosis, prescribe medication, or claim guaranteed improvement.
 If the student indicates severe acute distress or thoughts of self-harm, gently urge them to reach out to campus emergency services or the 988 Suicide & Crisis Lifeline.
 Do not invent counsellor availability, appointments, contact details, or successful referrals.
-Keep your responses concise and natural, usually two to four short paragraphs with at most one relevant follow-up question.`;
+Keep your responses concise and natural, usually two to four short paragraphs with at most one relevant follow-up question.
+Format your responses using clean, valid Markdown. Always place a blank line between paragraphs. When providing suggestions or lists, put each list item on its own separate line preceded by a standard list marker (e.g. "- " or "1. ") with a blank line before the list. Never concatenate list items together in a single continuous line.`;
 
 export class NvidiaChatAdapter {
   private client: OpenAI | null = null;
@@ -185,6 +192,8 @@ export class NvidiaChatAdapter {
     ];
 
     const encoder = new TextEncoder();
+    const tokenLimit = params.maxTokens || parseInt(process.env.NVIDIA_MAX_TOKENS || '2048', 10);
+    const isSse = params.format !== 'raw';
 
     const makeStreamRequest = async (currentSignal?: AbortSignal) => {
       const response = await client.chat.completions.create(
@@ -193,7 +202,7 @@ export class NvidiaChatAdapter {
           messages,
           temperature: 0.7,
           top_p: 0.95,
-          max_tokens: 512,
+          max_tokens: tokenLimit,
           stream: true,
           stream_options: {
             include_usage: true,
@@ -240,6 +249,7 @@ export class NvidiaChatAdapter {
       async start(controller) {
         let accumulatedText = '';
         let tokenUsage: { promptTokens?: number; completionTokens?: number; totalTokens?: number } | undefined;
+        let providerFinishReason: string | null = null;
         let streamStarted = false;
 
         try {
@@ -262,6 +272,10 @@ export class NvidiaChatAdapter {
             const choice = chunk.choices[0];
             if (!choice) continue;
 
+            if (choice.finish_reason) {
+              providerFinishReason = choice.finish_reason;
+            }
+
             // Strict invariant: Never display or persist internal reasoning / thinking fields
             // Only stream regular delta content
             const deltaContent = choice.delta?.content;
@@ -274,7 +288,11 @@ export class NvidiaChatAdapter {
                 streamStarted = true;
                 accumulatedText += cleanChunk;
                 params.onToken?.(cleanChunk);
-                controller.enqueue(encoder.encode(cleanChunk));
+                if (isSse) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: cleanChunk })}\n\n`));
+                } else {
+                  controller.enqueue(encoder.encode(cleanChunk));
+                }
               }
             }
           }
@@ -284,21 +302,87 @@ export class NvidiaChatAdapter {
             const fallbackMessage =
               "I'm here to support you. Could you tell me a little more about how you're feeling right now?";
             accumulatedText = fallbackMessage;
-            controller.enqueue(encoder.encode(fallbackMessage));
+            if (isSse) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: fallbackMessage })}\n\n`));
+            } else {
+              controller.enqueue(encoder.encode(fallbackMessage));
+            }
+          }
+
+          const finalFinishReason: 'stop' | 'length' | 'cancelled' | 'error' | 'interrupted' =
+            params.signal?.aborted
+              ? 'cancelled'
+              : providerFinishReason === 'length'
+              ? 'length'
+              : providerFinishReason === 'stop'
+              ? 'stop'
+              : streamStarted
+              ? 'stop'
+              : 'interrupted';
+
+          // Diagnostic logging: strictly without conversation text or secrets
+          console.log('[NvidiaChatAdapter] Stream diagnostics:', {
+            finishReason: finalFinishReason,
+            rawProviderFinishReason: providerFinishReason,
+            tokenUsage,
+            streamStarted,
+            aborted: Boolean(params.signal?.aborted),
+            maxTokens: tokenLimit,
+            textLength: accumulatedText.length,
+          });
+
+          // Always report onComplete if we have accumulated content so partial text is persisted
+          if (accumulatedText.trim()) {
+            params.onComplete?.(accumulatedText, tokenUsage, finalFinishReason);
+          }
+
+          if (isSse) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({
+                  done: true,
+                  finishReason: finalFinishReason,
+                  tokenUsage,
+                })}\n\n`
+              )
+            );
           }
 
           if (params.signal?.aborted) {
-            // Mark explicitly as stopped/aborted
             params.onError?.(new Error('Generation stopped by user'));
-          } else {
-            params.onComplete?.(accumulatedText, tokenUsage);
           }
 
           controller.close();
         } catch (streamError: any) {
-          // If streaming already started, pass sanitized error through
           const parsed = self.parseUpstreamError(streamError);
           const sanitizedError = new NvidiaChatServiceError(parsed.message, parsed.statusCode, parsed.code);
+
+          console.log('[NvidiaChatAdapter] Stream diagnostics error:', {
+            finishReason: 'error',
+            code: parsed.code,
+            streamStarted,
+            accumulatedLength: accumulatedText.length,
+          });
+
+          if (accumulatedText.trim()) {
+            params.onComplete?.(accumulatedText, tokenUsage, 'interrupted');
+          }
+
+          if (isSse) {
+            try {
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${JSON.stringify({
+                    error: sanitizedError.message,
+                    finishReason: 'error',
+                  })}\n\n`
+                )
+              );
+            } catch {
+              // Controller might already be closed
+            }
+          }
+
           params.onError?.(sanitizedError);
           controller.error(sanitizedError);
         }

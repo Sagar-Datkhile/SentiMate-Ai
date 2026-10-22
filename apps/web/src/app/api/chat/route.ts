@@ -23,7 +23,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { message, sessionId, clientMessageId } = body;
+    const {
+      message,
+      sessionId,
+      clientMessageId,
+      isContinuation,
+      continuationAssistantMessageId,
+      partialContent,
+    } = body;
 
     if (!message || typeof message !== 'string' || !message.trim()) {
       return NextResponse.json(
@@ -179,23 +186,38 @@ export async function POST(req: NextRequest) {
     }
 
     // 5. Idempotent persistence of user message (before requesting model response)
-    // Only persist if storage consent is granted
-    if (resolvedSessionId && hasStorageConsent) {
+    // Only persist if storage consent is granted and not a continuation request
+    if (resolvedSessionId && hasStorageConsent && !isContinuation) {
       await chatRepository.saveUserMessage(resolvedSessionId, message, clientMessageId);
     }
 
+    const isSse =
+      req.headers.get('accept')?.includes('text/event-stream') ||
+      !req.headers.get('accept') ||
+      req.headers.get('accept')?.includes('*/*');
+
+    const promptMessage = isContinuation
+      ? `Continue your previous response directly and seamlessly from the exact character where it stopped. Do not repeat any words already spoken. Begin immediately with the next characters/words continuing: "${String(partialContent || '').slice(-60)}"`
+      : message;
+
     // 6. Connect to NVIDIA Nemotron streaming adapter
     const stream = await nvidiaChatAdapter.streamResponse({
-      message,
+      message: promptMessage,
       history,
       signal: req.signal,
+      format: isSse ? 'sse' : 'raw',
       onComplete: async (fullText, tokenUsage) => {
         if (resolvedSessionId && hasStorageConsent && fullText.trim()) {
+          const contentToSave = isContinuation && partialContent
+            ? `${partialContent}${fullText}`
+            : fullText;
+
           await chatRepository.saveAssistantMessage(
             resolvedSessionId,
-            fullText,
+            contentToSave,
             env.nvidiaModel || 'nvidia/nemotron-3-super-120b-a12b',
-            tokenUsage?.totalTokens
+            tokenUsage?.totalTokens,
+            continuationAssistantMessageId
           );
         }
       },
@@ -205,7 +227,7 @@ export async function POST(req: NextRequest) {
     });
 
     const responseHeaders: Record<string, string> = {
-      'Content-Type': 'text/plain; charset=utf-8',
+      'Content-Type': isSse ? 'text/event-stream; charset=utf-8' : 'text/plain; charset=utf-8',
       'Cache-Control': 'no-cache, no-transform',
       'X-Content-Type-Options': 'nosniff',
     };
